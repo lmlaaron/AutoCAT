@@ -1,0 +1,108 @@
+[32mLoading config...[0m
+[32mMemory hierarchy built.[0m
+[32mLoading tracefile...[0m
+[32mLoaded tracefile ../gen_test/test[0m
+[32mBegin simulation![0m
+[32m0:	Reading 0[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m1:	Reading 1[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m2:	Reading 2[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m3:	Reading 3[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m4:	Reading 4[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m5:	Reading 5[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m6:	Reading 6[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m7:	Reading 7[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m8:	Reading 0[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m9:	Reading 1[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m10:	Reading 2[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m11:	Reading 3[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m12:	Reading 4[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m13:	Reading 5[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m14:	Reading 6[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m15:	Reading 7[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m16:	Reading 0[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m17:	Reading 1[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m18:	Reading 2[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m19:	Reading 3[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m20:	Reading 4[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m21:	Reading 5[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m22:	Reading 6[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m23:	Reading 7[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m24:	Reading 6[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m25:	Reading 5[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m26:	Reading 4[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m27:	Reading 3[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m28:	Reading 2[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m29:	Reading 1[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32mSimulation complete[0m
+[32m
+Number of instructions: 30[0m
+[32m
+Total cycles taken: 8030
+[0m
+[32mcache_1[0m
+[32m	Number of accesses: 30[0m
+[32m	Number of hits: 22[0m
+[32m	Number of misses: 8[0m
+[32m
+AMATs:
+{'cache_1': 267.6666666666667, 'mem': 1000}[0m

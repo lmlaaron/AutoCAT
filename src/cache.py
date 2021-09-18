@@ -46,12 +46,23 @@ class Cache:
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
+            print(block_offset)
+            print(index)
+            print(tag)
 
             #Get the tags in this set
             in_cache = self.data[index].keys()
+
+            print(index)
+            print(self.data[index])
+            print(self.data[index].keys())
+            print(tag)
+
             
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
+                if len(tag) == 0:
+                    print('false')
                 r = response.Response({self.name:True}, self.hit_time)
             else:
                 #Read from the next level of memory
@@ -141,11 +152,21 @@ class Cache:
         address_size = len(address) * 4
         binary_address = bin(int(address, 16))[2:].zfill(address_size)
 
-        block_offset = binary_address[-self.block_offset_size:]
-        index = binary_address[-(self.block_offset_size+self.index_size):-self.block_offset_size]
-        if index == '':
-            index = '0'
-        tag = binary_address[:-(self.block_offset_size+self.index_size)]
+        if self.block_offset_size > 0:
+            block_offset = binary_address[-self.block_offset_size:]
+            index = binary_address[-(self.block_offset_size+self.index_size):-self.block_offset_size]
+            if index == '':
+                index = '0'
+            tag = binary_address[:-(self.block_offset_size+self.index_size)]
+        else:
+            block_offset = '0'
+            index = binary_address[-(self.index_size):]
+            if index == '':
+                index = '0'
+                tag = binary_address
+            else:
+                tag = binary_address[:-self.index_size] 
+
         return (block_offset, index, tag)
 
 class InvalidOpError(Exception):
