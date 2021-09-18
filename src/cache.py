@@ -160,12 +160,13 @@ class Cache:
             tag = binary_address[:-(self.block_offset_size+self.index_size)]
         else:
             block_offset = '0'
-            index = binary_address[-(self.index_size):]
-            if index == '':
+            if self.index_size != 0:
+                index = binary_address[-(self.index_size):]
+                tag = binary_address[:-self.index_size] 
+            else:
                 index = '0'
                 tag = binary_address
-            else:
-                tag = binary_address[:-self.index_size] 
+
 
         return (block_offset, index, tag)
 

@@ -130,6 +130,12 @@ def simulate(hierarchy, trace, logger):
             responses.append(r)
         else:
             raise InvalidOpError
+        
+        if int(address, 16) >= l1.block_size * l1.n_blocks :   # receiver adress space is larger than the cache size, receiver is able to measure time      
+            print('trace ' + address + ' ' + str(r.time) + '\n' ) 
+        else:  # senders address space is within the cache size, sender do not measure time
+            print('trace ' + address + ' -1\n')
+
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
 

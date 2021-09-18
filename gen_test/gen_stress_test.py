@@ -15,5 +15,7 @@ with open('stress_trace', 'w') as f:
         # the output address space is twice the size of cache_size
         # one half for the sender and one half for the receiver	
 	    address = hex(int(address, 16) % (2*cache_size))[2:]	
-	
+        address = '0' * ( address_length - len(address) ) + address
+
         f.write(address + ' ' + random.choice(['R', 'R']) + '\n')
+        
