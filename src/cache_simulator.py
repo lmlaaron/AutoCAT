@@ -139,6 +139,39 @@ def simulate(hierarchy, trace, logger):
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
 
+#Loop through the instructions in the tracefile and use
+#the given memory hierarchy to find AMAT
+def interactive_simulate(hierarchy, logger):
+    #responses = []
+    ##We only interface directly with L1. Reads and writes will automatically
+    ##interact with lower levels of the hierarchy
+    #l1 = hierarchy['cache_1']
+    #for current_step in range(len(trace)):
+    #    instruction = trace[current_step]
+    #    address, op = instruction.split()
+    #    #Call read for this address on our memory hierarchy
+    #    if op == 'R':
+    #        logger.info(str(current_step) + ':\tReading ' + address)
+    #        r = l1.read(address, current_step)
+    #        logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+    #        responses.append(r)
+    #    #Call write
+    #    elif op == 'W':
+    #        logger.info(str(current_step) + ':\tWriting ' + address)
+    #        r = l1.write(address, True, current_step)
+    #        logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+    #        responses.append(r)
+    #    else:
+    #        raise InvalidOpError
+    #    
+    #    if int(address, 16) >= l1.block_size * l1.n_blocks :   # receiver adress space is larger than the cache size, receiver is able to measure time      
+    #        print('trace ' + address + ' ' + str(r.time) + '\n' ) 
+    #    else:  # senders address space is within the cache size, sender do not measure time
+    #        print('trace ' + address + ' -1\n')
+
+    #logger.info('Simulation complete')
+    #analyze_results(hierarchy, responses, logger)
+
 def analyze_results(hierarchy, responses, logger):
     #Parse all the responses from the simulation
     n_instructions = len(responses)

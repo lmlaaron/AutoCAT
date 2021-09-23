@@ -5,7 +5,7 @@
 # input: filename of the cache tracefile such as trace1_1, trace2_1, trace2_2
 # output: histogram
 import numpy
-
+import math
 def motif_hist(filename, max_l, cache_size):
     data = numpy.loadtxt(filename)
     hist={}
@@ -17,6 +17,8 @@ def motif_hist(filename, max_l, cache_size):
             key += ' '
             key += str(int(c))
         print(key)
+        # address >= cache_size means a receiver access
+        # address < cache_size means a sender access
         if data[i][0] >= cache_size and data[i][1] == 1001: #receiver cache hiss
             temp= hist.get(key)
             if temp == None:
@@ -29,4 +31,14 @@ def motif_hist(filename, max_l, cache_size):
                hist[key] = (0,1)
             else:
                hist[key] = (temp[0], temp[1]+1)
-    return hist 
+    return hist
+
+# input: histogram
+# output: sorted histogram by confidence
+# the confidence is calculated using Normal approximation interval
+# see this: https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+# n = n_s + n_f
+# score = n_s / n - 1.96 / (n \sqrt(n)) \sqrt(n_s * n_f)
+def sort_hist(hist):
+    sorted_hist = sorted(hist.items(), key = lambda x: (-( max(x[1][0], x[1][1]) * 1.0 / (x[1][0] + x[1][1]) - 1.96 / ( (x[1][0] + x[1][1])* math.sqrt(x[1][0] + x[1][1]))* math.sqrt(x[1][0]*x[1][1])), -x[1][0] - x[1][1] ))
+    return sorted_hist
