@@ -103,8 +103,8 @@ def print_cache(cache):
         table = UnixTable(sets)
         table.title = cache.name
         table.inner_row_border = True
-        print "\n"
-        print table.table
+        print("\n")
+        print(table.table)
 
 #Loop through the instructions in the tracefile and use
 #the given memory hierarchy to find AMAT
@@ -142,6 +142,7 @@ def simulate(hierarchy, trace, logger):
 #Loop through the instructions in the tracefile and use
 #the given memory hierarchy to find AMAT
 def interactive_simulate(hierarchy, logger):
+    return
     #responses = []
     ##We only interface directly with L1. Reads and writes will automatically
     ##interact with lower levels of the hierarchy
