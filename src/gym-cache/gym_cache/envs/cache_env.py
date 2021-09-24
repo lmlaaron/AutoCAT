@@ -11,7 +11,6 @@ from terminaltables.other_tables import UnixTable
 from cache_simulator import *
 
 class CacheEnv(gym.Env):
-
   """
   Description:
     A L1 cache with total_size, num_ways 
@@ -40,7 +39,6 @@ class CacheEnv(gym.Env):
   
   Episode termination:
     after some threshold of accuracy for most recent 100 predictions
-
   """
   metadata = {'render.modes': ['human']}
 
