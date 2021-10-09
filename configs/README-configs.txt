@@ -1,5 +1,8 @@
 CacheSimulator uses YAML for formatting the cache configuration file
 
+To prevent any errors, use python2 as the default
+otherwise you may encounter TypeError: 'dict_keys' object is not subscriptable
+
 There are three required sections for a config file:
 - architecture
 - cache_1

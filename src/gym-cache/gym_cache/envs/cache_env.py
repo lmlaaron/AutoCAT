@@ -65,7 +65,7 @@ class CacheEnv(gym.Env):
     
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.action_space = spaces.Discrete(self.cache_size * 2)
-
+    self.observation_space = spaces.Discrete(3) # high, low, and NA
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
@@ -77,14 +77,15 @@ class CacheEnv(gym.Env):
     r = self.l1.read(address, self.current_step)
     self.current_step += 1
     #return observation, reward, done, info
-    return r.time, 0, False, None
+    info = {}
+    return r.time, 0, False, info
   
   def reset(self):
     print('Reset...')
-    return None
+    return self
 
   def render(self, mode='human'):
-    return
+    return 
 
   def close(self):
     return

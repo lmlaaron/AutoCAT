@@ -15,7 +15,7 @@ class Cache:
         self.logger = logger
         
         #Total number of sets in the cache
-        self.n_sets = n_blocks / associativity
+        self.n_sets =int( n_blocks / associativity )
         
         #Dictionary that holds the actual cache data
         self.data = {}
@@ -51,7 +51,7 @@ class Cache:
             print(tag)
 
             #Get the tags in this set
-            in_cache = self.data[index].keys()
+            in_cache = list(self.data[index].keys())
 
             print(index)
             print(self.data[index])
@@ -99,7 +99,7 @@ class Cache:
             r = response.Response({self.name:True}, self.write_time)
         else:
             block_offset, index, tag = self.parse_address(address)
-            in_cache = self.data[index].keys()
+            in_cache = list(self.data[index].keys())
 
             if tag in in_cache:
                 #Set dirty bit to true if this block was in cache
