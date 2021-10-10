@@ -2,8 +2,11 @@
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
-
+import numpy
+import numpy as np
 import sys
+import math
+import random
 sys.path.insert(0, '../../../')
 
 import yaml, cache, argparse, logging, pprint
@@ -65,7 +68,16 @@ class CacheEnv(gym.Env):
     
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.action_space = spaces.Discrete(self.cache_size * 2)
-    self.observation_space = spaces.Discrete(3) # high, low, and NA
+
+    self.x_range = 10000
+    high = np.array(
+        [
+            self.x_range,
+        ],
+        dtype=np.float32,
+    )
+    self.observation_space = spaces.Box(-high, high, dtype=np.float32)
+
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
@@ -78,11 +90,14 @@ class CacheEnv(gym.Env):
     self.current_step += 1
     #return observation, reward, done, info
     info = {}
+    # the observation (r.time) in this case 
+    # must be consistent with the observation space
     return r.time, 0, False, info
   
   def reset(self):
     print('Reset...')
-    return self
+    self.state = [0.0 ]
+    return np.array(self.state, dtype=np.float32)
 
   def render(self, mode='human'):
     return 
