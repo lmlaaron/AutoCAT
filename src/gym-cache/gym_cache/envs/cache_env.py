@@ -64,8 +64,6 @@ class CacheEnv(gym.Env):
     self.configs = yaml.load(self.config_file)
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
-    self.action_space = spaces.Discrete(self.cache_size * 2)
-    
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.action_space = spaces.Discrete(self.cache_size * 2)
 
@@ -85,13 +83,14 @@ class CacheEnv(gym.Env):
 
   def step(self, action):
     print('Step...')
-    address = str(action)
+    address = str(action)    
     r = self.l1.read(address, self.current_step)
     self.current_step += 1
     #return observation, reward, done, info
     info = {}
     # the observation (r.time) in this case 
     # must be consistent with the observation space
+    # return observation, reward, done?, info
     return r.time, 0, False, info
   
   def reset(self):
