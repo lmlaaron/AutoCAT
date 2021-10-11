@@ -65,8 +65,7 @@ class CacheEnv(gym.Env):
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
     self.hierarchy = build_hierarchy(self.configs, self.logger)
-    self.action_space = spaces.Discrete(self.cache_size * 2)
-
+    
     self.x_range = 10000
     high = np.array(
         [
@@ -74,7 +73,23 @@ class CacheEnv(gym.Env):
         ],
         dtype=np.float32,
     )
-    self.observation_space = spaces.Box(-high, high, dtype=np.float32)
+
+    #self.action_space = spaces.Discrete(self.cache_size * 2)
+    # let's define the action_space as consecutive 6 accesses plus one guess of 
+    # the latency of the last access
+    # and define the observation space as just one latency 
+    self.action_space = spaces.MultiDiscrete(
+      [self.cache_size * 2,
+      self.cache_size * 2,
+      self.cache_size * 2,
+      self.cache_size * 2,
+      self.cache_size * 2,    
+      self.cache_size * 2,
+      10000 #guess of the latency
+    ])
+    
+    self.observation_space = spaces.Discrete(10000)
+    #self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
@@ -83,20 +98,42 @@ class CacheEnv(gym.Env):
 
   def step(self, action):
     print('Step...')
-    address = str(action)    
-    r = self.l1.read(address, self.current_step)
+
+    if action.ndim > 1:  # workaround for training and predict discrepency
+      action = action[0]
+
+    for i in range(0,6):
+      address = str(action[i])  # six consecutive accesses    
+      r = self.l1.read(address, self.current_step) # measure the access latency
+
+    #check the 
+    guess = action[6]
+    ground_truth = float(r.time)
+
+    if ground_truth == guess: #abs(ground_truth - guess) < 1:
+      reward = 1
+    else:
+      reward = 0
+    #reward = 10000 - abs(ground_truth - guess) 
+    
     self.current_step += 1
     #return observation, reward, done, info
     info = {}
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
-    return r.time, 0, False, info
+    return r.time, reward, True, info
   
   def reset(self):
     print('Reset...')
-    self.state = [0.0 ]
-    return np.array(self.state, dtype=np.float32)
+    
+    print('Initializing...')
+    self.l1 = self.hierarchy['cache_1']
+    self.current_step = 0
+
+    return 0
+    #self.state = [1000 ]
+    #return np.array(self.state, dtype=np.float32)
 
   def render(self, mode='human'):
     return 

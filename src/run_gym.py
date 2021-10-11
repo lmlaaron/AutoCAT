@@ -11,15 +11,17 @@ env = gym.make("gym_cache:cache-v0")
 #model.learn(total_timesteps=25000)
 
 model = A2C("MlpPolicy", env, verbose=1)
-model.learn(total_timesteps=25000)
+model.learn(total_timesteps=2500)
 
 observation = env.reset()
-for _ in range(1000):
-    env.render()
-    action = env.action_space.sample() #my agent
-    #action, _state = model.predict(observation, deterministic = True)
+for i in range(2000):
+    print(i)
+    #env.render()
+    #action = env.action_space.sample() #my agent
+    action, _state = model.predict(observation, deterministic = False)
     observation, reward, done, info = env.step(action)
-
+    print(action)
+    print(reward)
     if done:
         observation = env.reset()
 env.close()
