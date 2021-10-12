@@ -46,17 +46,17 @@ class Cache:
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
-            print(block_offset)
-            print(index)
-            print(tag)
+            #print(block_offset)
+            #print(index)
+            #print(tag)
 
             #Get the tags in this set
             in_cache = list(self.data[index].keys())
 
-            print(index)
-            print(self.data[index])
-            print(self.data[index].keys())
-            print(tag)
+            #print(index)
+            #print(self.data[index])
+            #print(self.data[index].keys())
+            #print(tag)
 
             
             #If this tag exists in the set, this is a hit

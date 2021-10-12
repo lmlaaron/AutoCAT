@@ -85,7 +85,7 @@ class CacheEnv(gym.Env):
       self.cache_size * 2,
       self.cache_size * 2,    
       self.cache_size * 2,
-      10000 #guess of the latency
+      2 #10000 #guess of the latency
     ])
     
     self.observation_space = spaces.Discrete(10000)
@@ -108,12 +108,22 @@ class CacheEnv(gym.Env):
 
     #check the 
     guess = action[6]
-    ground_truth = float(r.time)
+    if r.time > 10:  #cache miss
+      ground_truth = 1
+    else:           # cache hit
+      ground_truth = 0
 
-    if ground_truth == guess: #abs(ground_truth - guess) < 1:
+    #ground_truth = int(r.time)
+    
+    print(ground_truth)
+    print(guess)
+
+    if ground_truth == guess:#ground_truth == 1 and guess == 1: #abs(ground_truth - guess) < 1:
       reward = 1
+      done = True
     else:
       reward = 0
+      done = False
     #reward = 10000 - abs(ground_truth - guess) 
     
     self.current_step += 1
@@ -122,7 +132,7 @@ class CacheEnv(gym.Env):
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
-    return r.time, reward, True, info
+    return r.time, reward, done, info
   
   def reset(self):
     print('Reset...')
@@ -130,7 +140,6 @@ class CacheEnv(gym.Env):
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
-
     return 0
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
