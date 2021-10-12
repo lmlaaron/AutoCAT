@@ -11,4 +11,9 @@ register(
     entry_point='gym_cache.envs:CacheEpisodeEnv',
 )
 
+register(
+    id='cache-guessing-game-v0',
+    entry_point='gym_cache.envs:CacheGuessingGameEnv',
+)
+
 

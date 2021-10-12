@@ -13,7 +13,7 @@ import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
 from cache_simulator import *
 
-class CacheEpisodeEnv(gym.Env):
+class CacheGuessingGameEnv(gym.Env):
   """
   Description:
     A L1 cache with total_size, num_ways 
@@ -74,23 +74,29 @@ class CacheEpisodeEnv(gym.Env):
         dtype=np.float32,
     )
 
-    # action step contains three values
+    # action step contains four values
     # 1. access address
     # 2. whether to end and make a guess now?
-    # 3. if make a guess, what is the latency?
+    # 3. whether to invoke the victim access
+    # 4. if make a guess, what is the victim's accessed address?
     self.action_space = spaces.MultiDiscrete(
-      [self.cache_size * 2, #cache access
+      [self.cache_size,     #cache access
       2,                    #whether to make a guess
-      2                     #what is the latency
+      2,                    #whether to invoke victim access
+      self.cache_size       #what is the guess of the victim's access
       ])
-    
-    self.observation_space = spaces.Discrete(10000) # hit or miss
+
+    self.victim_address = 1 
+    self.victim_accessed = False
+    self.observation_space = spaces.Discrete(10000)
+    #self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
-    return
 
+    return
+  
   def step(self, action):
     print('Step...')
 
@@ -99,44 +105,49 @@ class CacheEpisodeEnv(gym.Env):
 
     address = str(action[0])  # address
     is_guess = action[1]      # check whether to guess or not
-    is_miss = action[2]        # check hit or miss
+    is_victim = action[2]     # check whether to invoke victim
+    victim_addr = str(action[3]) # victim address
 
-    r = self.l1.read(address, self.current_step) # measure the access latency
-
-    #check the 
-    if r.time > 10:  #cache miss
-      is_miss_ground_truth = 1
-    else:           # cache hit
-      is_miss_ground_truth = 0
-
-    print(is_miss_ground_truth)
-    print(is_guess)
-
-    if is_guess == 1:
-      if is_miss_ground_truth == is_guess:
-        reward = 5
-        done = True
+    if is_victim == True:
+      if self.victim_accessed == False:
+        self.victim_accessed = True
+        print(self.victim_address)
+        self.l1.read(str(self.victim_address), self.current_step)
+        self.current_step += 1
+        reward = 0
+        done = False
       else:
-        reward = -10
+        reward = -100
         done = True
     else:
-      reward = 0
-      done = False
-    
+      if is_guess == True:
+        if self.victim_accessed and victim_addr == str(self.victim_address):
+          reward = 5
+          done = True
+        else:
+          reward = -10
+          done = True
+      else:
+        r = self.l1.read(address, self.current_step) # measure the access latency
+        reward = 0
+        done = False
+
     self.current_step += 1
     #return observation, reward, done, info
     info = {}
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
-    return r.time, reward, done, info
-  
+    return 0, reward, done, info
+
   def reset(self):
     print('Reset...')
     
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
+    self.victim_accessed = False
+    self.victim_address = random.randint(0,self.cache_size) 
     return 0
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
