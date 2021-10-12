@@ -13,7 +13,7 @@ import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
 from cache_simulator import *
 
-class CacheEnv(gym.Env):
+class CacheEpisodeEnv(gym.Env):
   """
   Description:
     A L1 cache with total_size, num_ways 
@@ -74,22 +74,17 @@ class CacheEnv(gym.Env):
         dtype=np.float32,
     )
 
-    #self.action_space = spaces.Discrete(self.cache_size * 2)
-    # let's define the action_space as consecutive 6 accesses plus one guess of 
-    # the latency of the last access
-    # and define the observation space as just one latency 
+    # action step contains three values
+    # 1. access address
+    # 2. whether to end and make a guess now?
+    # 3. if make a guess, what is the latency?
     self.action_space = spaces.MultiDiscrete(
-      [self.cache_size * 2,
-      self.cache_size * 2,
-      self.cache_size * 2,
-      self.cache_size * 2,
-      self.cache_size * 2,    
-      self.cache_size * 2,
-      2 #10000 #guess of the latency
-    ])
+      [self.cache_size * 2, #cache access
+      2,                    #whether to make a guess
+      2                     #what is the latency
+      ])
     
-    self.observation_space = spaces.Discrete(10000)
-    #self.observation_space = spaces.Box(-high, high, dtype=np.float32)
+    self.observation_space = spaces.Discrete(10000) # hit or miss
 
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
@@ -102,25 +97,33 @@ class CacheEnv(gym.Env):
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]
 
-    for i in range(0,6):
-      address = str(action[i])  # six consecutive accesses    
-      r = self.l1.read(address, self.current_step) # measure the access latency
+    
+
+    address = str(action[0])  # address
+    is_guess = action[1]      # check whether to guess or not
+    is_miss = action[2]        # check hit or miss
+
+    r = self.l1.read(address, self.current_step) # measure the access latency
+
 
     #check the 
-    guess = action[6]
     if r.time > 10:  #cache miss
-      ground_truth = 1
+      is_miss_ground_truth = 1
     else:           # cache hit
-      ground_truth = 0
+      is_miss_ground_truth = 0
 
-    print(ground_truth)
-    print(guess)
+    print(is_miss_ground_truth)
+    print(is_guess)
 
-    if ground_truth == guess:
-      reward = 1
-      done = True
+    if is_guess == 1:
+      if is_miss_ground_truth == is_guess:
+        reward = 100
+        done = True
+      else:
+        reward = -100
+        done = True
     else:
-      reward = 0
+      reward = -1
       done = False
     
     self.current_step += 1
