@@ -117,13 +117,13 @@ class CacheEpisodeEnv(gym.Env):
 
     if is_guess == 1:
       if is_miss_ground_truth == is_guess:
-        reward = 100
+        reward = 5
         done = True
       else:
-        reward = -100
+        reward = -10
         done = True
     else:
-      reward = -1
+      reward = 0
       done = False
     
     self.current_step += 1
