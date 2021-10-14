@@ -41,7 +41,7 @@ class CacheGuessingGameEnv(gym.Env):
     fresh cache with nolines
   
   Episode termination:
-    after some threshold of accuracy for most recent 100 predictions
+    when the attacker make a guess, episode terminates
   """
   metadata = {'render.modes': ['human']}
 
@@ -103,42 +103,50 @@ class CacheGuessingGameEnv(gym.Env):
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]
 
-    address = str(action[0])  # address
+    address = str(action[0]+self.cache_size)  # attacker address in range [self.cache_size, 2* self.cache_size]
     is_guess = action[1]      # check whether to guess or not
     is_victim = action[2]     # check whether to invoke victim
     victim_addr = str(action[3]) # victim address
 
-    if is_victim == True:
-      if self.victim_accessed == False:
-        self.victim_accessed = True
-        print(self.victim_address)
-        self.l1.read(str(self.victim_address), self.current_step)
-        self.current_step += 1
-        reward = 0
-        done = False
-      else:
-        reward = -100
-        done = True
+    if self.current_step > 10:
+      r = 9999#
+      reward = -1000
+      done = True
     else:
-      if is_guess == True:
-        if self.victim_accessed and victim_addr == str(self.victim_address):
-          reward = 5
-          done = True
+      if is_victim == True:
+        r = 9999 #
+        if self.victim_accessed == False:
+          self.victim_accessed = True
+          print(self.victim_address)
+          self.l1.read(str(self.victim_address), self.current_step)
+          self.current_step += 1
+          reward = 0
+          done = False
         else:
-          reward = -10
+          reward = -1000
           done = True
       else:
-        r = self.l1.read(address, self.current_step) # measure the access latency
-        reward = 0
-        done = False
+        if is_guess == True:
+          r = 9999  # 
+          if self.victim_accessed and victim_addr == str(self.victim_address):
+            reward = 200
+            done = True
+          else:
+            reward = -200
+            done = True
+        else:
+          r = self.l1.read(address, self.current_step) # measure the access latency
+          self.current_step += 1
+          reward = 0
+          done = False
 
-    self.current_step += 1
     #return observation, reward, done, info
     info = {}
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
-    return 0, reward, done, info
+    return r, reward, done, info
+    return np.array([0]), reward, done, info
 
   def reset(self):
     print('Reset...')
@@ -148,7 +156,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.current_step = 0
     self.victim_accessed = False
     self.victim_address = random.randint(0,self.cache_size) 
-    return 0
+    return 0 #np.array([0])
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
 
