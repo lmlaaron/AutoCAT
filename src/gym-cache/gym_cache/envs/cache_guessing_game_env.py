@@ -128,14 +128,18 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         if is_guess == True:
           r = 9999  # 
-          if self.victim_accessed and victim_addr == str(self.victim_address):
-            reward = 200
-            done = True
-          else:
-            reward = -200
+          if self.victim_accessed == True:
+            if self.victim_accessed and victim_addr == str(self.victim_address):
+              reward = 200
+              done = True
+            else:
+              reward = -200
+              done = True
+          else: # guess without victim accessed first
+            reward = -1000 
             done = True
         else:
-          r = self.l1.read(address, self.current_step) # measure the access latency
+          r = self.l1.read(address, self.current_step).time # measure the access latency
           self.current_step += 1
           reward = 0
           done = False
