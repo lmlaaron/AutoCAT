@@ -888,3 +888,886 @@ From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name t
 
 From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
 
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:20: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+Loading config...
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+Loading config...
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+
+Loading config...
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:191: The name tf.ConfigProto is deprecated. Please use tf.compat.v1.ConfigProto instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_util.py:200: The name tf.Session is deprecated. Please use tf.compat.v1.Session instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:116: The name tf.variable_scope is deprecated. Please use tf.compat.v1.variable_scope instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/input.py:42: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/policies.py:420: flatten (from tensorflow.python.layers.core) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use keras.layers.flatten instead.
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/layers/core.py:332: Layer.apply (from tensorflow.python.keras.engine.base_layer) is deprecated and will be removed in a future version.
+Instructions for updating:
+Please use `layer.__call__` method instead.
+From /home/ml2558/stable-baselines/stable_baselines/common/tf_layers.py:123: The name tf.get_variable is deprecated. Please use tf.compat.v1.get_variable instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:326: The name tf.random_uniform is deprecated. Please use tf.random.uniform instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/common/distributions.py:327: The name tf.log is deprecated. Please use tf.math.log instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:190: The name tf.summary.scalar is deprecated. Please use tf.compat.v1.summary.scalar instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:198: The name tf.trainable_variables is deprecated. Please use tf.compat.v1.trainable_variables instead.
+
+From /root/venv/lib/python3.5/site-packages/tensorflow_core/python/ops/math_grad.py:1424: where (from tensorflow.python.ops.array_ops) is deprecated and will be removed in a future version.
+Instructions for updating:
+Use tf.where in 2.0, which has the same broadcast rule as np.where
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:206: The name tf.train.AdamOptimizer is deprecated. Please use tf.compat.v1.train.AdamOptimizer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:240: The name tf.global_variables_initializer is deprecated. Please use tf.compat.v1.global_variables_initializer instead.
+
+From /home/ml2558/stable-baselines/stable_baselines/ppo2/ppo2.py:242: The name tf.summary.merge_all is deprecated. Please use tf.compat.v1.summary.merge_all instead.
+

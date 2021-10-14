@@ -12,28 +12,32 @@ sys.path.insert(0, '../../../')
 import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
 from cache_simulator import *
-
-class CacheGuessingGameEnv(gym.Env):
+"""
+simple guessing game has fixed length of action
+always make the guess at the end
+let's use three-step model first
+first half let's let attacker access
+then let victim just access one cache
+last half let the attack access
+"""
+class CacheGuessingGameSimpleEnv(gym.Env):
   """
   Description:
     A L1 cache with total_size, num_ways 
     assume cache_line_size == 1B
   
   Observation:
-    # let's book keep all obvious information in the observation space 
-    # since the agent is dumb
-    self.observation_space = spaces.MultiDiscrete(
-      [3,                 #cache latency
-      20,                 #current steps
-      2,                  #whether the victim has accessed yet
-      ]
+    currently assume ternary:
+    (-1, H, L)
+    -1: sender access
+    H: receiver cache miss
+    L: receiver cache hit
+    But later could be continuous more multi value
 
   Actions:
-    # action step contains four values
-    # 1. access address
-    # 2. whether to end and make a guess now?
-    # 3. whether to invoke the victim access
-    # 4. if make a guess, what is the victim's accessed address?
+    Type: Discrete(2 * total_size)
+    0 - total_size: sender access
+    total_size - 2 * total_size: receiver access
 
   Reward: ????
    single_step: penalty
@@ -91,18 +95,7 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.victim_address = 1 
     self.victim_accessed = False
-    
-    # let's book keep all obvious information in the observation space 
-    # since the agent is dumb
-    self.observation_space = spaces.MultiDiscrete(
-      [3,                 #cache latency
-      self.cache_size+1,    #attacker accessed address
-      20,                 #current steps
-      2,                  #whether the victim has accessed yet
-      ]
-    )
-    #self.observation_space = spaces.Discrete(3) # 0--> hit, 1 --> miss, 2 --> NA
-    
+    self.observation_space = spaces.Discrete(10000)
     #self.observation_space = spaces.Box(-high, high, dtype=np.float32)
 
     print('Initializing...')
@@ -122,13 +115,13 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]     # check whether to invoke victim
     victim_addr = str(action[3]) # victim address
 
-    if self.current_step > 10: # if current_step is too long, terminate
-      r = 2#
+    if self.current_step > 10:
+      r = 9999#
       reward = -10000
       done = True
     else:
       if is_victim == True:
-        r = 2 #
+        r = 9999 #
         if self.victim_accessed == False:
           self.victim_accessed = True
           print(self.victim_address)
@@ -136,12 +129,12 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = 0
           done = False
-        else:               # if guess before victim has accessed, huge penalty 
+        else:
           reward = -20000
           done = True
       else:
         if is_guess == True:
-          r = 2  # 
+          r = 9999  # 
           if self.victim_accessed == True:
             if self.victim_accessed and victim_addr == str(self.victim_address):
               reward = 200
@@ -149,14 +142,11 @@ class CacheGuessingGameEnv(gym.Env):
             else:
               reward = -200
               done = True
-          else:         # guess without victim accessed first, huge penalty
+          else: # guess without victim accessed first
             reward = -30000 
             done = True
         else:
-          if self.l1.read(address, self.current_step).time > 500: # measure the access latency
-            r = 1 # cache miss
-          else:
-            r = 0 # cache hit
+          r = self.l1.read(address, self.current_step).time # measure the access latency
           self.current_step += 1
           reward = 0
           done = False
@@ -166,13 +156,8 @@ class CacheGuessingGameEnv(gym.Env):
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
-    #return r, reward, done, info
-    current_step = self.current_step
-    if self.victim_accessed == True:
-      victim_accessed = 1
-    else:
-      victim_accessed = 0
-    return np.array([r, action[0], current_step, victim_accessed] ), reward, done, info
+    return r, reward, done, info
+    return np.array([0]), reward, done, info
 
   def reset(self):
     print('Reset...')
@@ -182,7 +167,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.current_step = 0
     self.victim_accessed = False
     self.victim_address = random.randint(0,self.cache_size) 
-    return np.array([0, self.cache_size, 0, 0])
+    return 0 #np.array([0])
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
 

@@ -16,4 +16,13 @@ register(
     entry_point='gym_cache.envs:CacheGuessingGameEnv',
 )
 
+register(
+    id='cache-guessing-game-simple-v0',
+    entry_point='gym_cache.envs:CacheGuessingGameSimpleEnv',
+)
+
+register(
+    id='test-lstm-v0',
+    entry_point='gym_cache.envs:TestLstmEnv',
+)
 
