@@ -9,29 +9,79 @@ env = gym.make("gym_cache:cache-guessing-game-v0")
 #model = PPO(MlpPolicy, env, verbose=0)
 model =A2C("MlpPolicy", env, verbose=1)
 
-model.learn(total_timesteps=25000)
-#model = A2C("MlpPolicy", env, verbose=1)
-#model.learn(total_timesteps=25000)
-observation = env.reset()
+###model.learn(total_timesteps=25000)
+####model = A2C("MlpPolicy", env, verbose=1)
+####model.learn(total_timesteps=25000)
+###observation = env.reset()
+###total_reward = 0
+###num_correct =0
+###num_wrong = 0
+###for i in range(2000):
+###    print(i)
+###    #env.render()
+###    #action = env.action_space.sample() #my agent
+###    action, _state = model.predict(observation, deterministic = False)
+###    observation, reward, done, info = env.step(action)
+###    if reward > 0:
+###        num_correct += 1
+###    if reward < 0:
+###        num_wrong += 1
+###    total_reward += reward
+###    print(action)
+###    print(reward)
+###    if done:
+###        observation = env.reset()
+###
+###print(num_correct)
+###print(num_wrong)
+
+obs = env.reset()
+model.learn(100000)
+
 total_reward = 0
 num_correct =0
 num_wrong = 0
-for i in range(2000):
+num_violation = 0
+num_length_violation = 0
+num_double_victim = 0
+num_no_victim = 0
+
+for i in range(10000):
     print(i)
-    #env.render()
-    #action = env.action_space.sample() #my agent
-    action, _state = model.predict(observation, deterministic = False)
-    observation, reward, done, info = env.step(action)
-    if reward > 0:
+    # We need to pass the previous state and a mask for recurrent policies
+    # to reset lstm state when a new episode begin
+    action, state = model.predict(obs, deterministic = False)
+    obs, reward , done, _ = env.step(action)
+    # Note: with VecEnv, env.reset() is automatically called
+    if reward > 10 and action[1] == True:
         num_correct += 1
-    if reward < 0:
+    if reward == -200 and action[1] == True: #is guess and wrong
         num_wrong += 1
-    total_reward += reward
+    if done and reward < -200:
+        num_violation += 1
+        if reward == -10000:
+            num_length_violation += 1
+        elif reward == -20000:
+            num_double_victim += 1
+        else:
+            num_no_victim += 1
+    #total_reward += reward
+    #wandb.log({'reward': reward})
+    #wandb.log({'total_reward': total_reward})
     print(action)
+    print(obs)
     print(reward)
-    if done:
-        observation = env.reset()
+    if done == True:
+        obs = env.reset()
+        done = False
+        print(obs)
 
 print(num_correct)
 print(num_wrong)
-env.close()
+print(num_violation)
+print(num_length_violation) 
+print(num_double_victim)
+print(num_no_victim)
+print(1.0 * num_correct / (num_correct + num_wrong))
+print(1.0 * (num_correct + num_wrong) / (num_violation + num_correct + num_wrong))
+

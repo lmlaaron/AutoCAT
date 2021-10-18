@@ -89,8 +89,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.cache_size       #what is the guess of the victim's access
       ])
 
-    self.victim_address = 1 
-    self.victim_accessed = False
+
     
     # let's book keep all obvious information in the observation space 
     # since the agent is dumb
@@ -108,7 +107,8 @@ class CacheGuessingGameEnv(gym.Env):
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
-
+    self.victim_accessed = False
+    self.victim_address = random.randint(0,self.cache_size)
     return
   
   def step(self, action):
@@ -176,12 +176,11 @@ class CacheGuessingGameEnv(gym.Env):
 
   def reset(self):
     print('Reset...')
-    
-    print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
     self.victim_accessed = False
-    self.victim_address = random.randint(0,self.cache_size) 
+    self.victim_address = random.randint(0,self.cache_size-1) 
+    print("victim address %d", self.victim_address)
     return np.array([0, self.cache_size, 0, 0])
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
