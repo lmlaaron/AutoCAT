@@ -115,7 +115,7 @@ class CacheGuessingGameSimpleEnv(gym.Env):
     is_victim = action[2]     # check whether to invoke victim
     victim_addr = str(action[3]) # victim address
 
-    if self.current_step > 10:
+    if self.current_step > 16:
       r = 9999#
       reward = -10000
       done = True
@@ -137,7 +137,7 @@ class CacheGuessingGameSimpleEnv(gym.Env):
           r = 9999  # 
           if self.victim_accessed == True:
             if self.victim_accessed and victim_addr == str(self.victim_address):
-              reward = 200
+              reward = 1000
               done = True
             else:
               reward = -200

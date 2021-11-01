@@ -1,4 +1,3 @@
-
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -7,7 +6,8 @@ import numpy as np
 import sys
 import math
 import random
-sys.path.insert(0, '../../../')
+
+
 
 import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
@@ -44,11 +44,15 @@ class CacheGuessingGameEnv(gym.Env):
     fresh cache with nolines
   
   Episode termination:
-    when the attacker make a guess, episode terminates
+    when the attacker make a guess
+    when there is double victim violation
+    when there is length violation
+    when there is guess before victim violation
+    episode terminates
   """
   metadata = {'render.modes': ['human']}
 
-  def __init__(self):
+  def __init__(self, env_config={}):
     self.num_ways = 4
     self.cache_size = 8
 
@@ -64,11 +68,12 @@ class CacheGuessingGameEnv(gym.Env):
     
     self.logger.info('Loading config...')
     self.config_file = open('/home/ml2558/CacheSimulator/configs/config_simple_L1')
-    self.configs = yaml.load(self.config_file)
+    self.configs = yaml.load(self.config_file, yaml.CLoader)
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
+    self.window_size = 7 
     self.hierarchy = build_hierarchy(self.configs, self.logger)
-    
+    self.state = [0, self.cache_size, 0, 0] * self.window_size
     self.x_range = 10000
     high = np.array(
         [
@@ -94,11 +99,12 @@ class CacheGuessingGameEnv(gym.Env):
     # let's book keep all obvious information in the observation space 
     # since the agent is dumb
     self.observation_space = spaces.MultiDiscrete(
-      [3,                 #cache latency
-      self.cache_size+1,    #attacker accessed address
-      20,                 #current steps
+      [
+      3,                  #cache latency
+      self.cache_size+1,  #attacker accessed address
+      100,                 #current steps
       2,                  #whether the victim has accessed yet
-      ]
+      ] * self.window_size
     )
     #self.observation_space = spaces.Discrete(3) # 0--> hit, 1 --> miss, 2 --> NA
     
@@ -113,7 +119,7 @@ class CacheGuessingGameEnv(gym.Env):
   
   def step(self, action):
     print('Step...')
-
+    
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]
 
@@ -122,7 +128,7 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]     # check whether to invoke victim
     victim_addr = str(action[3]) # victim address
 
-    if self.current_step > 10: # if current_step is too long, terminate
+    if self.current_step > 12: # if current_step is too long, terminate
       r = 2#
       reward = -10000
       done = True
@@ -136,7 +142,7 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = 0
           done = False
-        else:               # if guess before victim has accessed, huge penalty 
+        else:               # if double victim access, huge penalty 
           reward = -20000
           done = True
       else:
@@ -147,7 +153,7 @@ class CacheGuessingGameEnv(gym.Env):
               reward = 200
               done = True
             else:
-              reward = -200
+              reward = -9999
               done = True
           else:         # guess without victim accessed first, huge penalty
             reward = -30000 
@@ -172,7 +178,10 @@ class CacheGuessingGameEnv(gym.Env):
       victim_accessed = 1
     else:
       victim_accessed = 0
-    return np.array([r, action[0], current_step, victim_accessed] ), reward, done, info
+    self.state = [r, action[0], current_step, victim_accessed] + self.state 
+    self.state = self.state[0:len(self.state)-4]
+    #self.state = [r, action[0], current_step, victim_accessed]
+    return np.array(self.state), reward, done, info
 
   def reset(self):
     print('Reset...')
@@ -181,7 +190,9 @@ class CacheGuessingGameEnv(gym.Env):
     self.victim_accessed = False
     self.victim_address = random.randint(0,self.cache_size-1) 
     print("victim address %d", self.victim_address)
-    return np.array([0, self.cache_size, 0, 0])
+    #return np.array([0, self.cache_size, 0, 0])
+    self.state = [0, self.cache_size, 0, 0] * self.window_size
+    return np.array(self.state)
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
 
