@@ -1,3 +1,10 @@
+# environment with flush option
+# for flush and reload attack
+# also the attacker and victim now shares the addr space
+# why "flush" is needed?
+# because the initial state may already contain some sets
+# thus we definitely need random intialization in this case
+
 import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
@@ -85,6 +92,7 @@ class CacheGuessingGameEnvFix(gym.Env):
     # action step contains two values
     self.action_space = spaces.MultiDiscrete(
       [self.cache_size,     #cache access
+       2,                   #whether it is a flush
        self.cache_size      #what is the guess of the victim's access
       ])
     
@@ -104,6 +112,8 @@ class CacheGuessingGameEnvFix(gym.Env):
     self.current_step = 0
     self.victim_accessed = False
     self.victim_address = random.randint(0,self.cache_size)
+    
+    self._randomize_cache()
     return
 
   def step(self, action):
@@ -112,10 +122,15 @@ class CacheGuessingGameEnvFix(gym.Env):
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]
 
-    address = str(action[0]+self.cache_size)  # attacker address in range [self.cache_size, 2* self.cache_size]
-    victim_addr = str(action[1]) # victim address
+    address = str(action[0])  # attacker address and victim address the same space [0, self.cache_size] 
+    is_flush = action[1]  
+    victim_addr = str(action[2]) # guessed victim address
 
-    if self.l1.read(address, self.current_step).time > 500: # measure the access latency
+    if is_flush == 1: # check whether it is a flush instruction
+        self.l1.cflush(address, self.current_step)
+        print("cflush " + address )
+        r = 2
+    elif self.l1.read(address, self.current_step).time > 500: # measure the access latency
       print("acceee " + address + " miss")
       r = 1 # cache miss
     else:
@@ -160,10 +175,11 @@ class CacheGuessingGameEnvFix(gym.Env):
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
     self.victim_accessed = False
-    self.victim_address = random.randint(0,self.cache_size-1) 
-    print("victim address %d", self.victim_address)
+    self.victim_address = random.randint(0,self.cache_size-1)
+    print("victim address %d" % self.victim_address)
     #return np.array([0, self.cache_size, 0, 0])
     self.state = [0, self.cache_size, 0] * self.window_size
+    self._randomize_cache()
     return np.array(self.state)
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
@@ -173,3 +189,10 @@ class CacheGuessingGameEnvFix(gym.Env):
 
   def close(self):
     return
+
+  def _randomize_cache(self):
+    self.current_step = -self.cache_size
+    for _ in range(self.cache_size):
+      addr = random.randint(0,self.cache_size-1)
+      self.l1.read(str(addr), self.current_step)
+      self.current_step += 1

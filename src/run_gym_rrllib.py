@@ -6,7 +6,7 @@ from ray.rllib.agents.ppo import PPOTrainer
 import ray.tune as tune
 
 #RLlib does not work with gym registry, must redefine the environment in RLlib
-from cache_guessing_game_env_fix_impl import * 
+from cache_guessing_game_env_fix_impl_flush import * 
 
 # (Re)Start the ray runtime.
 if ray.is_initialized():
