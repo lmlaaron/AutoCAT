@@ -6,30 +6,33 @@ from ray.rllib.agents.ppo import PPOTrainer
 import ray.tune as tune
 
 #RLlib does not work with gym registry, must redefine the environment in RLlib
-from cache_guessing_game_env_impl import * 
+from cache_guessing_game_env_fix_impl import * 
 
 # (Re)Start the ray runtime.
 if ray.is_initialized():
   ray.shutdown()
+
 ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
 
 # Two ways of training
 # 1. directly use trainer
 # 2. use tune API
 
-#method 1
-trainer = PPOTrainer(env=CacheGuessingGameEnv, config={
-    "env_config":{},
-    "model": {
-        "use_lstm": True
-    }
-})
-trainer.train()
+#####method 1
+####trainer = PPOTrainer(env=CacheGuessingGameEnv, config={
+####    "env_config":{},
+####    "model": {
+####        "use_lstm": True
+####    }
+####})
+####trainer.train()
 
 #method 2
-tune.register_env("cache_guessing_game_env", CacheGuessingGameEnv)
+tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnvFix)
 analysis = tune.run(
     PPOTrainer, 
+    local_dir="~/ray_results", 
+    name="test_experiment",
     #checkpoint_at_end=True,
     #stop={
     #    "episodes_total": 500,
@@ -37,12 +40,17 @@ analysis = tune.run(
     config={
         "num_gpus": 1,
         #"seed": 0xCC,
-        "env": "cache_guessing_game_env",
+        "env": "cache_guessing_game_env_fix",
         #"rollout_fragment_length": 5,
         #"train_batch_size": 5,
         #"sgd_minibatch_size": 5,
-        "model": {
-            "use_lstm": False
+        "model": { #see https://docs.ray.io/en/master/rllib-models.html#default-model-config-settings
+            #"fcnet_hiddens": [8192, 512], #, 4096, 512],
+            # Activation function descriptor.
+            # Supported values are: "tanh", "relu", "swish" (or "silu"),
+            # "linear" (or None).
+            "fcnet_activation": "relu",
+            #"use_lstm": True,
         },
     }
 )
