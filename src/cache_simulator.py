@@ -128,10 +128,15 @@ def simulate(hierarchy, trace, logger):
             r = l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
+        #Call cflush
+        elif op == 'F':
+            logger.info(str(current_step) + ':\tFlushing ' + address)
+            r = l1.cflush(address, current_step)
+            #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
         else:
             raise InvalidOpError
         
-        if int(address, 16) >= l1.block_size * l1.n_blocks :   # receiver adress space is larger than the cache size, receiver is able to measure time      
+        if int(address, 16) >= l1.block_size * l1.n_blocks  and op != 'F':   # receiver adress space is larger than the cache size, receiver is able to measure time      
             print('trace ' + address + ' ' + str(r.time) + '\n' ) 
         else:  # senders address space is within the cache size, sender do not measure time
             print('trace ' + address + ' -1\n')

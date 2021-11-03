@@ -37,6 +37,38 @@ class Cache:
                 self.data[index] = {}   #Create a dictionary of blocks for each set
 
 
+    # flush the cache line that contains the address from all cache hierachy
+    def cflush(self, address, current_step):
+        r = None
+        #Parse our address to look through this cache
+        block_offset, index, tag = self.parse_address(address)
+        #print(block_offset)
+        #print(index)
+        #print(tag)
+
+        #Get the tags in this set
+        in_cache = list(self.data[index].keys())
+
+        #print(index)
+        #print(self.data[index])
+        #print(self.data[index].keys())
+        #print(tag)
+        
+        #If this tag exists in the set, this is a hit
+        if tag in in_cache:
+            if len(tag) == 0:
+                print('false')
+            
+            #Delete the old block and write the new one
+            del self.data[index][tag] 
+        
+        #Read from the next level of memory
+        if self.next_level != None and self.next_level.name != "mem":
+            self.next_level.cflush(address, current_step)
+
+        return r
+
+
     def read(self, address, current_step):
         r = None
         #Check if this is main memory
@@ -58,7 +90,6 @@ class Cache:
             #print(self.data[index].keys())
             #print(tag)
 
-            
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
                 if len(tag) == 0:
