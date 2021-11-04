@@ -71,7 +71,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.configs = yaml.load(self.config_file, yaml.CLoader)
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
-    self.window_size = 6#10 
+    self.window_size = self.cache_size * 2 + 8 #10 
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.state = [0, self.cache_size, 0, 0] * self.window_size
     self.x_range = 10000
@@ -102,7 +102,7 @@ class CacheGuessingGameEnv(gym.Env):
       [
       3,                  #cache latency
       self.cache_size+1,  #attacker accessed address
-      20,                 #current steps
+      self.window_size + 2,   #current steps
       2,                  #whether the victim has accessed yet
       ] * self.window_size
     )
@@ -115,6 +115,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.current_step = 0
     self.victim_accessed = False
     self.victim_address = random.randint(0,self.cache_size)
+    self._randomize_cache()
     return
 
   def step(self, action):
@@ -128,7 +129,7 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]     # check whether to invoke victim
     victim_addr = str(action[3]) # victim address
 
-    if self.current_step > 100: # if current_step is too long, terminate
+    if self.current_step > self.window_size : # if current_step is too long, terminate
       r = 2#
       print("length violation!")
       reward = -10000
@@ -136,33 +137,33 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       if is_victim == True:
         r = 2 #
-        if self.victim_accessed == False:
-          self.victim_accessed = True
-          print("victim access %d" % self.victim_address)
-          self.l1.read(str(self.victim_address), self.current_step)
-          self.current_step += 1
-          reward = 0
-          done = False
-        else:               # if double victim access, huge penalty 
-          print("double access")
-          reward = -20000
-          done = True
+        #if self.victim_accessed == False:
+        self.victim_accessed = True
+        print("victim access %d" % self.victim_address)
+        self.l1.read(str(self.victim_address), self.current_step)
+        self.current_step += 1
+        reward = 0
+        done = False
+        #else:               # if double victim access, huge penalty 
+        #  print("double access")
+        #  reward = -20000
+        #  done = True
       else:
         if is_guess == True:
           r = 2  # 
-          if self.victim_accessed == True:
-            if self.victim_accessed and victim_addr == str(self.victim_address):
+          #if self.victim_accessed == True:
+          if self.victim_accessed and victim_addr == str(self.victim_address):
               print("correct guess " + victim_addr)
               reward = 200
               done = True
-            else:
+          else:
               print("wrong guess " + victim_addr )
               reward = -9999
               done = True
-          else:         # guess without victim accessed first, huge penalty
-            print("guess without access violation")
-            reward = -30000 
-            done = True
+          #else:         # guess without victim accessed first, huge penalty
+          #  print("guess without access violation")
+          #  reward = -30000 
+          #  done = True
         else:
           if self.l1.read(address, self.current_step).time > 500: # measure the access latency
             print("acceee " + address + " miss")
@@ -200,6 +201,7 @@ class CacheGuessingGameEnv(gym.Env):
     print("victim address %d", self.victim_address)
     #return np.array([0, self.cache_size, 0, 0])
     self.state = [0, self.cache_size, 0, 0] * self.window_size
+    self._randomize_cache()
     return np.array(self.state)
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
@@ -209,3 +211,13 @@ class CacheGuessingGameEnv(gym.Env):
 
   def close(self):
     return
+
+  def _randomize_cache(self):
+    self.current_step = -self.cache_size * 2 
+    for _ in range(self.cache_size * 2):
+      addr = random.randint(0,self.cache_size * 2)
+      if addr == self.cache_size * 2:
+        self.l1.cflush(str(addr), self.current_step)
+      else:
+        self.l1.read(str(addr), self.current_step)
+      self.current_step += 1

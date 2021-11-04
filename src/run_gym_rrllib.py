@@ -6,9 +6,10 @@ from ray.rllib.agents.ppo import PPOTrainer
 import ray.tune as tune
 
 #RLlib does not work with gym registry, must redefine the environment in RLlib
-from cache_guessing_game_env_fix_impl_evict import * # for evict time attack
-#from cache_guessing_game_env_fix_impl_flush import * # for flush reload attack
-#from cache_guessing_game_env_fix_impl import * # for prime and probe attack 
+# from cache_guessing_game_env_fix_impl_evict import * # for evict time attack
+# from cache_guessing_game_env_fix_impl_flush import * # for flush reload attack
+# from cache_guessing_game_env_fix_impl import * # for prime and probe attack
+from cache_guessing_game_env_impl import *
 
 # (Re)Start the ray runtime.
 if ray.is_initialized():
@@ -30,7 +31,7 @@ ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
 ####trainer.train()
 
 #method 2
-tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnvFix)
+tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv) #Fix)
 analysis = tune.run(
     PPOTrainer, 
     local_dir="~/ray_results", 
