@@ -93,8 +93,13 @@ class CacheGuessingGameEnv(gym.Env):
       2,                    #whether to invoke victim access
       self.cache_size       #what is the guess of the victim's access
       ])
-
-
+    self.action_spec = ['discrete', 1, [0, self.cache_size * self.cache_size * 2 * 2  ]]
+    #self.action_spec = [
+    #  ['discrete', 1, [0, self.cache_size-1]],
+    #  ['discrete', 1, [0, 2-1]],
+    #  ['discrete', 1, [0, 2-1]],
+    #  ['discrete', 1, [0, self.cache_size-1]],
+    #]
     
     # let's book keep all obvious information in the observation space 
     # since the agent is dumb
@@ -106,6 +111,16 @@ class CacheGuessingGameEnv(gym.Env):
       2,                  #whether the victim has accessed yet
       ] * self.window_size
     )
+    self.state_spec = [
+      ['discrete', 1, [0, 3]],
+      ['discrete', 1, [0, self.cache_size + 1 ]],
+      ['discrete', 1, [0, self.window_size + 2]],
+      ['discrete', 1, [0, 2]],
+    ] * self.window_size
+ 
+    self.reward_spec = [[-10000, 10000], [-10000, 10000]] 
+    self.current_state = np.array( [0, self.cache_size, 0, 0] * self.window_size ) 
+    self.terminal = False
     #self.observation_space = spaces.Discrete(3) # 0--> hit, 1 --> miss, 2 --> NA
     
     #self.observation_space = spaces.Box(-high, high, dtype=np.float32)
@@ -120,20 +135,27 @@ class CacheGuessingGameEnv(gym.Env):
 
   def step(self, action):
     print('Step...')
-    
-    if action.ndim > 1:  # workaround for training and predict discrepency
-      action = action[0]
 
-    address = str(action[0]+self.cache_size)  # attacker address in range [self.cache_size, 2* self.cache_size]
-    is_guess = action[1]      # check whether to guess or not
-    is_victim = action[2]     # check whether to invoke victim
-    victim_addr = str(action[3]) # victim address
+    ##if action.ndim > 1:  # workaround for training and predict discrepency
+    ##  action = action[0]
 
+    ##address = str(action[0]+self.cache_size)  # attacker address in range [self.cache_size, 2* self.cache_size]
+    ##is_guess = action[1]      # check whether to guess or not
+    ##is_victim = action[2]     # check whether to invoke victim
+    ##victim_addr = str(action[3]) # victim address
+    address = str(int(action / int( self.cache_size * 2 * 2) ) + self.cache_size)
+    is_guess = int(action % ( self.cache_size * 2 * 2 ) / (2 * self.cache_size) )
+    is_victim = int(action % ( self.cache_size * 2 ) / self.cache_size )
+    victim_addr = str(action % ( self.cache_size ))
+
+    print(self.current_step)
+    print(self.window_size)
     if self.current_step > self.window_size : # if current_step is too long, terminate
       r = 2#
       print("length violation!")
       reward = -10000
       done = True
+      reward = np.array([-10000, 0])
     else:
       if is_victim == True:
         r = 2 #
@@ -142,7 +164,9 @@ class CacheGuessingGameEnv(gym.Env):
         print("victim access %d" % self.victim_address)
         self.l1.read(str(self.victim_address), self.current_step)
         self.current_step += 1
-        reward = -10
+        #reward = -10
+        reward = np.array( [0, 0] )
+ 
         done = False
         #else:               # if double victim access, huge penalty 
         #  print("double access")
@@ -154,11 +178,13 @@ class CacheGuessingGameEnv(gym.Env):
           #if self.victim_accessed == True:
           if self.victim_accessed and victim_addr == str(self.victim_address):
               print("correct guess " + victim_addr)
-              reward = 200
+              #reward = 200
+              reward = np.array( [200, 0] )
               done = True
           else:
               print("wrong guess " + victim_addr )
-              reward = -9999
+              #reward = -9999
+              reward = np.array( [-9999, 0] )
               done = True
           #else:         # guess without victim accessed first, huge penalty
           #  print("guess without access violation")
@@ -172,7 +198,8 @@ class CacheGuessingGameEnv(gym.Env):
             print("access " + address + " hit"  )
             r = 0 # cache hit
           self.current_step += 1
-          reward = -1 
+          #reward = -1 
+          reward = np.array( [-1, 0] )
           done = False
 
     #return observation, reward, done, info
@@ -186,10 +213,10 @@ class CacheGuessingGameEnv(gym.Env):
       victim_accessed = 1
     else:
       victim_accessed = 0
-    self.state = [r, action[0], current_step, victim_accessed] + self.state 
+    self.state = [r, int(address)-self.cache_size, current_step, victim_accessed] + self.state 
     self.state = self.state[0:len(self.state)-4]
     #self.state = [r, action[0], current_step, victim_accessed]
-    return np.array(self.state), reward, done, info
+    return np.array(self.state), reward, done #, info
 
   def reset(self):
     print('Reset...')
@@ -202,6 +229,8 @@ class CacheGuessingGameEnv(gym.Env):
     #return np.array([0, self.cache_size, 0, 0])
     self.state = [0, self.cache_size, 0, 0] * self.window_size
     self._randomize_cache()
+    self.current_state = np.array(self.state)
+    self.terminal = False
     return np.array(self.state)
     #self.state = [1000 ]
     #return np.array(self.state, dtype=np.float32)
@@ -221,3 +250,7 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         self.l1.read(str(addr), self.current_step)
       self.current_step += 1
+
+  def observe(self):
+    ''' reset the enviroment '''
+    return self.current_state
