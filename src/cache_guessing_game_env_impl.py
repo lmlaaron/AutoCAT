@@ -87,13 +87,15 @@ class CacheGuessingGameEnv(gym.Env):
     # 2. whether to end and make a guess now?
     # 3. whether to invoke the victim access
     # 4. if make a guess, what is the victim's accessed address?
-    self.action_space = spaces.MultiDiscrete(
-      [self.cache_size,     #cache access
-      2,                    #whether to make a guess
-      2,                    #whether to invoke victim access
-      self.cache_size       #what is the guess of the victim's access
-      ])
-
+    ####self.action_space = spaces.MultiDiscrete(
+    ####  [self.cache_size,     #cache access
+    ####  2,                    #whether to make a guess
+    ####  2,                    #whether to invoke victim access
+    ####  self.cache_size       #what is the guess of the victim's access
+    ####  ])
+    self.action_space = spaces.Discrete(
+      self.cache_size * 2 * 2 * self.cache_size
+    )
 
     
     # let's book keep all obvious information in the observation space 
@@ -118,11 +120,32 @@ class CacheGuessingGameEnv(gym.Env):
     self._randomize_cache()
     return
 
+  def get_obs_space_dim(self):
+    shape = self.observation_space.shape
+    rtn = 1
+    for i in shape:
+      rtn *= i
+    return rtn
+
+  def get_act_space_dim(self):
+    shape = self.action_space.shape
+    rtn = 1
+    for i in shape:
+      rtn *= i
+    return i 
+
   def step(self, action):
     print('Step...')
     
     if action.ndim > 1:  # workaround for training and predict discrepency
-      action = action[0]
+      action = action[0]  
+
+    temp_action=[]
+    temp_action.append(int(action/(2 * 2* self.cache_size)) )
+    temp_action.append(int(action / ( 2* self.cache_size)) % 2 )
+    temp_action.append(int(action / self.cache_size) % 2 )
+    temp_action.append(action %  self.cache_size)
+    action = temp_action
 
     address = str(action[0]+self.cache_size)  # attacker address in range [self.cache_size, 2* self.cache_size]
     is_guess = action[1]      # check whether to guess or not

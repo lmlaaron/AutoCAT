@@ -179,12 +179,12 @@ class CacheGuessingGameEnv(gym.Env):
           if self.victim_accessed and victim_addr == str(self.victim_address):
               print("correct guess " + victim_addr)
               #reward = 200
-              reward = np.array( [200, 0] )
+              reward = np.array( [0, 1] )
               done = True
           else:
               print("wrong guess " + victim_addr )
               #reward = -9999
-              reward = np.array( [-9999, 0] )
+              reward = np.array( [0, 0] )
               done = True
           #else:         # guess without victim accessed first, huge penalty
           #  print("guess without access violation")
