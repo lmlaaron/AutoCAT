@@ -1,5 +1,35 @@
+RL environment and training script for CacheSimulator
+==============
+This repo contains wrapper for the CacheSimulator environment based on 
+https://github.com/auxiliary/CacheSimulator
+
+For detailed description of CacheSimulator, see the original repo.
+
+The environment is based on openai gym
+
+```
+$ pip install gym
+```
+
+The trainer is based on RLlib
+
+```
+$ pip install rllib
+```
+
+To run the training
+
+```
+$ cd src
+$ python run_gym_rllib.py
+```
+
+
+
 CacheSimulator
 ==============
+
+
 
 A cache simulator in Python for CS 530
 
