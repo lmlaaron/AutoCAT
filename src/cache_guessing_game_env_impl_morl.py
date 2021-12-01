@@ -67,7 +67,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.logger.setLevel(logging.INFO)
     
     self.logger.info('Loading config...')
-    self.config_file = open('../configs/config_simple_L1')
+    self.config_file = open(os.path.dirname(os.path.abspath(__file__))+'/../configs/config_simple_L1')
     self.configs = yaml.load(self.config_file, yaml.CLoader)
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']

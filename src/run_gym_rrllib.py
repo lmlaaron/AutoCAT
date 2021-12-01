@@ -11,6 +11,7 @@ from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from ray.rllib.models.torch.fcnet import FullyConnectedNetwork as TorchFC
 
 from ray.rllib.models import ModelCatalog
 #from models.dqn_model import DQNModel
@@ -18,7 +19,6 @@ from ray.rllib.models import ModelCatalog
 class ResidualBlock(nn.Module):
     def __init__(self, dim: int) -> None:
         super(ResidualBlock, self).__init__()
-
         self.dim = dim
         layers = []
         layers.append(nn.ReLU())
@@ -26,7 +26,6 @@ class ResidualBlock(nn.Module):
         layers.append(nn.ReLU())
         layers.append(nn.Linear(self.dim, self.dim))
         self.layers = nn.Sequential(*layers)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.layers(x)
 
@@ -37,12 +36,10 @@ class DNNEncoder(nn.Module):
                  output_dim: int,
                  num_blocks: Optional[int] = 1) -> None:
         super(DNNEncoder, self).__init__()
-
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.num_blocks = num_blocks
-
         layers = []
         layers.append(nn.Linear(self.input_dim, self.hidden_dim))
         for _ in range(self.num_blocks):
@@ -50,28 +47,26 @@ class DNNEncoder(nn.Module):
         layers.append(nn.ReLU())
         layers.append(nn.Linear(self.hidden_dim, self.output_dim))
         self.layers = nn.Sequential(*layers)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.layers(x)
 
-class DQNModel(TorchModelV2):
+class DQNModel(TorchModelV2, nn.Module):
     def __init__(self,
                  input_dim: int,
                  hidden_dim: int,
                  action_dim: int,
                  num_blocks: Optional[int] = 1) -> None:
         super(DQNModel, self).__init__()
-
+        TorchModelV2.__init__(self)
+        nn.Module.__init__(self)
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.action_dim = action_dim
         self.num_blocks = num_blocks
-
         self.backbone = DNNEncoder(self.input_dim, self.hidden_dim,
                                    self.hidden_dim, self.num_blocks)
         self.linear_a = nn.Linear(self.hidden_dim, self.action_dim)
         self.linear_v = nn.Linear(self.hidden_dim, 1)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         h = self.backbone(x)
         a = self.linear_a(h)
@@ -79,12 +74,33 @@ class DQNModel(TorchModelV2):
         return v + a - a.mean(-1, keepdim=True)
 
 
-ModelCatalog.register_custom_model("my_torch_model", DQNModel)
+class TestModel(TorchModelV2, nn.Module):
+    def __init__(self, obs_space, action_space, num_outputs, model_config,
+                 name):
+        super(TestModel, self).__init__(obs_space, action_space, num_outputs, model_config, name)
+        nn.Module.__init__(self)
+        #self.linear = nn.Linear(64, 3 * 5 * 18 * 2 * 16)
+        self.fcnet= TorchFC(
+            self.obs_space,
+            self.action_space,
+            num_outputs,
+            model_config,
+            name="fcnet")
+        self._output = None
+    def forward(self, input_dict, state, seq_lens):
+        self._output, t = self.fcnet(input_dict, state, seq_lens)
+        return self._output, t 
+    def value_function(self):
+        return self.fcnet.value_function()
+        #return torch.reshape(torch.mean(self._output, -1), [-1])
 
+
+ModelCatalog.register_custom_model("my_torch_model", DQNModel)
+ModelCatalog.register_custom_model("test_model", TestModel)
 
 #RLlib does not work with gym registry, must redefine the environment in RLlib
 # from cache_guessing_game_env_fix_impl_evict import * # for evict time attack
-# from cache_guessing_game_env_fix_impl_flush import * # for flush reload attack
+#from cache_guessing_game_env_fix_impl_flush import * # for flush reload attack
 # from cache_guessing_game_env_fix_impl import * # for prime and probe attack
 from cache_guessing_game_env_impl import *
 
@@ -106,40 +122,83 @@ ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
 ####    }
 ####})
 ####trainer.train()
+from ray.rllib.examples.models.custom_loss_model import CustomLossModel, \
+    TorchCustomLossModel
+ModelCatalog.register_custom_model(
+        "custom_loss", TorchCustomLossModel)
+
+from ray.rllib.models.torch.fcnet import FullyConnectedNetwork as TorchFC
+ModelCatalog.register_custom_model("fcnet", TorchFC)
+
+from ray.rllib.examples.models.rnn_model import RNNModel, TorchRNNModel
+ModelCatalog.register_custom_model(
+        "rnn", TorchRNNModel)
+
+from ray.rllib.examples.models.fast_model import FastModel, TorchFastModel
+ModelCatalog.register_custom_model(
+        "fast_model", TorchFastModel)
 
 #method 2
 tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv) #Fix)
-analysis = tune.run(
-    #DQNTrainer,
-    PPOTrainer, 
+##analysis = tune.run(
+##    #DQNTrainer,
+##    PPOTrainer, 
+##    local_dir="~/ray_results", 
+##    name="test_experiment",
+##    #checkpoint_at_end=True,
+##    #stop={
+##    #    "episodes_total": 500,
+##    #},
+##    config={
+##        "num_gpus": 1,
+##        #"seed": 0xCC,
+##        "env": "cache_guessing_game_env_fix",
+##        #"rollout_fragment_length": 5,
+##        #"train_batch_size": 5,
+##        #"sgd_minibatch_size": 5,
+##        "model": { #see https://docs.ray.io/en/master/rllib-models.html#default-model-config-settings
+##            #"fcnet_hiddens": [8192, 512], #, 4096, 512],
+##            # Activation function descriptor.
+##            # Supported values are: "tanh", "relu", "swish" (or "silu"),
+##            # "linear" (or None).
+##            #"fcnet_activation": "relu",
+##            #"use_lstm": True,
+##            # specify our custom model 
+##            # Extra kwargs to be passed to your model's c'tor
+##            #"custom_model_config": {
+##                #"input_files": '' ,
+##            #}
+##            ####"custom_model_config": {
+##            ####    "input_dim": 64,
+##            ####    "hidden_dim": 512,
+##            ####    "action_dim": 3 * 5 * 18 * 2 * 16,
+##            ####},
+##        },
+##    }
+##)
+
+# method 2b
+config = {
+    'env': 'cache_guessing_game_env_fix',
+    'env_config': {'repeat_delay': 2}, 
+    'gamma': 0.9, 
+    'num_gpus': 1, 
+    'num_workers': 0, 
+    'num_envs_per_worker': 20, 
+    #'entropy_coeff': 0.001, 
+    #'num_sgd_iter': 5, 
+    #'vf_loss_coeff': 1e-05, 
+    'model': {
+        'custom_model': 'test_model',#'rnn', 
+        #'max_seq_len': 20, 
+        #'custom_model_config': {
+        #    'cell_size': 32
+        #   }
+    }, 
+    'framework': 'torch'
+}
+tune.run(
+    "PPO",
     local_dir="~/ray_results", 
     name="test_experiment",
-    #checkpoint_at_end=True,
-    #stop={
-    #    "episodes_total": 500,
-    #},
-    config={
-        "num_gpus": 1,
-        #"seed": 0xCC,
-        "env": "cache_guessing_game_env_fix",
-        #"rollout_fragment_length": 5,
-        #"train_batch_size": 5,
-        #"sgd_minibatch_size": 5,
-        "model": { #see https://docs.ray.io/en/master/rllib-models.html#default-model-config-settings
-            #"fcnet_hiddens": [8192, 512], #, 4096, 512],
-            # Activation function descriptor.
-            # Supported values are: "tanh", "relu", "swish" (or "silu"),
-            # "linear" (or None).
-            "fcnet_activation": "relu",
-            #"use_lstm": True,
-            # specify our custom model 
-            #"custom_model": "my_torch_model",
-            # Extra kwargs to be passed to your model's c'tor
-            #"custom_model_config": {
-            #    "input_dim": 64,
-            #    "hidden_dim": 512,
-            #    "action_dim": 3 * 5 * 18 * 2 * 16,
-            #},
-        },
-    }
-)
+    config=config)
