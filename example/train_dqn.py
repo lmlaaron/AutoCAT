@@ -21,9 +21,9 @@ from rloptim.envs.env import Env
 import sys
 
 sys.path.append("../src/gym_cache")
-
+sys.path.append("../src")
 #from envs.simple_cache_wrapper import SimpleCacheWrapperFactory
-from envs.cache_simulator_wrapper import CacheSimulatorWrapperFactory
+from envs.cache_simulator_wrapper_factory import CacheSimulatorWrapperFactory
 from models.dqn_model import DQNModel
 
 
