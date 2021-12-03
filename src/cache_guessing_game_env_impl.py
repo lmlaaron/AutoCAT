@@ -52,10 +52,19 @@ class CacheGuessingGameEnv(gym.Env):
   """
   metadata = {'render.modes': ['human']}
 
-  def __init__(self, env_config={}):
+  def __init__(self, env_config={}, 
+   length_violation_reward=-10000,
+   double_victim_access_reward=-10,
+   correct_reward=200,
+   wrong_reward=-9999,
+   step_reward=-1):
     self.num_ways = 4
     self.cache_size = 8
-
+    self.length_violation_reward = length_violation_reward
+    self.double_victim_access_reward = double_victim_access_reward
+    self.correct_reward = correct_reward
+    self.wrong_reward = wrong_reward
+    self.step_reward = step_reward
     self.logger = logging.getLogger()
     self.fh = logging.FileHandler('log')
     self.sh = logging.StreamHandler()
@@ -136,7 +145,8 @@ class CacheGuessingGameEnv(gym.Env):
 
   def step(self, action):
     print('Step...')
-    
+
+
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]  
 
@@ -155,7 +165,7 @@ class CacheGuessingGameEnv(gym.Env):
     if self.current_step > self.window_size : # if current_step is too long, terminate
       r = 2#
       print("length violation!")
-      reward = -10000
+      reward = self.length_violation_reward #-10000 
       done = True
     else:
       if is_victim == True:
@@ -165,7 +175,7 @@ class CacheGuessingGameEnv(gym.Env):
         print("victim access %d" % self.victim_address)
         self.l1.read(str(self.victim_address), self.current_step)
         self.current_step += 1
-        reward = -10
+        reward = self.double_victim_access_reward #-10
         done = False
         #else:               # if double victim access, huge penalty 
         #  print("double access")
@@ -177,11 +187,11 @@ class CacheGuessingGameEnv(gym.Env):
           #if self.victim_accessed == True:
           if self.victim_accessed and victim_addr == str(self.victim_address):
               print("correct guess " + victim_addr)
-              reward = 200
+              reward = self.correct_reward # 200
               done = True
           else:
               print("wrong guess " + victim_addr )
-              reward = -9999
+              reward = self.wrong_reward #-9999
               done = True
           #else:         # guess without victim accessed first, huge penalty
           #  print("guess without access violation")
@@ -195,7 +205,7 @@ class CacheGuessingGameEnv(gym.Env):
             print("access " + address + " hit"  )
             r = 0 # cache hit
           self.current_step += 1
-          reward = -1 
+          reward = self.step_reward #-1 
           done = False
 
     #return observation, reward, done, info
