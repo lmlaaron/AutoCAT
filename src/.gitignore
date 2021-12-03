@@ -1,3 +1,7 @@
 *.pyc
 *.log
 log
+example/log
+log
+src/log
+log
