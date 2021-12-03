@@ -102,7 +102,7 @@ class CacheGuessingGameEnvFix(gym.Env):
       [
       3,                  #cache latency
       self.cache_size+1,  #attacker accessed address
-      self.window_size,   #current steps
+      self.window_size + 2,   #current steps
       ] * self.window_size
     )
     #self.observation_space = spaces.Discrete(3) # 0--> hit, 1 --> miss, 2 --> NA

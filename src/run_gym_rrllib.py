@@ -68,7 +68,7 @@ if ray.is_initialized():
   ray.shutdown()
 
 ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
-tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv) #Fix)
+tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
 # Two ways of training
 # 1. directly use trainer
 # 2. use tune API
