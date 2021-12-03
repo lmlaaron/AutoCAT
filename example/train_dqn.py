@@ -52,7 +52,13 @@ def main():
     max_steps = 20
 
     #env_factory = SimpleCacheWrapperFactory(max_steps=max_steps)
-    env_factory = CacheSimulatorWrapperFactory()
+    env_factory = CacheSimulatorWrapperFactory(
+     length_violation_reward=-10000,
+     double_victim_access_reward=-10,
+     correct_reward=200,
+     wrong_reward=-9999,
+     step_reward=-1
+    )
 
     # env = atari_wrappers.make_atari("PongNoFrameskip-v4")
     # env = gym_wrappers.wrap_atari(env, max_episode_steps=2700)

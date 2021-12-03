@@ -29,7 +29,7 @@ class CacheSimulatorWrapperFactory(EnvFactory):
         self.step_reward = step_reward
 
     def __call__(self, index: int, *args, **kwargs) -> GymWrapper:
-        env = CacheGuessingGameEnvFix(self.length_violation_reward, 
+        env = CacheGuessingGameEnv(self.length_violation_reward, 
          self.double_victim_access_reward,
          self.correct_reward,
          self.wrong_reward,
