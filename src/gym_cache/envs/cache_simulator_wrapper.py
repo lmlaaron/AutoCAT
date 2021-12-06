@@ -30,6 +30,7 @@ class CacheSimulatorWrapper(gym.Env):
 
     def seed(self, seed: Optional[int] = None) -> None:
         return self._env.seed(seed)
+<<<<<<< HEAD
         
 
 class CacheSimulatorWrapperFactory(EnvFactory):
@@ -55,3 +56,5 @@ class CacheSimulatorWrapperFactory(EnvFactory):
         env = CacheSimulatorWrapper(env)
         env = GymWrapper(env, action_fn=None)
         return env
+=======
+>>>>>>> 61ce1dc4f2ad55866b15a731e137f6bf86d335f7

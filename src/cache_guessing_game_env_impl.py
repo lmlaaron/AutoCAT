@@ -1,16 +1,9 @@
 import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
-import numpy
+from gym import spaces
 import numpy as np
-import sys
-import math
 import random
 import os
-
-
-import yaml, cache, argparse, logging, pprint
-from terminaltables.other_tables import UnixTable
+import yaml, logging
 from cache_simulator import *
 
 class CacheGuessingGameEnv(gym.Env):
@@ -35,10 +28,7 @@ class CacheGuessingGameEnv(gym.Env):
     # 3. whether to invoke the victim access
     # 4. if make a guess, what is the victim's accessed address?
 
-  Reward: ????
-   single_step: penalty
-   episode: lower bound value of assertion??
-   or just the guessing correctness   
+  Reward:
 
   Starting state:
     fresh cache with nolines
@@ -57,9 +47,14 @@ class CacheGuessingGameEnv(gym.Env):
    double_victim_access_reward=-10,
    correct_reward=200,
    wrong_reward=-9999,
-   step_reward=-1):
-    self.num_ways = 4
-    self.cache_size = 8
+   step_reward=-1,
+   window_size=0,
+   attacker_addr_s=4,
+   attacker_addr_e=7,
+   victim_addr_s=0,
+   victim_addr_e=3,
+   verbose=0,
+   ):
     self.length_violation_reward = length_violation_reward
     self.double_victim_access_reward = double_victim_access_reward
     self.correct_reward = correct_reward
@@ -74,22 +69,26 @@ class CacheGuessingGameEnv(gym.Env):
     self.fh.setFormatter(self.fh_format)
     self.sh.setFormatter(self.fh_format)
     self.logger.setLevel(logging.INFO)
-    
     self.logger.info('Loading config...')
     self.config_file = open(os.path.dirname(os.path.abspath(__file__))+'/../configs/config_simple_L1')
     self.configs = yaml.load(self.config_file, yaml.CLoader)
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
-    self.window_size = self.cache_size * 2 + 8 #10 
+    if window_size == 0:
+      self.window_size = self.cache_size * 2 + 8 #10 
+    else:
+      self.window_size = window_size
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.state = [0, self.cache_size, 0, 0] * self.window_size
-    self.x_range = 10000
-    high = np.array(
-        [
-            self.x_range,
-        ],
-        dtype=np.float32,
-    )
+    self.attacker_address_min = attacker_addr_s
+    self.attacker_address_max = attacker_addr_e
+    self.attacker_address_space = range(self.attacker_address_min,
+                                  self.attacker_address_max +
+                                  1)  # start with one attacker cache line
+    self.victim_address_min = victim_addr_s
+    self.victim_address_max = victim_addr_e
+    self.victim_address_space = range(self.victim_address_min,
+                                self.victim_address_max + 1)  #
 
     # action step contains four values
     # 1. access address
@@ -102,51 +101,40 @@ class CacheGuessingGameEnv(gym.Env):
     ####  2,                    #whether to invoke victim access
     ####  self.cache_size       #what is the guess of the victim's access
     ####  ])
+    # flattened version 
+    #self.action_space = spaces.Discrete(
+    #  self.cache_size * 2 * 2 * self.cache_size
+    #)
     self.action_space = spaces.Discrete(
-      self.cache_size * 2 * 2 * self.cache_size
+      len(self.attacker_address_space) * 2 * 2 * len(self.victim_address_space)
     )
 
-    
     # let's book keep all obvious information in the observation space 
     # since the agent is dumb
     self.observation_space = spaces.MultiDiscrete(
       [
-      3,                  #cache latency
-      self.cache_size+1,  #attacker accessed address
-      self.window_size + 2,   #current steps
-      2,                  #whether the victim has accessed yet
+        3,                                          #cache latency
+        len(self.attacker_address_space) + 1,       #attacker accessed address
+        self.window_size + 2,                       #current steps
+        2,                                          #whether the victim has accessed yet
       ] * self.window_size
     )
-    #self.observation_space = spaces.Discrete(3) # 0--> hit, 1 --> miss, 2 --> NA
-    
-    #self.observation_space = spaces.Box(-high, high, dtype=np.float32)
-
     print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
     self.victim_accessed = False
-    self.victim_address = random.randint(0,self.cache_size)
+    self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
     self._randomize_cache()
-    return
+    #return
 
   def get_obs_space_dim(self):
-    shape = self.observation_space.shape
-    rtn = 1
-    for i in shape:
-      rtn *= i
-    return rtn
+    return int(np.prod(self.observation_space.shape))
 
   def get_act_space_dim(self):
-    shape = self.action_space.shape
-    rtn = 1
-    for i in shape:
-      rtn *= i
-    return i 
+    return int(np.prod(self.action_space.shape))
 
   def step(self, action):
     print('Step...')
-
-
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]  
 
@@ -157,34 +145,28 @@ class CacheGuessingGameEnv(gym.Env):
     temp_action.append(action %  self.cache_size)
     action = temp_action
 
-    address = str(action[0]+self.cache_size)  # attacker address in range [self.cache_size, 2* self.cache_size]
-    is_guess = action[1]      # check whether to guess or not
-    is_victim = action[2]     # check whether to invoke victim
-    victim_addr = str(action[3]) # victim address
+    address = str(action[0]+self.attacker_address_min)                # attacker address in attacker_address_space
+    is_guess = action[1]                                              # check whether to guess or not
+    is_victim = action[2]                                             # check whether to invoke victim
+    victim_addr = str(action[3] + self.victim_address_min)            # victim address
 
     if self.current_step > self.window_size : # if current_step is too long, terminate
-      r = 2#
+      r = 2 #
       print("length violation!")
       reward = self.length_violation_reward #-10000 
       done = True
     else:
       if is_victim == True:
         r = 2 #
-        #if self.victim_accessed == False:
         self.victim_accessed = True
         print("victim access %d" % self.victim_address)
         self.l1.read(str(self.victim_address), self.current_step)
         self.current_step += 1
         reward = self.double_victim_access_reward #-10
         done = False
-        #else:               # if double victim access, huge penalty 
-        #  print("double access")
-        #  reward = -20000
-        #  done = True
       else:
         if is_guess == True:
           r = 2  # 
-          #if self.victim_accessed == True:
           if self.victim_accessed and victim_addr == str(self.victim_address):
               print("correct guess " + victim_addr)
               reward = self.correct_reward # 200
@@ -193,10 +175,6 @@ class CacheGuessingGameEnv(gym.Env):
               print("wrong guess " + victim_addr )
               reward = self.wrong_reward #-9999
               done = True
-          #else:         # guess without victim accessed first, huge penalty
-          #  print("guess without access violation")
-          #  reward = -30000 
-          #  done = True
         else:
           if self.l1.read(address, self.current_step).time > 500: # measure the access latency
             print("acceee " + address + " miss")
@@ -230,14 +208,11 @@ class CacheGuessingGameEnv(gym.Env):
     self.l1 = self.hierarchy['cache_1']
     self.current_step = 0
     self.victim_accessed = False
-    self.victim_address = random.randint(0,self.cache_size-1) 
+    self.victim_address = random.randint(self.victim_address_min, self.victim_address_max) 
     print("victim address %d", self.victim_address)
-    #return np.array([0, self.cache_size, 0, 0])
-    self.state = [0, self.cache_size, 0, 0] * self.window_size
+    self.state = [0, len(self.attacker_address_space), 0, 0] * self.window_size
     self._randomize_cache()
     return np.array(self.state)
-    #self.state = [1000 ]
-    #return np.array(self.state, dtype=np.float32)
 
   def render(self, mode='human'):
     return 
