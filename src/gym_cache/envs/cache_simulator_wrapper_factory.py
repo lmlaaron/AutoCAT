@@ -5,36 +5,29 @@ sys.path.append("..")
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
 import numpy as np
 
-import gym
-
 from typing import Any, Optional, Tuple
-
 
 from envs.cache_simulator_wrapper import CacheSimulatorWrapper
 from rloptim.envs.env import EnvFactory
 from rloptim.envs.gym_wrappers import GymWrapper
 
 class CacheSimulatorWrapperFactory(EnvFactory):
-    def __init__(self,
-     length_violation_reward=-10000,
-     double_victim_access_reward=-10,
-     correct_reward=200,
-     wrong_reward=-9999,
-     step_reward=-1) -> None:
+    def __init__(self, cfg) -> None:
         super(CacheSimulatorWrapperFactory, self).__init__()
-        self.length_violation_reward =length_violation_reward
-        self.double_victim_access_reward = double_victim_access_reward
-        self.correct_reward = correct_reward
-        self.wrong_reward = wrong_reward
-        self.step_reward = step_reward
+        self.env_config = cfg
+        self.action_dim = -1
+        self.obs_dim = - 1
 
     def __call__(self, index: int, *args, **kwargs) -> GymWrapper:
-        env = CacheGuessingGameEnv(self.length_violation_reward, 
-         self.double_victim_access_reward,
-         self.correct_reward,
-         self.wrong_reward,
-         self.step_reward)
+        env = CacheGuessingGameEnv(self.env_config)
+        self.action_dim = env.get_act_space_dim() 
+        self.obs_dim = env.get_obs_space_dim() 
         env = CacheSimulatorWrapper(env)
         env = GymWrapper(env, action_fn=None)
         return env
 
+    def get_action_dim(self) -> int:
+        return self.action_dim
+
+    def get_obs_dim(self) -> int:
+        return self.obs_dim 

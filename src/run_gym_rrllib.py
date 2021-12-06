@@ -54,6 +54,8 @@ if ray.is_initialized():
 
 ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
 tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
+
+
 # Two ways of training
 # method 2b
 config = {
@@ -75,7 +77,7 @@ config = {
               "write_back": True
             },
             "cache_1": {#required
-              "blocks": 2, 
+              "blocks": 4, 
               "associativity": 2,  
               "hit_time": 1 #cycles
             },

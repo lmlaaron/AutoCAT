@@ -1,4 +1,3 @@
-# rloptim config
 model_address : "localhost:2020"
 train_address : "localhost:2021"
 eval_address : "localhost:2022"
@@ -34,4 +33,3 @@ cache_configs : # YAML config file for cache simulaton
     hit_time : 1 #cycles
    mem: #required
      hit_time : 1000 #cycles
-
