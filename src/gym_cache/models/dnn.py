@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+#from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 
 from typing import Optional
 

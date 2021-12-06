@@ -1,0 +1,9 @@
+model_address : "localhost:2020"
+train_address : "localhost:2021"
+eval_address : "localhost:2022"
+
+penalty_for_step : -1
+reward_correct_guess : 200
+reward_wrong_guess : -9999
+length_violation_reward : -10000
+double_victim_access_reward : -10

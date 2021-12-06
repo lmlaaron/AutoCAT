@@ -9,9 +9,10 @@ import gym
 
 from typing import Any, Optional, Tuple
 
-#from rloptim.envs.env import EnvFactory
-#from rloptim.envs.gym_wrappers import GymWrapper
+from rloptim.envs.env import EnvFactory
+from rloptim.envs.gym_wrappers import GymWrapper
 from ray.rllib.models.preprocessors import OneHotPreprocessor
+
 
 class CacheSimulatorWrapper(gym.Env):
     def __init__(self, env: CacheGuessingGameEnv):
@@ -29,28 +30,28 @@ class CacheSimulatorWrapper(gym.Env):
 
     def seed(self, seed: Optional[int] = None) -> None:
         return self._env.seed(seed)
+        
 
-#class CacheSimulatorWrapperFactory(EnvFactory):
-#    def __init__(self,
-#     length_violation_reward=-10000,
-#     double_victim_access_reward=-10,
-#     correct_reward=200,
-#     wrong_reward=-9999,
-#     step_reward=-1) -> None:
-#        super(CacheSimulatorWrapperFactory, self).__init__()
-#        self.length_violation_reward =length_violation_reward
-#        self.double_victim_access_reward = double_victim_access_reward
-#        self.correct_reward = correct_reward
-#        self.wrong_reward = wrong_reward
-#        self.step_reward = step_reward
-#
-#    def __call__(self, index: int, *args, **kwargs) -> GymWrapper:
-#        env = CacheGuessingGameEnvFix(self.length_violation_reward, 
-#         self.double_victim_access_reward,
-#         self.correct_reward,
-#         self.wrong_reward,
-#         self.step_reward)
-#        env = CacheSimulatorWrapper(env)
-#        env = GymWrapper(env, action_fn=None)
-#        return env
-#
+class CacheSimulatorWrapperFactory(EnvFactory):
+    def __init__(self,
+     length_violation_reward=-10000,
+     double_victim_access_reward=-10,
+     correct_reward=200,
+     wrong_reward=-9999,
+     step_reward=-1) -> None:
+        super(CacheSimulatorWrapperFactory, self).__init__()
+        self.length_violation_reward =length_violation_reward
+        self.double_victim_access_reward = double_victim_access_reward
+        self.correct_reward = correct_reward
+        self.wrong_reward = wrong_reward
+        self.step_reward = step_reward
+
+    def __call__(self, index: int, *args, **kwargs) -> GymWrapper:
+        env = CacheGuessingGameEnvFix(self.length_violation_reward, 
+         self.double_victim_access_reward,
+         self.correct_reward,
+         self.wrong_reward,
+         self.step_reward)
+        env = CacheSimulatorWrapper(env)
+        env = GymWrapper(env, action_fn=None)
+        return env

@@ -8,11 +8,11 @@ import sys
 sys.path.append("..")
 
 from models.dnn import DNNEncoder
-from ray.rllib.models import ModelCatalog
-from ray.rllib.models.tf.tf_modelv2 import TFModelV2
-from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+#from ray.rllib.models import ModelCatalog
+#from ray.rllib.models.tf.tf_modelv2 import TFModelV2
+#from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 
-class DQNModel(TorchModelV2):
+class DQNModel(nn.Module):
     def __init__(self,
                  input_dim: int,
                  hidden_dim: int,
