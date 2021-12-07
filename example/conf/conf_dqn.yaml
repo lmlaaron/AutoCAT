@@ -1,3 +1,36 @@
+# rloptim config
 model_address : "localhost:2020"
 train_address : "localhost:2021"
 eval_address : "localhost:2022"
+
+# env_config
+
+#penalty_for_step : -1
+#reward_correct_guess : 200
+#reward_wrong_guess : -9999
+#length_violation_reward : -10000
+#double_victim_access_reward : -10
+length_violation_reward : 10000
+double_victim_access_reward : 10
+correct_reward : 200
+wrong_reward : -9999
+step_reward : -1
+verbose : 0
+force_victim_hit : True
+flush_inst : False
+allow_victim_multi_access : False
+attacker_addr_s : 0
+attacker_addr_e : 3
+victim_addr_s : 0
+victim_addr_e : 1
+cache_configs : # YAML config file for cache simulaton
+  architecture : 
+    word_size : 1  #bytes
+    block_size : 1 #bytes
+    write_back : True
+  cache_1 : #required
+    blocks : 2
+    associativity : 2  
+    hit_time : 1 #cycles
+   mem: #required
+     hit_time : 1000 #cycles
