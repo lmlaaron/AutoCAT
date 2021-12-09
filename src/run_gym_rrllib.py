@@ -7,6 +7,7 @@ from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 import torch.nn as nn
 import numpy as np
 from ray.rllib.models import ModelCatalog
+from ray.rllib.agents.ppo import PPOTrainer
 import sys
 sys.path.append("../src")
 from models.dqn_model import DNNEncoder 
@@ -164,8 +165,9 @@ config = {
     }, 
     'framework': 'torch',
 }
-tune.run(
-    "PPO",
+trainer = PPOTrainer(env=CacheSimulatorDiversityWrapper, config=config)
+analysis= tune.run(
+    PPOTrainer,
     local_dir="~/ray_results", 
     name="test_experiment",
     config=config)
