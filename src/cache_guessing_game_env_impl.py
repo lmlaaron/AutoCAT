@@ -134,6 +134,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.victim_address_space = range(self.victim_address_min,
                                 self.victim_address_max + 1)  #
     self.flush_inst = flush_inst
+    self.reset_time = 0
     # action step contains four values
     # 1. access address
     # 2. whether to end and make a guess now?
@@ -171,7 +172,7 @@ class CacheGuessingGameEnv(gym.Env):
     # internal guessing buffer
     # does not change after reset
     self.guess_buffer_size = 20
-    self.correct_guess = [False] * self.guess_buffer_size
+    self.guess_buffer = [False] * self.guess_buffer_size
     #return
 
 
@@ -228,15 +229,15 @@ class CacheGuessingGameEnv(gym.Env):
           if self.victim_accessed and victim_addr == str(self.victim_address):
               self.vprint("correct guess " + victim_addr)
               # update the guess buffer 
-              self.correct_guess.append(True)
-              self.correct_guess.pop(0) 
+              self.guess_buffer.append(True)
+              self.guess_buffer.pop(0) 
               reward = self.correct_reward # 200
               done = True
           else:
               self.vprint("wrong guess " + victim_addr )
               # update the guess buffer 
-              self.correct_guess.append(False)
-              self.correct_guess.pop(0) 
+              self.guess_buffer.append(False)
+              self.guess_buffer.pop(0) 
               reward = self.wrong_reward #-9999
               done = True
         elif is_flush == False or self.flush_inst == False:
@@ -299,28 +300,30 @@ class CacheGuessingGameEnv(gym.Env):
   function to calculate the correctness rate
   '''
   def calc_correct_rate(self):
-    return self.correct_guess.count(True) /len(self.correct_guess)
+    return self.guess_buffer.count(True) /len(self.guess_buffer)
 
   '''
   evluate the correctness of an action sequence (action+ latency) 
+  action_buffer: list [(action, latency)]
   '''
   def calc_correct_seq(self, action_buffer):
     last_action, _ = action_buffer[-1]
     last_action = self.parse_action(last_action)
+    print(last_action)
     guess_addr = last_action[4]
+    print(guess_addr)
     self.reset()
     self.total_guess = 0
     self.correct_guess = 0
     while self.total_guess < 20:
       self.reset()
-      
       for i in range(0, len(action_buffer)):
         p = action_buffer[i]
         state, _, _, _ = self.step(p[0])
         latency = state[0]
         if latency != p[1]:
           break
-      if i < len(action_buffer):
+      if i < len(action_buffer) - 1:
         continue
       else:
         self.total_guess += 1
@@ -348,12 +351,11 @@ class CacheGuessingGameEnv(gym.Env):
     return
 
   def _randomize_cache(self, mode = "attacker"):
-    self.l1.read(str(2), -2)
-    self.l1.read(str(3), -1)
-    return
+    #self.l1.read(str(2), -2)
+    #self.l1.read(str(3), -1)
+    #return
     if mode == "none":
       return
-
     self.current_step = -self.cache_size * 2 
     for _ in range(self.cache_size * 2):
       if mode == "victim":

@@ -71,6 +71,7 @@ class CacheSimulatorDiversityWrapper(gym.Env):
         self.correct_thre = 0.95
         self.observation_space = self._env.observation_space
         self.action_space = self._env.action_space
+        self.action_buffer = []
     def reset(self):
         self.action_buffer = []
         return self._env.reset()
@@ -85,8 +86,8 @@ class CacheSimulatorDiversityWrapper(gym.Env):
             return True
         else:
             if self._env.calc_correct_rate() > self.correct_thre:
-              #if self.validation_env.calc_correct_seq(self.action_buffer) > self.correct_thre:
-              self.pattern_buffer.append(self.action_buffer)
+                if self.validation_env.calc_correct_seq(self.action_buffer) > self.correct_thre:
+                    self.pattern_buffer.append(self.action_buffer)
             return False        
     def step(self,action):
         state, reward, done, info = self._env.step(action)
