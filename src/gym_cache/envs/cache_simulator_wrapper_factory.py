@@ -19,8 +19,6 @@ class CacheSimulatorWrapperFactory(EnvFactory):
         temp_env = CacheSimulatorWrapper(temp_env)
         self.action_dim = temp_env.get_act_space_dim() 
         self.obs_dim = temp_env.get_obs_space_dim() 
-        self.action_dim = -1
-        self.obs_dim = - 1
 
     def __call__(self, index: int, *args, **kwargs) -> GymWrapper:
         env = CacheGuessingGameEnv(self.env_config)
