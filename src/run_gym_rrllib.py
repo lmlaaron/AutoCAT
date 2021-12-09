@@ -1,4 +1,5 @@
 # look at https://github.com/ray-project/ray/blob/ea2bea7e309cd60457aa0e027321be5f10fa0fe5/rllib/examples/custom_env.py#L2
+#from CacheSimulator.src.gym_cache.envs.cache_simulator_wrapper import CacheSimulatorWrapper
 import gym
 import ray
 import ray.tune as tune
@@ -52,9 +53,68 @@ from cache_guessing_game_env_impl import *
 if ray.is_initialized():
   ray.shutdown()
 
+'''
+CacheSimulatorDiversityWrapper
+description:
+a gym compatible environment that records legit patterns in the buffer (under some condition)
+when step() a guess, first look up whether the pattern is in the register 
+if it is then the reward will be very negative
+otherwise it will be positive
+at the end output everything in the register 
+'''
+class CacheSimulatorDiversityWrapper(gym.Env):
+    def __init__(self, env_config):
+        self._env = CacheGuessingGameEnv(env_config)
+        self.validation_env = CacheGuessingGameEnv(env_config)
+        self.pattern_buffer = []
+        self.repeat_pattern_reward = -10000
+        self.correct_thre = 0.95
+        self.observation_space = self._env.observation_space
+        self.action_space = self._env.action_space
+    def reset(self):
+        self.action_buffer = []
+        return self._env.reset()
+    '''
+    chcek whether the sequence in the action_buffer is seen before
+    returns true if it is
+    returns false and update the pattern buffer 
+    '''
+    # shall we use trie structure instead ???
+    def check_and_save(self):
+        if self.action_buffer in self.pattern_buffer:
+            return True
+        else:
+            if self._env.calc_correct_rate() > self.correct_thre:
+              #if self.validation_env.calc_correct_seq(self.action_buffer) > self.correct_thre:
+              self.pattern_buffer.append(self.action_buffer)
+            return False        
+    def step(self,action):
+        state, reward, done, info = self._env.step(action)
+        latency = state[0]
+        self.action_buffer.append((action,latency)) #latnecy is part of the attack trace
+        #make sure the current existing correct guessing rate is high enough beofre 
+        # altering the reward
+        if done == False:
+            return state, reward, done, info
+        else:
+            action = self._env.parse_action(action)
+            is_guess = action[1]
+            if is_guess == True:
+                is_exist = self.check_and_save()
+                if is_exist == True:
+                    reward = self.repeat_pattern_reward #-10000
+                return state, reward, done, info
+            else:
+                return state, reward, done, info
+    def reset(self):
+        print(self.pattern_buffer)
+        self.action_buffer = []
+        self.validation_env.reset()
+        return self._env.reset()
+
 ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
 tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
-
+tune.register_env("cache_guessing_game_env_fix", CacheSimulatorDiversityWrapper)
 
 # Two ways of training
 # method 2b
@@ -62,13 +122,14 @@ config = {
     'env': 'cache_guessing_game_env_fix',
     'env_config': {
         'verbose': 1,
-        "force_victim_hit": True,
+        "force_victim_hit": False,
         'flush_inst': False,
         "allow_victim_multi_access": False,
         "attacker_addr_s": 0,
         "attacker_addr_e": 3,
         "victim_addr_s": 0,
         "victim_addr_e": 1,
+        "reset_limit": 1,
         "cache_configs": {
                 # YAML config file for cache simulaton
             "architecture": {
@@ -77,7 +138,7 @@ config = {
               "write_back": True
             },
             "cache_1": {#required
-              "blocks": 4, 
+              "blocks": 2, 
               "associativity": 2,  
               "hit_time": 1 #cycles
             },
