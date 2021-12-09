@@ -17,12 +17,12 @@ class CacheSimulatorWrapper(gym.Env):
         self._env = env
         self.preprocessor = OneHotPreprocessor(self._env.observation_space)
     
-    def __init__(self, env_config : dict = {}) -> None:#, env: CacheGuessingGameEnv):
-        self._env = CacheGuessingGameEnv(env_config)#env
-        self.preprocessor = OneHotPreprocessor(self._env.observation_space)#OneHotPreprocessor(env.observation_space)
-        self.action_space = self._env.action_space
-        obs_len =len( self.preprocessor.transform(self._env.reset()) )
-        self.observation_space = spaces.Box(low = np.array([-1] * obs_len), high = np.array([2]* obs_len))
+    ##def __init__(self, env_config : dict = {}) -> None:#, env: CacheGuessingGameEnv):
+    ##    self._env = CacheGuessingGameEnv(env_config)#env
+    ##    self.preprocessor = OneHotPreprocessor(self._env.observation_space)#OneHotPreprocessor(env.observation_space)
+    ##    self.action_space = self._env.action_space
+    ##    obs_len =len( self.preprocessor.transform(self._env.reset()) )
+    ##    self.observation_space = spaces.Box(low = np.array([-1] * obs_len), high = np.array([2]* obs_len))
    
     def reset(self):
         self._obs = self.preprocessor.transform(self._env.reset()) #flatten_multisiscrete( self._env.observation_space, self._env.reset()) 
@@ -35,3 +35,9 @@ class CacheSimulatorWrapper(gym.Env):
         return self._obs.flatten().astype(np.float32), reward, done, info
     def seed(self, seed: Optional[int] = None) -> None:
         return self._env.seed(seed)
+
+    def get_obs_space_dim(self):
+        return len( self.preprocessor.transform(self._env.reset()) )
+
+    def get_act_space_dim(self):
+        return len(self._env.attacker_address_space) * 2 * 2 * 2 * len(self._env.victim_address_space)
