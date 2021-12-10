@@ -9,6 +9,8 @@ import numpy as np
 from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.ppo import PPOTrainer
 import sys
+import copy
+
 sys.path.append("../src")
 from models.dqn_model import DNNEncoder 
 
@@ -65,6 +67,7 @@ at the end output everything in the register
 '''
 class CacheSimulatorDiversityWrapper(gym.Env):
     def __init__(self, env_config):
+        self.env_config = env_config
         self._env = CacheGuessingGameEnv(env_config)
         self.validation_env = CacheGuessingGameEnv(env_config)
         self.pattern_buffer = []
@@ -73,9 +76,67 @@ class CacheSimulatorDiversityWrapper(gym.Env):
         self.observation_space = self._env.observation_space
         self.action_space = self._env.action_space
         self.action_buffer = []
+        self.pattern_init_state = (copy.deepcopy(self._env.l1), self._env.victim_address)
+        self.pattern_init_state_buffer = []
+   
+    '''
+    reset function
+    '''
     def reset(self):
         self.action_buffer = []
-        return self._env.reset()
+        self.validation_env.reset()
+        rtn = self._env.reset()
+        self.pattern_init_state = (copy.deepcopy(self._env.l1), self._env.victim_address)
+        return rtn
+    
+    '''
+    calculate the guessing correct rate of action_buffer
+    '''
+    def calc_correct_seq(self, action_buffer):
+        correct_guess = 0
+        total_guess = 0
+        for _ in range(1):
+            if self.replay_action_buffer(action_buffer):
+                correct_guess += 1 
+            total_guess += 1
+        rtn = 1.0 * correct_guess / total_guess 
+        print('calc_correct_seq ' + rtn)
+        return rtn
+
+    '''
+    given the action and latency sequence, replay the cache game
+    1. for known initial state, the loop runs once
+    2. for randomized initial state, the loop runs multiple times
+    ''' 
+    def replay_action_buffer(self, action_buffer, init_state = None):
+        replay_env = self.validation_env 
+        while True:
+            repeat = False                  # flag for not finding correct pattern
+            replay_env.reset()
+            if init_state != None:
+               l1, victim_address = init_state
+               replay_env.verbose = 1
+               replay_env.l1 = l1
+               replay_env.victim_address = victim_address
+            for step in action_buffer:
+               action = step[0]
+               latency = step[1] 
+               print(replay_env.parse_action((action)))
+               obs, reward, _, _ = replay_env.step(action)
+               print(obs)
+               print(latency) 
+               if obs[0] != latency:
+                   repeat = True
+            if repeat == True:
+                continue
+            else:
+                break 
+        if reward > 0:
+            print("replay buffer correct guess")
+            return True         # meaning correct guess
+        else:
+            return False        # meaning wrong guess
+
     '''
     chcek whether the sequence in the action_buffer is seen before
     returns true if it is
@@ -87,9 +148,18 @@ class CacheSimulatorDiversityWrapper(gym.Env):
             return True
         else:
             if self._env.calc_correct_rate() > self.correct_thre:
-                if self.validation_env.calc_correct_seq(self.action_buffer) > self.correct_thre:
+                print(self.action_buffer)
+                self.calc_correct_seq(self.action_buffer)
+                if self.calc_correct_seq(self.action_buffer) > self.correct_thre:
+                    #print("calc_correct_seq")
                     self.pattern_buffer.append(self.action_buffer)
-            return False        
+                    self.pattern_init_state_buffer.append(copy.deepcopy(self.pattern_init_state))
+                    self.replay_pattern_buffer()
+            return False
+    
+    '''
+    step function
+    '''        
     def step(self,action):
         state, reward, done, info = self._env.step(action)
         latency = state[0]
@@ -108,20 +178,33 @@ class CacheSimulatorDiversityWrapper(gym.Env):
                 return state, reward, done, info
             else:
                 return state, reward, done, info
-    def reset(self):
+    
+   
+    ## pretty print the pattern buffer
+    '''
+    replay function
+    '''
+    def replay_pattern_buffer(self):
+        print("replay pattern buffer")
+        i = 0
         print(self.pattern_buffer)
-        self.action_buffer = []
-        self.validation_env.reset()
-        return self._env.reset()
+        print(self.pattern_init_state_buffer)
+        for i in range(0, len(self.pattern_buffer)):
+            actions = self.pattern_buffer[i]
+            self.replay_action_buffer(actions, init_state = self.pattern_init_state_buffer[i])
+            print("attack pattern " + str(i))
+            i += 1
+        if i == 5:
+            exit() 
 
 ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
 tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
-tune.register_env("cache_guessing_game_env_fix", CacheSimulatorDiversityWrapper)
+tune.register_env("cache_simulator_diversity_wrapper", CacheSimulatorDiversityWrapper)
 
 # Two ways of training
 # method 2b
 config = {
-    'env': 'cache_guessing_game_env_fix',
+    'env': 'cache_simulator_diversity_wrapper',
     'env_config': {
         'verbose': 1,
         "force_victim_hit": False,
