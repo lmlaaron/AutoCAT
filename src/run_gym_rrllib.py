@@ -38,13 +38,21 @@ class TestModel(TorchModelV2, nn.Module):
             nn.Linear(hidden_dim, 1)
         )
         self._last_flat_in = None
+        #self.recent_model = []
+
     def forward(self, input_dict, state, seq_lens):
+        #if obs[-1] > 0.99:
+        #    self.recent_model.append((copy.deepcopy(self.a_model), copy.deepcopy(self.v_model)))
+        #    if len(self.recent_model) > 5:
+        #        self.recent_model.pop()
         obs = input_dict["obs_flat"].float()
         self._last_flat_in = obs.reshape(obs.shape[0], -1)
         self._output = self.a_model(self._last_flat_in)
         return self._output, state 
     def value_function(self):
         return self.v_model(self._last_flat_in).squeeze(1)
+
+    #def custom_loss(self, policy_loss, loss_input):
 
 ModelCatalog.register_custom_model("test_model", TestModel)
 # RLlib does not work with gym registry, must redefine the environment in RLlib
@@ -66,19 +74,26 @@ otherwise it will be positive
 at the end output everything in the register 
 '''
 class CacheSimulatorDiversityWrapper(gym.Env):
-    def __init__(self, env_config):
+    def __init__(self, env_config, keep_latency=False):
         self.env_config = env_config
+        # two choices for memorize the table
+        # 1. keep both the action and the actual latency
+        #     in this case the pattern has to be stored
+        # 2. just keep the action but not the latency
+        #      in this case, the model has to be stored
+        self.keep_latency = keep_latency
         self._env = CacheGuessingGameEnv(env_config)
         self.validation_env = CacheGuessingGameEnv(env_config)
         self.pattern_buffer = []
+        self.enable_diversity = False
         self.repeat_pattern_reward = -10000
-        self.correct_thre = 0.95
+        self.correct_thre = 0.98
         self.observation_space = self._env.observation_space
         self.action_space = self._env.action_space
         self.action_buffer = []
+        #self.latency_buffer = []
         self.pattern_init_state = (copy.deepcopy(self._env.l1), self._env.victim_address)
         self.pattern_init_state_buffer = []
-   
     '''
     reset function
     '''
@@ -87,8 +102,8 @@ class CacheSimulatorDiversityWrapper(gym.Env):
         self.validation_env.reset()
         rtn = self._env.reset()
         self.pattern_init_state = (copy.deepcopy(self._env.l1), self._env.victim_address)
+        print("number of found patterns:" + str(len(self.pattern_buffer)))
         return rtn
-    
     '''
     calculate the guessing correct rate of action_buffer
     '''
@@ -102,7 +117,6 @@ class CacheSimulatorDiversityWrapper(gym.Env):
         rtn = 1.0 * correct_guess / total_guess 
         print('calc_correct_seq ' + rtn)
         return rtn
-
     '''
     given the action and latency sequence, replay the cache game
     1. for known initial state, the loop runs once
@@ -136,7 +150,6 @@ class CacheSimulatorDiversityWrapper(gym.Env):
             return True         # meaning correct guess
         else:
             return False        # meaning wrong guess
-
     '''
     chcek whether the sequence in the action_buffer is seen before
     returns true if it is
@@ -144,25 +157,53 @@ class CacheSimulatorDiversityWrapper(gym.Env):
     '''
     # shall we use trie structure instead ???
     def check_and_save(self):
+        
+        #return False
+        '''
+        if self.keep_latency == True:
+            if self.action_buffer in self.pattern_buffer:
+                return True
+            else:
+                if self._env.calc_correct_rate() > self.correct_thre:
+                    print(self.action_buffer)
+                    c = self.calc_correct_seq(self.action_buffer)
+                    if c > self.correct_thre:
+                        #print("calc_correct_seq")
+                        self.pattern_buffer.append(self.action_buffer)
+                        self.pattern_init_state_buffer.append(copy.deepcopy(self.pattern_init_state))
+                        self.replay_pattern_buffer()
+                return False        
+        else:
+        '''
         if self.action_buffer in self.pattern_buffer:
             return True
         else:
             if self._env.calc_correct_rate() > self.correct_thre:
-                print(self.action_buffer)
-                self.calc_correct_seq(self.action_buffer)
-                if self.calc_correct_seq(self.action_buffer) > self.correct_thre:
-                    #print("calc_correct_seq")
+                if self.keep_latency == True:  # need to calculate the latency of specific pattern
+                    print(self.action_buffer)
+                    c = self.calc_correct_seq(self.action_buffer)
+                    if c > self.correct_thre:
+                        #print("calc_correct_seq")
+                        self.pattern_buffer.append(self.action_buffer)
+                        self.pattern_init_state_buffer.append(copy.deepcopy(self.pattern_init_state))
+                        self.replay_pattern_buffer()
+                else:                           # just keep the pattern and the model
+                    #c = self.calc_correct_seq(self.action_buffer) 
+                    #if c > self.correct_thre: 
                     self.pattern_buffer.append(self.action_buffer)
-                    self.pattern_init_state_buffer.append(copy.deepcopy(self.pattern_init_state))
-                    self.replay_pattern_buffer()
-            return False
-    
+                    print(self.pattern_buffer)
+                    self._env.clear_guess_buffer_history()        
+            return False        
     '''
     step function
     '''        
     def step(self,action):
         state, reward, done, info = self._env.step(action)
-        latency = state[0]
+        #state = [state self._env.calc_correct_rate()]
+        if self.keep_latency == True:
+            latency = state[0]
+        else:
+            latency = -1
         self.action_buffer.append((action,latency)) #latnecy is part of the attack trace
         #make sure the current existing correct guessing rate is high enough beofre 
         # altering the reward
@@ -173,13 +214,11 @@ class CacheSimulatorDiversityWrapper(gym.Env):
             is_guess = action[1]
             if is_guess == True:
                 is_exist = self.check_and_save()
-                if is_exist == True:
+                if is_exist == True and self.enable_diversity==True:
                     reward = self.repeat_pattern_reward #-10000
                 return state, reward, done, info
             else:
                 return state, reward, done, info
-    
-   
     ## pretty print the pattern buffer
     '''
     replay function
@@ -248,7 +287,27 @@ config = {
     }, 
     'framework': 'torch',
 }
-trainer = PPOTrainer(env=CacheSimulatorDiversityWrapper, config=config)
+
+'''
+overwrite the default PPO trainer to trigger customized model savings
+'''
+#class PPOTrainerDiversity(PPOTrainer):
+#    #def setup
+#    def step(self):
+#        result = super().step()
+#        #if super().env._env.calc_correct_rate() > 0.95:
+#        print("appending model in PPOTrainerDiversity")
+#        self.workers.foreach_env_with_context(print)
+#        assert(False)
+#        #assert(self.workers.local_worker().env != None) 
+#        #print(self.workers.local_worker()) 
+#        #print(self.workers) 
+#        #assert(False)
+#        #self.env.model_buffer.append(self.get_policy()) 
+#            #result.update(should_checkpoint=True)
+#        return result
+#
+#trainer = PPOTrainerDiversity(env="cache_simulator_diversity_wrapper", config=config)
 analysis= tune.run(
     PPOTrainer,
     local_dir="~/ray_results", 

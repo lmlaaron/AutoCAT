@@ -170,10 +170,12 @@ class CacheGuessingGameEnv(gym.Env):
 
     # internal guessing buffer
     # does not change after reset
-    self.guess_buffer_size = 20
+    self.guess_buffer_size = 100
     self.guess_buffer = [False] * self.guess_buffer_size
     #return
 
+  def clear_guess_buffer_history(self):
+    self.guess_buffer = [False] * self.guess_buffer_size
 
   def step(self, action):
     print('Step...')
@@ -350,9 +352,9 @@ class CacheGuessingGameEnv(gym.Env):
     return
 
   def _randomize_cache(self, mode = "attacker"):
-    #self.l1.read(str(2), -2)
-    #self.l1.read(str(3), -1)
-    #return
+    self.l1.read(str(0), -2)
+    self.l1.read(str(1), -1)
+    return
     if mode == "none":
       return
     self.current_step = -self.cache_size * 2 
