@@ -14,7 +14,9 @@ import copy
 sys.path.append("../src")
 from models.dqn_model import DNNEncoder 
 
+
 # the actual model used by the RLlib
+from collections import deque
 class TestModel(TorchModelV2, nn.Module):
     def __init__(self, obs_space, action_space, num_outputs, model_config,
                  name):
@@ -37,6 +39,9 @@ class TestModel(TorchModelV2, nn.Module):
             ),
             nn.Linear(hidden_dim, 1)
         )
+        self.past_len = 5
+        self.past_models = deque(maxlen=self.past_len)
+        self.past_mean_rewards = deque(maxlen=self.past_len)
         self._last_flat_in = None
         #self.recent_model = []
 
@@ -49,10 +54,84 @@ class TestModel(TorchModelV2, nn.Module):
         self._last_flat_in = obs.reshape(obs.shape[0], -1)
         self._output = self.a_model(self._last_flat_in)
         return self._output, state 
+
     def value_function(self):
         return self.v_model(self._last_flat_in).squeeze(1)
 
     #def custom_loss(self, policy_loss, loss_input):
+        #div_loss, div_loss_orig = compute_div_loss(states, log_probs)
+    
+    '''
+    Author: Zhang-Wei Hong 
+    Email: williamd4112@gapp.nthu.edu.tw>
+    Description: source code for paper
+    “Diversity-driven exploration strategy for deep reinforcement learning” (NIPS 2018) 
+    '''        
+    def compute_div_loss(self, states, log_probs):
+        # Div loss
+        div_loss = 0
+        if args.use_neg_ratio or args.use_ratio or args.rel:
+            max_perf = current_max_perf if args.use_history_max else current_perf
+            min_perf = current_min_perf if args.use_history_max else current_perf
+            past_mean_reward_max = max(max(past_mean_rewards), max_perf)
+            past_mean_reward_min = min(min(past_mean_rewards), min_perf)
+            past_mean_reward_rng = past_mean_reward_max - past_mean_reward_min + 1e-9
+
+        if args.use_neg_ratio:
+            past_ratios = [((r - past_mean_reward_min) / past_mean_reward_rng) * 2 - 1 for r in past_mean_rewards]
+        elif args.use_ratio:
+            past_ratios = [((r - past_mean_reward_min) / past_mean_reward_rng)  for r in past_mean_rewards]
+        elif args.rel:
+            past_ratios = [((r - current_perf) / past_mean_reward_rng)  for r in past_mean_rewards]
+        else:
+            past_ratios = [1.0 for r in range(len(past_models))]
+
+        divs = []
+        for idx, past_model in enumerate(past_models):
+            temperature = args.temp
+            actions = Variable(rollouts.actions.view(-1, action_shape), volatile=True)
+            _, t_action_log_probs, _, t_log_probs, t_probs = past_model.evaluate_actions(Variable(states.data, volatile=True), actions, temperature=temperature)
+            target_log_probs = t_log_probs
+            target_log_probs = Variable(target_log_probs.data, requires_grad=False)
+
+            if args.div_soft:
+                target_probs = Variable(t_probs.data, requires_grad=False)
+            else:
+                _, target_inds = t_probs.max(1)
+                target_inds = target_inds.data
+                action_size = t_probs.size()
+                target_probs = Variable(torch.zeros(action_size[0], action_size[1]).cuda().scatter_(1, target_inds.unsqueeze(1), 1.0), requires_grad=False)
+            div = div_metric(log_probs, target_probs).sum(1)
+            div = torch.clamp(div, min=-args.div_threshold, max=args.div_threshold)
+            div = div.mean(0)
+            divs.append(div)
+
+        divs_sort_idx = np.argsort([d.data[0] for d in divs])
+        if args.knn != 0:
+            divs_sort_idx = divs_sort_idx[:args.knn]
+
+        div_loss_orig = 0
+        for idx in divs_sort_idx:
+            if args.use_neg_ratio and past_mean_reward_min != past_mean_reward_max:
+                div_loss += float(-past_ratios[idx]) * divs[idx]
+            elif args.use_ratio and past_mean_reward_min != past_mean_reward_max:
+                div_loss += (1.0 - float(past_ratios[idx])) * divs[idx]
+            elif args.rel and past_mean_reward_min != current_perf:
+                div_loss += float(-past_ratios[idx]) * divs[idx]
+            else:
+                div_loss += divs[idx]
+            div_loss_orig += divs[idx]
+
+        if args.use_clip_div_loss:
+            div_loss = torch.clamp(div_loss / float(len(past_models)), min=-args.div_max, max=args.div_max)
+        else:
+            div_loss = div_loss / float(len(past_models))
+
+        return div_loss, div_loss_orig / float(len(past_models))
+
+
+
+
 
 ModelCatalog.register_custom_model("test_model", TestModel)
 # RLlib does not work with gym registry, must redefine the environment in RLlib
@@ -313,3 +392,5 @@ analysis= tune.run(
     local_dir="~/ray_results", 
     name="test_experiment",
     config=config)
+
+#tune.run("A2C", config={"env": 'Frostbite-v0', "num_gpus":1})
