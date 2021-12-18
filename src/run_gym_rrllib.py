@@ -4,12 +4,15 @@ import gym
 import ray
 import ray.tune as tune
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+from ray.rllib.models.modelv2 import restore_original_dimensions
 import torch.nn as nn
 import numpy as np
 from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.ppo import PPOTrainer
 import sys
 import copy
+import torch
+from ray.rllib.offline import JsonReader
 
 sys.path.append("../src")
 from models.dqn_model import DNNEncoder 
@@ -43,6 +46,9 @@ class TestModel(TorchModelV2, nn.Module):
         self.past_models = deque(maxlen=self.past_len)
         self.past_mean_rewards = deque(maxlen=self.past_len)
         self._last_flat_in = None
+        #self.reader = JsonReader(self.input_files)
+        #self.div_coef = 
+        #self.rescale_factor = 
         #self.recent_model = []
 
     def forward(self, input_dict, state, seq_lens):
@@ -51,6 +57,9 @@ class TestModel(TorchModelV2, nn.Module):
         #    if len(self.recent_model) > 5:
         #        self.recent_model.pop()
         obs = input_dict["obs_flat"].float()
+        return self._forward(obs, input_dict, state, seq_lens)
+
+    def _forward(self, obs, input_dict, state, seq_lens):
         self._last_flat_in = obs.reshape(obs.shape[0], -1)
         self._output = self.a_model(self._last_flat_in)
         return self._output, state 
@@ -58,9 +67,71 @@ class TestModel(TorchModelV2, nn.Module):
     def value_function(self):
         return self.v_model(self._last_flat_in).squeeze(1)
 
-    #def custom_loss(self, policy_loss, loss_input):
+    # modified from https://github.com/ray-project/ray/blob/ac3371a148385027cf034e152d50f528acb853de/rllib/examples/models/custom_loss_model.py
+    '''
+    let's assume log_prob in diveristy and logits in ray are the same thing
+    '''
+    def custom_loss(self, policy_loss, loss_inputs):
         #div_loss, div_loss_orig = compute_div_loss(states, log_probs)
-    
+        """Calculates a custom loss on top of the given policy_loss(es).
+        Args:
+            policy_loss (List[TensorType]): The list of already calculated
+                policy losses (as many as there are optimizers).
+            loss_inputs (TensorStruct): Struct of np.ndarrays holding the
+                entire train batch.
+        Returns:
+            List[TensorType]: The altered list of policy losses. In case the
+                custom loss should have its own optimizer, make sure the
+                returned list is one larger than the incoming policy_loss list.
+                In case you simply want to mix in the custom loss into the
+                already calculated policy losses, return a list of altered
+                policy losses (as done in this example below).
+        """
+        # Get the next batch from our input files.
+        #batch = self.reader.next()
+        batch = loss_inputs
+        # Define a secondary loss by building a graph copy with weight sharing.
+
+        batch["obs"]
+        batch["obs"].float()
+        #torch.from_numpy(batch["obs"])
+        #torch.from_numpy(batch["obs"]).float()
+        batch["obs"].float().to(policy_loss[0].device)
+        #torch.from_numpy(batch["obs"]).float().to(policy_loss[0].device)
+        obs = restore_original_dimensions(
+            batch["obs"].float().to(policy_loss[0].device),
+            #torch.from_numpy(batch["obs"]).float().to(policy_loss[0].device),
+            self.obs_space,
+            tensorlib="torch")
+        logits, states = self.forward({"obs_flat": obs}, [], None)
+        #logits, states = self.forward(loss_inputs, [], None)
+
+        # You can also add self-supervised losses easily by referencing tensors
+        # created during _build_layers_v2(). For example, an autoencoder-style
+        # loss can be added as follows:
+        # ae_loss = squared_diff(
+        #     loss_inputs["obs"], Decoder(self.fcnet.last_layer))
+        print("FYI: You can also use these tensors: {}, ".format(loss_inputs))
+
+        #compute the diverity losss
+        # treating logits as log_prob; maybe need correction
+        div_loss, div_loss_orig = self.compute_div_loss(states, logits)
+        self.div_loss_metric = div_loss.item()
+        self.policy_loss_metric = np.mean(
+            [loss.item() for loss in policy_loss])
+
+        # Add the imitation loss to each already calculated policy loss term.
+        # Alternatively (if custom loss has its own optimizer):
+        # return policy_loss + [10 * self.imitation_loss]
+        #return [loss_ - self.rescale_factor * self.div_coef * div_loss for loss_ in policy_loss]
+        return [ loss_ - div_loss for loss_ in policy_loss ]
+
+    def metrics(self):
+        return {
+            "policy_loss": self.policy_loss_metric,
+            "imitation_loss": self.div_loss_metric,
+        }
+
     '''
     Author: Zhang-Wei Hong 
     Email: williamd4112@gapp.nthu.edu.tw>
@@ -68,6 +139,7 @@ class TestModel(TorchModelV2, nn.Module):
     “Diversity-driven exploration strategy for deep reinforcement learning” (NIPS 2018) 
     '''        
     def compute_div_loss(self, states, log_probs):
+        div_metric = nn.KLDivLoss(size_average=False, reduce=False)
         # Div loss
         div_loss = 0
         if args.use_neg_ratio or args.use_ratio or args.rel:
@@ -322,7 +394,7 @@ tune.register_env("cache_simulator_diversity_wrapper", CacheSimulatorDiversityWr
 # Two ways of training
 # method 2b
 config = {
-    'env': 'cache_simulator_diversity_wrapper',
+    'env': 'cache_guessing_game_env_fix', #'cache_simulator_diversity_wrapper',
     'env_config': {
         'verbose': 1,
         "force_victim_hit": False,
@@ -386,6 +458,7 @@ overwrite the default PPO trainer to trigger customized model savings
 #            #result.update(should_checkpoint=True)
 #        return result
 #
+#trainer = PPOTrainerDiversity(env="cache_simulator_diversity_wrapper", config=config)
 #trainer = PPOTrainerDiversity(env="cache_simulator_diversity_wrapper", config=config)
 analysis= tune.run(
     PPOTrainer,
