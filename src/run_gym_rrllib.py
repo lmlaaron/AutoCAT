@@ -12,7 +12,9 @@ from ray.rllib.agents.ppo import PPOTrainer
 import sys
 import copy
 import torch
-from ray.rllib.offline import JsonReader
+#from ray.rllib.offline import JsonReader
+from torch.autograd import Variable
+
 
 sys.path.append("../src")
 from models.dqn_model import DNNEncoder 
@@ -92,11 +94,11 @@ class TestModel(TorchModelV2, nn.Module):
         batch = loss_inputs
         # Define a secondary loss by building a graph copy with weight sharing.
 
-        batch["obs"]
-        batch["obs"].float()
+        #batch["obs"]
+        #batch["obs"].float()
         #torch.from_numpy(batch["obs"])
         #torch.from_numpy(batch["obs"]).float()
-        batch["obs"].float().to(policy_loss[0].device)
+        #batch["obs"].float().to(policy_loss[0].device)
         #torch.from_numpy(batch["obs"]).float().to(policy_loss[0].device)
         obs = restore_original_dimensions(
             batch["obs"].float().to(policy_loss[0].device),
@@ -115,11 +117,41 @@ class TestModel(TorchModelV2, nn.Module):
 
         #compute the diverity losss
         # treating logits as log_prob; maybe need correction
-        div_loss, div_loss_orig = self.compute_div_loss(states, logits)
-        self.div_loss_metric = div_loss.item()
-        self.policy_loss_metric = np.mean(
-            [loss.item() for loss in policy_loss])
+        #div_loss, div_loss_orig = self.compute_div_loss(states, logits)
+        
+        #now compute
+        div_metric = nn.KLDivLoss(size_average=False, reduce=False)
+        div_loss = 0
+        past_ratios = [1.0 for r in range(len(self.past_models))] 
+        divs = []
+        for idx, past_model in enumerate(self.past_models):
+           target_probs, states = past_model.forward({"obs_flat": obs}, [], None)        
+           div = div_metric(logits, target_probs).sum(1)
+           div = torch.clamp(div, min=-self.div_threshold, max=self.div_threshold)
+           div = div.mean(0)
+           divs.append(div)
+        
+        #self.div_loss_metric = div_loss.item()
+        #self.policy_loss_metric = np.mean(
+        #    [loss.item() for loss in policy_loss])
 
+        divs_sort_idx = np.argsort([d.data[0] for d in divs])
+        div_loss_orig = 0
+        for idx in divs_sort_idx:
+            #if self.use_neg_ratio and self.past_mean_reward_min != self.past_mean_reward_max:
+            #    div_loss += float(-past_ratios[idx]) * divs[idx]
+            #elif self.use_ratio and self.past_mean_reward_min != self.past_mean_reward_max:
+            #    div_loss += (1.0 - float(past_ratios[idx])) * divs[idx]
+            #elif self.rel and self.past_mean_reward_min != self.current_perf:
+            #    div_loss += float(-past_ratios[idx]) * divs[idx]
+            #else:
+            div_loss += divs[idx]
+            div_loss_orig += divs[idx]
+
+        #if self.use_clip_div_loss:
+        #    div_loss = torch.clamp(div_loss / float(len(self.past_models)), min=-self.div_max, max=self.div_max)
+        #else:
+        div_loss = div_loss / self.past_len# float(len(self.past_models))
         # Add the imitation loss to each already calculated policy loss term.
         # Alternatively (if custom loss has its own optimizer):
         # return policy_loss + [10 * self.imitation_loss]
@@ -138,35 +170,71 @@ class TestModel(TorchModelV2, nn.Module):
     Description: source code for paper
     “Diversity-driven exploration strategy for deep reinforcement learning” (NIPS 2018) 
     '''        
+    '''
     def compute_div_loss(self, states, log_probs):
         div_metric = nn.KLDivLoss(size_average=False, reduce=False)
         # Div loss
         div_loss = 0
-        if args.use_neg_ratio or args.use_ratio or args.rel:
-            max_perf = current_max_perf if args.use_history_max else current_perf
-            min_perf = current_min_perf if args.use_history_max else current_perf
-            past_mean_reward_max = max(max(past_mean_rewards), max_perf)
-            past_mean_reward_min = min(min(past_mean_rewards), min_perf)
-            past_mean_reward_rng = past_mean_reward_max - past_mean_reward_min + 1e-9
+        #if args.use_neg_ratio or args.use_ratio or args.rel:
+        #    max_perf = current_max_perf if args.use_history_max else current_perf
+        #    min_perf = current_min_perf if args.use_history_max else current_perf
+        #    past_mean_reward_max = max(max(past_mean_rewards), max_perf)
+        #    past_mean_reward_min = min(min(past_mean_rewards), min_perf)
+        #    past_mean_reward_rng = past_mean_reward_max - past_mean_reward_min + 1e-9
 
-        if args.use_neg_ratio:
-            past_ratios = [((r - past_mean_reward_min) / past_mean_reward_rng) * 2 - 1 for r in past_mean_rewards]
-        elif args.use_ratio:
-            past_ratios = [((r - past_mean_reward_min) / past_mean_reward_rng)  for r in past_mean_rewards]
-        elif args.rel:
-            past_ratios = [((r - current_perf) / past_mean_reward_rng)  for r in past_mean_rewards]
-        else:
-            past_ratios = [1.0 for r in range(len(past_models))]
+        #if args.use_neg_ratio:
+        #    past_ratios = [((r - past_mean_reward_min) / past_mean_reward_rng) * 2 - 1 for r in past_mean_rewards]
+        #elif args.use_ratio:
+        #    past_ratios = [((r - past_mean_reward_min) / past_mean_reward_rng)  for r in past_mean_rewards]
+        #elif args.rel:
+        #    past_ratios = [((r - current_perf) / past_mean_reward_rng)  for r in past_mean_rewards]
+        #else:
+        #    past_ratios = [1.0 for r in range(len(past_models))]
+        past_ratios = [1.0 for r in range(len(self.past_models))]
 
         divs = []
-        for idx, past_model in enumerate(past_models):
+        for idx, past_model in enumerate(self.past_models):
+            past_model.forward(states,)?????
+            _, target_inds = t_probs.max(1)
+            target_inds = target_inds.data
+            action_size = t_probs.size()
+            target_probs = Variable(torch.zeros(action_size[0], action_size[1]).cuda().scatter_(1, target_inds.unsqueeze(1), 1.0), requires_grad=False)
+
+            div = div_metric(log_probs, target_probs).sum(1)
+            div = torch.clamp(div, min=-self.div_threshold, max=self.div_threshold)
+            div = div.mean(0)
+            divs.append(div)
+
+        divs_sort_idx = np.argsort([d.data[0] for d in divs])
+
+        div_loss_orig = 0
+        for idx in divs_sort_idx:
+            if self.use_neg_ratio and self.past_mean_reward_min != self.past_mean_reward_max:
+                div_loss += float(-past_ratios[idx]) * divs[idx]
+            elif self.use_ratio and self.past_mean_reward_min != self.past_mean_reward_max:
+                div_loss += (1.0 - float(past_ratios[idx])) * divs[idx]
+            elif self.rel and self.past_mean_reward_min != self.current_perf:
+                div_loss += float(-past_ratios[idx]) * divs[idx]
+            else:
+                div_loss += divs[idx]
+            div_loss_orig += divs[idx]
+
+        if self.use_clip_div_loss:
+            div_loss = torch.clamp(div_loss / float(len(self.past_models)), min=-self.div_max, max=self.div_max)
+        else:
+            div_loss = div_loss / float(len(self.past_models))
+
+        return div_loss, div_loss_orig / float(len(self.past_models))
+        
+
+        for idx, past_model in enumerate(self.past_models):
             temperature = args.temp
             actions = Variable(rollouts.actions.view(-1, action_shape), volatile=True)
             _, t_action_log_probs, _, t_log_probs, t_probs = past_model.evaluate_actions(Variable(states.data, volatile=True), actions, temperature=temperature)
             target_log_probs = t_log_probs
             target_log_probs = Variable(target_log_probs.data, requires_grad=False)
 
-            if args.div_soft:
+            if self.div_soft:
                 target_probs = Variable(t_probs.data, requires_grad=False)
             else:
                 _, target_inds = t_probs.max(1)
@@ -174,36 +242,33 @@ class TestModel(TorchModelV2, nn.Module):
                 action_size = t_probs.size()
                 target_probs = Variable(torch.zeros(action_size[0], action_size[1]).cuda().scatter_(1, target_inds.unsqueeze(1), 1.0), requires_grad=False)
             div = div_metric(log_probs, target_probs).sum(1)
-            div = torch.clamp(div, min=-args.div_threshold, max=args.div_threshold)
+            div = torch.clamp(div, min=-self.div_threshold, max=self.div_threshold)
             div = div.mean(0)
             divs.append(div)
 
         divs_sort_idx = np.argsort([d.data[0] for d in divs])
-        if args.knn != 0:
-            divs_sort_idx = divs_sort_idx[:args.knn]
+        if self.knn != 0:
+            divs_sort_idx = divs_sort_idx[:self.knn]
 
         div_loss_orig = 0
         for idx in divs_sort_idx:
-            if args.use_neg_ratio and past_mean_reward_min != past_mean_reward_max:
+            if self.use_neg_ratio and self.past_mean_reward_min != self.past_mean_reward_max:
                 div_loss += float(-past_ratios[idx]) * divs[idx]
-            elif args.use_ratio and past_mean_reward_min != past_mean_reward_max:
+            elif self.use_ratio and self.past_mean_reward_min != self.past_mean_reward_max:
                 div_loss += (1.0 - float(past_ratios[idx])) * divs[idx]
-            elif args.rel and past_mean_reward_min != current_perf:
+            elif self.rel and self.past_mean_reward_min != self.current_perf:
                 div_loss += float(-past_ratios[idx]) * divs[idx]
             else:
                 div_loss += divs[idx]
             div_loss_orig += divs[idx]
 
-        if args.use_clip_div_loss:
-            div_loss = torch.clamp(div_loss / float(len(past_models)), min=-args.div_max, max=args.div_max)
+        if self.use_clip_div_loss:
+            div_loss = torch.clamp(div_loss / float(len(self.past_models)), min=-self.div_max, max=self.div_max)
         else:
-            div_loss = div_loss / float(len(past_models))
+            div_loss = div_loss / float(len(self.past_models))
 
-        return div_loss, div_loss_orig / float(len(past_models))
-
-
-
-
+        return div_loss, div_loss_orig / float(len(self.past_models))
+        '''
 
 ModelCatalog.register_custom_model("test_model", TestModel)
 # RLlib does not work with gym registry, must redefine the environment in RLlib
@@ -229,11 +294,11 @@ class CacheSimulatorDiversityWrapper(gym.Env):
         self.env_config = env_config
         # two choices for memorize the table
         # 1. keep both the action and the actual latency
-        #     in this case the pattern has to be stored
         # 2. just keep the action but not the latency
         #      in this case, the model has to be stored
         self.keep_latency = keep_latency
         self._env = CacheGuessingGameEnv(env_config)
+        #     in this case the pattern has to be stored
         self.validation_env = CacheGuessingGameEnv(env_config)
         self.pattern_buffer = []
         self.enable_diversity = False
