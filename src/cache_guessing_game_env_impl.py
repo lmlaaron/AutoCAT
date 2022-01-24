@@ -178,7 +178,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.guess_buffer = [False] * self.guess_buffer_size
 
   def step(self, action):
-    print('Step...')
+    self.vprint('Step...')
     if action.ndim > 1:  # workaround for training and predict discrepency
       action = action[0]  
 
@@ -289,7 +289,7 @@ class CacheGuessingGameEnv(gym.Env):
     return np.array(self.state), reward, done, info
 
   def reset(self, victim_address=-1):
-    print('Reset...')
+    self.vprint('Reset...')
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.l1 = self.hierarchy['cache_1']
     self._reset(victim_address)  # fake reset

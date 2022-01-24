@@ -494,7 +494,7 @@ config = {
     #'num_sgd_iter': 5, 
     #'vf_loss_coeff': 1e-05, 
     'model': {
-        'custom_model': 'test_model',#'rnn', 
+        #'custom_model': 'test_model',#'rnn', 
         #'max_seq_len': 20, 
         #'custom_model_config': {
         #    'cell_size': 32
@@ -502,90 +502,23 @@ config = {
     }, 
     'framework': 'torch',
 }
-tune.run(PPOTrainer, config=config)#config={"env": 'Freeway-v0', "num_gpus":1})
+#trainer = PPOTrainer(config=config)
+#exit(0)
+if __name__ == "__main__":
+    #tune.run(PPOTrainer, config=config)#config={"env": 'Freeway-v0', "num_gpus":1})
+    from ray.tune.logger import pretty_print
+    trainer = PPOTrainer(config=config)
+    checkpoint=''
+    for i in range(1):
+       # Perform one iteration of training the policy with PPO
+       result = trainer.train()
+       print(pretty_print(result))
 
-'''
-overwrite the default PPO trainer to trigger customized model savings
-'''
-#class PPOTrainerDiversity(PPOTrainer):
-#    #def setup
-#    def step(self):
-#        result = super().step()
-#        #if super().env._env.calc_correct_rate() > 0.95:
-#        print("appending model in PPOTrainerDiversity")
-#        self.workers.foreach_env_with_context(print)
-#        assert(False)
-#        #assert(self.workers.local_worker().env != None) 
-#        #print(self.workers.local_worker()) 
-#        #print(self.workers) 
-#        #assert(False)
-#        #self.env.model_buffer.append(self.get_policy()) 
-#            #result.update(should_checkpoint=True)
-#        return result
-#
-#trainer = PPOTrainerDiversity(env="cache_simulator_diversity_wrapper", config=config)
-#trainer = PPOTrainerDiversity(env="cache_simulator_diversity_wrapper", config=config)
+       if True: #i % 100 == 0:
+           checkpoint = trainer.save()
+           print("checkpoint saved at", checkpoint)
 
 
-'''
-from ray.rllib.agents.ppo.ppo_torch_policy import PPOTorchPolicy
-from ray.rllib.agents.a3c.a3c_torch_policy import A3CTorchPolicy
-from ray.rllib.agents.a3c.a2c import A2CTrainer
-from ray.rllib.agents.ppo import PPOTrainer
-import gym
-import ray.tune as tune
-from typing import Optional, Dict
-import torch.nn as nn
-import ray
-#from ray.rllib.agents.ppo.ppo_torch_policy import ValueNetworkMixin
-from ray.rllib.evaluation.episode import MultiAgentEpisode
-from ray.rllib.evaluation.postprocessing import compute_gae_for_sample_batch, \
-    Postprocessing
-from ray.rllib.models.action_dist import ActionDistribution
-from ray.rllib.models.modelv2 import ModelV2
-from ray.rllib.policy.policy import Policy
-from ray.rllib.policy.policy_template import build_policy_class
-from ray.rllib.policy.sample_batch import SampleBatch
-from ray.rllib.utils.annotations import Deprecated
-from ray.rllib.utils.framework import try_import_torch
-from ray.rllib.utils.torch_ops import apply_grad_clipping, sequence_mask
-from ray.rllib.utils.typing import TrainerConfigDict, TensorType, \
-    PolicyID, LocalOptimizer
-
-torch, nn = try_import_torch()
-
-def custom_init(policy: Policy, obs_space: gym.spaces.Space, 
-              action_space: gym.spaces.Space, config: TrainerConfigDict)->None:
-        exit(0)
-        assert(False)
-        policy.past_len = 5        
-        policy.past_models = deque(maxlen =policy.past_len)
-        policy.timestep = 0
-
-def custom_loss(policy: Policy, model: ModelV2,
-                      dist_class: ActionDistribution,
-                      train_batch: SampleBatch) -> TensorType:
-    assert(False)
-    exit(0)
-    return 0
-
-#CustomPolicy = A3CTorchPolicy.with_updates(
-#    name="MyCustomA3CTorchPolicy",
-#    loss_fn=custom_loss,
-#    after_init=custom_init)
-
-CustomTrainer = A2CTrainer.with_updates(
-    default_policy="sb")#"MyCustomA3CTorchPolicy")
-
-#tune.run(CustomTrainer, config={"env": 'Freeway-v0', "num_gpus":1})
-
-#assert(False)
-
-####analysis= tune.run(
-####    CustomTrainer, #"A2C",
-####    local_dir="~/ray_results", 
-####    name="test_experiment",
-####    config=config)
-
-#tune.run("A2C", config={"env": 'Frostbite-v0', "num_gpus":1})
-'''
+    # restore checkpoint
+    trainer2 = PPOTrainer(config=config)
+    trainer2.restore(checkpoint)
