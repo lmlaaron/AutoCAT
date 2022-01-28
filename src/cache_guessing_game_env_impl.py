@@ -220,10 +220,10 @@ class CacheGuessingGameEnv(gym.Env):
             done = False
         else:
           r = 2
-          self.vprint("does not allow multi victim access in this config, terminate!")
+          #self.vprint("does not allow multi victim access in this config, terminate!")
           self.current_step += 1
           reward = self.double_victim_access_reward # -10000
-          done = True
+          done = False #True
       else:
         if is_guess == True:
           r = 2  # 
@@ -352,9 +352,11 @@ class CacheGuessingGameEnv(gym.Env):
     return
 
   def _randomize_cache(self, mode = "attacker"):
-    self.l1.read(str(0), -2)
-    self.l1.read(str(1), -1)
-    return
+    if mode == "attacker":
+      self.l1.read(str(0), -2)
+      self.l1.read(str(1), -1)
+      return
+    
     if mode == "none":
       return
     self.current_step = -self.cache_size * 2 

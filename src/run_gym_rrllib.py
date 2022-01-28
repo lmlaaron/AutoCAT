@@ -19,6 +19,7 @@ sys.path.append("../src")
 from models.dqn_model import DNNEncoder 
 
 
+
 # the actual model used by the RLlib
 from collections import deque
 class TestModel(TorchModelV2, nn.Module):
@@ -505,20 +506,33 @@ config = {
 #trainer = PPOTrainer(config=config)
 #exit(0)
 if __name__ == "__main__":
+    import signal
+    import sys
+
     #tune.run(PPOTrainer, config=config)#config={"env": 'Freeway-v0', "num_gpus":1})
     from ray.tune.logger import pretty_print
     trainer = PPOTrainer(config=config)
-    checkpoint=''
-    for i in range(1):
+    
+    def signal_handler(sig, frame):
+        print('You pressed Ctrl+C!')
+        checkpoint = trainer.save()
+        print("checkpoint saved at", checkpoint)
+        sys.exit(0)
+
+
+
+    signal.signal(signal.SIGINT, signal_handler)
+    
+    while True:
        # Perform one iteration of training the policy with PPO
        result = trainer.train()
        print(pretty_print(result))
 
-       if True: #i % 100 == 0:
-           checkpoint = trainer.save()
-           print("checkpoint saved at", checkpoint)
+       #if True: #i % 100 == 0:
+       #    checkpoint = trainer.save()
+       #    print("checkpoint saved at", checkpoint)
 
 
     # restore checkpoint
-    trainer2 = PPOTrainer(config=config)
-    trainer2.restore(checkpoint)
+    #trainer2 = PPOTrainer(config=config)
+    #trainer2.restore(checkpoint)
