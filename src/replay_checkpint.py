@@ -25,7 +25,7 @@ from test_custom_policy_diversity_works import *
 trainer = PPOCustomTrainer(config=config)
 trainer.restore(checkpoint_path)
 
-config["env_config"]["verbose"] = 0 
+config["env_config"]["verbose"] = 1 
 #config["verbose"] = "True"
 env = CacheGuessingGameEnv(config["env_config"])
 #obs = env.reset()
