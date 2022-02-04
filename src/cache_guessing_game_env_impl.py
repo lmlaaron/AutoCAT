@@ -223,7 +223,7 @@ class CacheGuessingGameEnv(gym.Env):
           #self.vprint("does not allow multi victim access in this config, terminate!")
           self.current_step += 1
           reward = self.double_victim_access_reward # -10000
-          done = False #True
+          done = True
       else:
         if is_guess == True:
           r = 2  # 

@@ -31,6 +31,7 @@ from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
 import copy
 import numpy as np
 import sys
+import math
 sys.path.append("../src")
 torch, nn = try_import_torch()
 from cache_guessing_game_env_impl import *
@@ -55,6 +56,8 @@ def copy_model(model: ModelV2) -> ModelV2:
 def compute_div_loss(policy: Policy, model: ModelV2,
                       dist_class: ActionDistribution,
                       train_batch: SampleBatch):
+    #original_weight = copy.deepcopy(policy.get_weights())
+    
     logits, _ = model.from_batch(train_batch)
     values = model.value_function()
     valid_mask = torch.ones_like(values, dtype=torch.bool)
@@ -67,15 +70,22 @@ def compute_div_loss(policy: Policy, model: ModelV2,
     #div_metric = nn.CrossEntropyLoss()
     #if len(policy.past_models) > 1:
     #    assert(policy.past_models[0].state_dict() == policy.past_models[1].state_dict())
-    
     for idx, past_model in enumerate(policy.past_models):
+    #for idx, past_weights in enumerate(policy.past_weights):
+        #temp_policy = pickle.loads(pickle.dumps(policy))
+        #temp_policy.set_weights(past_weights)    
+        #temp_model = pickle.loads(pickle.dumps(policy.model))
+        #temp_model.load_state_dict(past_weights)
+        #past_model.load_state_dict(policy.past_weights[i])
+        #past_model = temp_model.set_weights(past_weights)    
         #assert(False)
         past_logits, _ = past_model.from_batch(train_batch)
         past_values = past_model.value_function()
         past_valid_mask = torch.ones_like(past_values, dtype=torch.bool)
         past_dist = dist_class(past_logits, past_model)
         past_log_probs = past_dist.logp(train_batch[SampleBatch.ACTIONS])#.reshape(-1) 
-        div = div_metric(log_probs * train_batch[Postprocessing.ADVANTAGES], past_log_probs* train_batch[Postprocessing.ADVANTAGES])
+        div = math.atan( - policy.timestep_array[idx] + policy.timestep ) * math.exp( ( policy.timestep_array[idx] - policy.timestep ) / policy.timestep_array[idx]) * div_metric(log_probs * train_batch[Postprocessing.ADVANTAGES], past_log_probs* train_batch[Postprocessing.ADVANTAGES])
+        
         #div = div_metric(log_probs, past_log_probs) * train_batch[Postprocessing.ADVANTAGES]
         #div = dist.multi_kl(past_dist) * train_batch[Postprocessing.ADVANTAGES]
         #assert(
@@ -99,9 +109,76 @@ def compute_div_loss(policy: Policy, model: ModelV2,
     for div in divs:
         div_loss += div
         div_loss_orig += div
-    div_loss = div_loss / policy.past_len
-    print('policy.past_len')
-    print(policy.past_len)
+    
+    if len(policy.past_models) > 0:
+        div_loss = div_loss / len(policy.past_models)#policy.past_len
+    
+    print('len(policy.past_models)')
+    print(len(policy.past_models))
+    #policy.set_weights(original_weight)
+
+    return div_loss
+
+
+def compute_div_loss_weight(policy: Policy, weight,
+                      dist_class: ActionDistribution,
+                      train_batch: SampleBatch):
+    original_weight = copy.deepcopy(policy.get_weights())
+    policy.set_weights(weight)    
+    model = policy.model
+    logits, _ = model.from_batch(train_batch)
+    values = model.value_function()
+    valid_mask = torch.ones_like(values, dtype=torch.bool)
+    dist = dist_class(logits, model)
+    log_probs = dist.logp(train_batch[SampleBatch.ACTIONS])#.reshape(-1) 
+    print('log_probs')
+    #print(log_probs)
+    divs = []
+    div_metric = nn.KLDivLoss(size_average=False, reduce=False)
+    #div_metric = nn.CrossEntropyLoss()
+    #if len(policy.past_models) > 1:
+    #    assert(policy.past_models[0].state_dict() == policy.past_models[1].state_dict())
+    
+    for idx, past_weight in enumerate(policy.past_weights):
+        #assert(False)
+        policy.set_weights(past_weight)    
+        past_model = policy.model
+        past_logits, _ = past_model.from_batch(train_batch)
+        past_values = past_model.value_function()
+        past_valid_mask = torch.ones_like(past_values, dtype=torch.bool)
+        past_dist = dist_class(past_logits, past_model)
+        past_log_probs = past_dist.logp(train_batch[SampleBatch.ACTIONS])#.reshape(-1) 
+        div =  div_metric(log_probs * train_batch[Postprocessing.ADVANTAGES], past_log_probs* train_batch[Postprocessing.ADVANTAGES])
+        #div = div_metric(log_probs, past_log_probs) * train_batch[Postprocessing.ADVANTAGES]
+        #div = dist.multi_kl(past_dist) * train_batch[Postprocessing.ADVANTAGES]
+        #assert(
+        
+        if idx == 0 and True:#policy.timestep % 10 == 0:
+            print('past_model.state_dict()')
+            #print(past_model.state_dict())
+            print('model.state_dict()')
+            #print(model.state_dict())
+            #div = past_dist.multi_kl(dist)
+            print('div')
+            #print(div)
+    
+        div = div.mean(0)
+        divs.append(div)
+    print('divs')
+    #print(divs)
+    div_loss = 0
+    div_loss_orig = 0
+
+    for div in divs:
+        div_loss += div
+        div_loss_orig += div
+    
+    if len(policy.past_weights) > 0:
+        div_loss = div_loss / len(policy.past_weights)#policy.past_len
+    
+    #print('len(policy.past_weights)')
+    #print(len(policy.past_weights))
+    #policy.set_weights(original_weight)
     return div_loss
 
 import pickle
@@ -187,14 +264,16 @@ from ray.rllib.utils.annotations import override
 
 class CustomPPOTorchPolicy(PPOTorchPolicy):
     def __init__(self, observation_space, action_space, config):
-        self.past_len = 5        
+        self.past_len = 10        
         self.past_models = deque(maxlen =self.past_len)
+        #self.past_weights = deque(maxlen= self.past_len)
         self.timestep = 0
+        self.timestep_array = deque(maxlen=self.past_len)
         super(CustomPPOTorchPolicy, self).__init__(observation_space, action_space, config)
 
     #@override(PPOTorchPolicy)
     def loss(self, model: ModelV2, dist_class: Type[ActionDistribution],
-             train_batch: SampleBatch, extern_trigger = False ) -> Union[TensorType, List[TensorType]]:
+             train_batch: SampleBatch, extern_trigger = True ) -> Union[TensorType, List[TensorType]]:
         #return custom_loss(self, model, dist_class, train_batch)
     
         self.timestep += 1
@@ -206,12 +285,13 @@ class CustomPPOTorchPolicy(PPOTorchPolicy):
         total_loss = PPOTorchPolicy.loss(self, model, dist_class, train_batch)
         #self.past_len
         div_loss = compute_div_loss(self, model, dist_class, train_batch)
+        #div_loss = compute_div_loss_weight(self, copy.deepcopy(self.get_weights()), dist_class, train_batch)
         print('total_loss')
         print(total_loss)
         print('div_loss')
         print(div_loss)
         #assert(False)
-        ret_loss = total_loss - 0.1 * div_loss
+        ret_loss = total_loss - 0.03 * div_loss
         return ret_loss
         '''
         new_loss = []
@@ -223,15 +303,90 @@ class CustomPPOTorchPolicy(PPOTorchPolicy):
             return new_loss
         '''
 
+    def replay_agent(self, env):
+        # no cache randomization
+        # rangomized inference ( 10 times)
+        pattern_buffer = []
+        num_guess = 0
+        num_correct = 0
+        for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
+            for repeat in range(1):
+                obs = env.reset(victim_address=victim_addr)
+                action_buffer = []
+                done = False
+                while done == False:
+                    print(f"-> Sending observation {obs}")
+                    action = self.compute_single_action(obs, explore=False) # randomized inference
+                    print(f"<- Received response {action}")
+                    obs, reward, done, info = env.step(action)
+                    action_buffer.append((action, obs[0]))
+                if reward > 0:
+                    correct = True
+                    num_correct += 1
+                else:
+                    correct = False
+                num_guess += 1
+                pattern_buffer.append((victim_addr, action_buffer, correct))
+        pprint.pprint(pattern_buffer)
+        return 1.0 * num_correct / num_guess, pattern_buffer        
+
     def push_current_model(self):
+        #print('len(self.past_weights)')
+        #print(len(self.past_weights))
         model = pickle.loads(pickle.dumps(self.model))
-        model.load_state_dict(model.state_dict())
+        model.load_state_dict(copy.deepcopy(self.model.state_dict()))
         self.past_models.append(model)
+        self.timestep_array.append(self.timestep)
+        #self.past_weights.append(copy.deepcopy(self.get_weights()))
+        #self.past_weights.append(copy.deepcopy(agent.get_weights()))
+        return
+
+    #TODO(Mulong): is there an standard initialization condition???
+    #def is_same_agent(self, weight1, weight2, env, trainer):
+    def is_same_agent(self, model1, model2, env, trainer):
+        original_state_dict = copy.deepcopy(self.model.state_dict())
+        #original_weights = copy.deepcopy(self.get_weights())
+        for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
+            obs = env.reset(victim_address=victim_addr)
+            #from ray.rllib.policy.sample_batch import DEFAULT_POLICY_ID
+            #pp = trainer.workers.local_worker().preprocessors[DEFAULT_POLICY_ID]
+            #obs = pp.transform(obs)
+            done = False
+            while done == False:
+                self.model.load_state_dict(model1.state_dict())
+                #self.set_weights(weight1)
+                action1 = trainer.compute_single_action(obs, explore=False) # randomized inference
+                self.model.load_state_dict(model2.state_dict())
+                #self.set_weights(weight2)
+                action2 = trainer.compute_single_action(obs, explore=False) # randomized inference
+                if action1 != action2:
+                    self.model.load_state_dict(original_state_dict) 
+                    #self.set_weights(original_weights)
+                    return False
+                else:
+                    action = action1
+                    obs, reward, done, info = env.step(action)       
+        
+        self.model.load_state_dict(original_state_dict) 
+        #self.set_weights(original_weights)
+        return True
+
+    def existing_agent(self, env, trainer):
+        print('existing_agent')
+        current_model = pickle.loads(pickle.dumps(self.model))
+        #current_weights = copy.deepcopy(self.get_weights())
+        #current_model.load_state_dict(self.model.state_dict())
+        for idx, past_model in enumerate(self.past_models):
+        #for idx, past_weights in enumerate(self.past_weights):
+            print(idx) 
+            if self.is_same_agent(current_model, past_model, env, trainer):
+            #if self.is_same_agent(current_weights, past_weights, env, trainer):
+                return True
+        return False
 
 
 PPOCustomTrainer = PPOTrainer.with_updates(
     get_policy_class=lambda _: CustomPPOTorchPolicy)
-
 
 
 #tune.run(CustomTrainer, config={"env": 'Frostbite-v0', "num_gpus":0})#, 'model': { 'custom_model': 'test_model' }})

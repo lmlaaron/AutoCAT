@@ -9,6 +9,7 @@ import torch.nn as nn
 import numpy as np
 from ray.rllib.models import ModelCatalog
 from ray.rllib.agents.ppo import PPOTrainer
+from ray.rllib.agents.sac import SACTrainer
 import sys
 import copy
 import torch
@@ -511,8 +512,9 @@ if __name__ == "__main__":
 
     #tune.run(PPOTrainer, config=config)#config={"env": 'Freeway-v0', "num_gpus":1})
     from ray.tune.logger import pretty_print
-    trainer = PPOTrainer(config=config)
-    
+    #trainer = PPOTrainer(config=config)
+    trainer = SACTrainer(config=config)
+
     def signal_handler(sig, frame):
         print('You pressed Ctrl+C!')
         checkpoint = trainer.save()
