@@ -291,7 +291,7 @@ class CustomPPOTorchPolicy(PPOTorchPolicy):
         print('div_loss')
         print(div_loss)
         #assert(False)
-        ret_loss = total_loss - 0.03 * div_loss
+        ret_loss = total_loss #- 0.03 * div_loss
         return ret_loss
         '''
         new_loss = []
@@ -401,9 +401,9 @@ config = {
         'flush_inst': False,
         "allow_victim_multi_access": False,
         "attacker_addr_s": 0,
-        "attacker_addr_e": 3,
+        "attacker_addr_e": 7,#3,
         "victim_addr_s": 0,
-        "victim_addr_e": 1,
+        "victim_addr_e": 3,#,1,
         "reset_limit": 1,
         "cache_configs": {
                 # YAML config file for cache simulaton
@@ -413,8 +413,8 @@ config = {
               "write_back": True
             },
             "cache_1": {#required
-              "blocks": 2, 
-              "associativity": 2,  
+              "blocks": 4,#2, 
+              "associativity": 4,#2,  
               "hit_time": 1 #cycles
             },
             "mem": {#required
