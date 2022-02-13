@@ -96,6 +96,25 @@ def replay_agent():
             while done == False:
                 #print(f"-> Sending observation {obs}")
                 action = trainer.compute_single_action(obs, explore=False) # randomized inference
+                
+                # print the log likelihood for each action
+                # see https://github.com/ray-project/ray/blob/7f1bacc7dc9caf6d0ec042e39499bbf1d9a7d065/rllib/policy/policy.py#L228
+                
+                local_worker = trainer.workers.local_worker()
+                pp = local_worker.preprocessors["default_policy"]
+                observation = pp.transform(obs)
+                episodes = None
+                policy = trainer.get_policy()
+                logp = policy.compute_log_likelihoods( 
+                    actions = [i for i in range(0, env.action_space.n)],
+                    obs_batch = [observation],
+                )
+                    #prev_action_batch = None,
+                    #prev_reward_batch = None,
+                    #action_normalized=True)
+                print(logp)
+                print(np.argmax(logp.cpu().numpy()))
+                print(action)
                 #print(f"<- Received response {action}")
                 obs, reward, done, info = env.step(action)
                 action_buffer.append((action, obs[0]))
