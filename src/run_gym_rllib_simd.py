@@ -67,7 +67,7 @@ class CacheSimulatorSIMDWrapper(gym.Env):
 class CacheSimulatorMultiGuessWrapper(gym.Env):
     def __init__(self, env_config):
         self.duplicate = 4
-        self.block_duplicate = 4
+        self.block_duplicate = 4 
         self.env_list = []
         self.env_config = env_config
         self.env = CacheSimulatorSIMDWrapper(env_config, duplicate=self.duplicate)
@@ -145,7 +145,7 @@ class CacheSimulatorMultiGuessWrapper(gym.Env):
                 total_reward += reward
                 total_state += list(state)
             info = {}            
-            return total_state, total_reward, True, info     
+            return total_state, total_reward * 1.0 / self.duplicate / self.block_duplicate, True, info     
         for env in self.env_list:
             state, reward, done, info = env.step(orig_action)
             total_reward += reward
@@ -154,7 +154,7 @@ class CacheSimulatorMultiGuessWrapper(gym.Env):
             if done:
                 total_done = True
         info = {}    
-        return total_state, total_reward, total_done, info     
+        return total_state, total_reward * 1.0 / self.duplicate / self.block_duplicate , total_done, info     
 
 if __name__ == "__main__":
     from ray.rllib.agents.ppo import PPOTrainer
@@ -163,19 +163,19 @@ if __name__ == "__main__":
     ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
     if ray.is_initialized():
         ray.shutdown()
-    tune.register_env("cache_guessing_game_env_fix", CacheSimulatorSIMDWrapper)#
+    #tune.register_env("cache_guessing_game_env_fix", CacheSimulatorSIMDWrapper)#
     tune.register_env("cache_guessing_game_env_fix", CacheSimulatorMultiGuessWrapper)
     config = {
         'env': 'cache_guessing_game_env_fix', #'cache_simulator_diversity_wrapper',
         'env_config': {
             'verbose': 1,
             "force_victim_hit": False,
-            'flush_inst': False,
-            "allow_victim_multi_access": False,
+            'flush_inst': True,#False,
+            "allow_victim_multi_access": True,#False,
             "attacker_addr_s": 0,
-            "attacker_addr_e": 3,
+            "attacker_addr_e": 7,
             "victim_addr_s": 0,
-            "victim_addr_e": 1,
+            "victim_addr_e": 3,
             "reset_limit": 1,
             "cache_configs": {
                 # YAML config file for cache simulaton
@@ -185,8 +185,8 @@ if __name__ == "__main__":
                   "write_back": True
                 },
                 "cache_1": {#required
-                  "blocks": 2, 
-                  "associativity": 2,  
+                  "blocks": 4, 
+                  "associativity": 1,  
                   "hit_time": 1 #cycles
                 },
                 "mem": {#required

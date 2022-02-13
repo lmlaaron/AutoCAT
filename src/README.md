@@ -6,8 +6,10 @@ $ python replay_checkpoint.py <path_to_the_checkpoint>
 ```
 For example
 ```
-$ python replay_checkpoint.py /home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-02-01_10-16-10exoo_y_h/checkpoint_000551/checkpoint-551
+$ python replay_checkpoint.py ~/ray_results/PPO_cache_guessing_game_env_fix_2022-02-07_10-22-51nrjmmih_/checkpoint_004006/checkpoint-4006
 ```
+note the example file is from the 
+
 will out put the attack seqeunce on screen.  
 ```
  Reset... 

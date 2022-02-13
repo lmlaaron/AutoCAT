@@ -159,6 +159,7 @@ class CacheGuessingGameEnv(gym.Env):
         len(self.attacker_address_space) + 1,       #attacker accessed address
         self.window_size + 2,                       #current steps
         2,                                          #whether the victim has accessed yet
+        2,                                          # whether it is a cflush
       ] * self.window_size
     )
     print('Initializing...')
@@ -196,7 +197,6 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]                                             # check whether to invoke victim
     is_flush = action[3]                                              # check whether to flush
     victim_addr = str(action[4] + self.victim_address_min)            # victim address
-
     if self.current_step > self.window_size : # if current_step is too long, terminate
       r = 2 #
       self.vprint("length violation!")
@@ -253,6 +253,7 @@ class CacheGuessingGameEnv(gym.Env):
           done = False
         else:    # is_flush == True
           self.l1.cflush(address, self.current_step)
+          #cflush = 1
           self.vprint("cflush " + address )
           r = 2
           self.current_step += 1
@@ -269,8 +270,8 @@ class CacheGuessingGameEnv(gym.Env):
       victim_accessed = 1
     else:
       victim_accessed = 0
-    self.state = [r, action[0], current_step, victim_accessed] + self.state 
-    self.state = self.state[0:len(self.state)-4]
+    self.state = [r, action[0], current_step, victim_accessed, is_flush] + self.state 
+    self.state = self.state[0:len(self.state)-5]
     #self.state = [r, action[0], current_step, victim_accessed]
     
     '''
@@ -293,7 +294,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     self.l1 = self.hierarchy['cache_1']
     self._reset(victim_address)  # fake reset
-    self.state = [0, len(self.attacker_address_space), 0, 0] * self.window_size
+    self.state = [0, len(self.attacker_address_space), 0, 0, 0] * self.window_size
     self.reset_time = 0
     return np.array(self.state)
 

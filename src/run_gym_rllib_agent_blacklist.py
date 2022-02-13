@@ -14,7 +14,7 @@ import sys
 import copy
 import torch
 
-def replay_agent(trainer, env, randomize_init=False, non_deterministic=False):
+def replay_agent(trainer, env, randomize_init=False, non_deterministic=False, repeat_time=-1):
     # no cache randomization
     # rangomized inference ( 10 times)
     pattern_buffer = []
@@ -23,7 +23,8 @@ def replay_agent(trainer, env, randomize_init=False, non_deterministic=False):
     if randomize_init == False and non_deterministic == False:
         repeat_times = 1
     else:
-        repeat_times = 50
+        if repeat_time == -1:
+            repeat_times = 50
 
     for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
         for repeat in range(repeat_times):
@@ -67,9 +68,15 @@ if __name__ == "__main__":
         print('You pressed Ctrl+C!')
         checkpoint = trainer.save()
         print("checkpoint saved at", checkpoint)
+        i = checkpoint.rfind('/')
+        config_name = checkpoint[0:i] + '/../env.config' 
+        print("env config saved ad ", config_name)
+        with open(config_name, 'wb') as handle:
+            pickle.dump(config["env_config"], handle)
+
         policy = trainer.get_policy()
         for model in policy.past_models:
-            print(model.state_dict()['_hidden_layers.1._model.0.weight'])
+            print(model.state_dict()['_hidden_layers.1._model.0.weight'], protocol=pickle.HIGHEST_PROTOCOL)
         sys.exit(0)
 
     signal.signal(signal.SIGINT, signal_handler)
