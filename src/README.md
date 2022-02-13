@@ -8,7 +8,7 @@ For example
 ```
 $ python replay_checkpoint.py ~/ray_results/PPO_cache_guessing_game_env_fix_2022-02-07_10-22-51nrjmmih_/checkpoint_004006/checkpoint-4006
 ```
-note the example file is from the 
+note the example checkpoint file is from a specific configuration stored in ```~/ray_results/PPO_cache_guessing_game_env_fix_2022-02-07_10-22-51nrjmmih_/env.config``` binary pickle file, which is automatically loaded by the python script. The current configuration is victim_addr 0-3, attacker_addr 0-7, 4-set direct-map cache.
 
 will out put the attack seqeunce on screen.  
 ```
@@ -46,7 +46,7 @@ $  ./extract_pattern.sh <path_to_directory_of_the_log>
 For example
 
 ```
-$  ./extract_pattern.sh /home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-02-01_10-16-10exoo_y_h/
+$  ./extract_pattern.sh /home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-02-07_10-22-51nrjmmih_/
 ```
 
 It will generate `temp.txt` file under current directory, which includes entries of attack patterns. For example
