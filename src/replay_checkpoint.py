@@ -87,13 +87,18 @@ def replay_agent():
     pattern_buffer = []
     num_guess = 0
     num_correct = 0
+    pattern_dict = {}
     for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
         for repeat in range(1):
             obs = env.reset(victim_address=victim_addr)
             #env._randomize_cache()#"union")#"victim")
             action_buffer = []
             done = False
+            legend=[]
+            step = 0
+            
             while done == False:
+                step += 1
                 #print(f"-> Sending observation {obs}")
                 action = trainer.compute_single_action(obs, explore=False) # randomized inference
                 
@@ -102,6 +107,7 @@ def replay_agent():
                 
                 local_worker = trainer.workers.local_worker()
                 pp = local_worker.preprocessors["default_policy"]
+                ###print(obs)
                 observation = pp.transform(obs)
                 episodes = None
                 policy = trainer.get_policy()
@@ -112,9 +118,12 @@ def replay_agent():
                     #prev_action_batch = None,
                     #prev_reward_batch = None,
                     #action_normalized=True)
-                print(logp)
-                print(np.argmax(logp.cpu().numpy()))
-                print(action)
+                #print(logp)
+                #print(np.argmax(logp.cpu().numpy()))
+                import matplotlib.pyplot as plt
+                plt.plot(logp.cpu().numpy())
+                #print(action)
+                legend.append('step '+ str(step))
                 #print(f"<- Received response {action}")
                 obs, reward, done, info = env.step(action)
                 action_buffer.append((action, obs[0]))
@@ -125,10 +134,23 @@ def replay_agent():
                 correct = False
             num_guess += 1
             pattern_buffer.append((victim_addr, action_buffer, correct))
-    
+            if pattern_dict.get((victim_addr, tuple(action_buffer), correct)) == None:
+                pattern_dict[(victim_addr, tuple(action_buffer), correct)] = 1
+            else:
+                pattern_dict[(victim_addr, tuple(action_buffer), correct)] += 1
+            plt.xlabel('action label')
+            plt.ylabel('logp')
+            plt.legend(legend)
+            plt.show()
+
     with open('temp.txt', 'a') as out:
         pprint.pprint(pattern_buffer, stream=out)
+    
+    print( "overall accuray " + str(1.0 * num_correct / num_guess) )
+    pprint.pprint(pattern_dict)
+    print("num distinct patterns "+ str(len(pattern_dict)))
     return 1.0 * num_correct / num_guess, pattern_buffer
+
 
 replay_agent()
 

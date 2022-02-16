@@ -284,7 +284,7 @@ class CustomPPOTorchPolicy(PPOTorchPolicy):
         
         total_loss = PPOTorchPolicy.loss(self, model, dist_class, train_batch)
         #self.past_len
-        div_loss = 0#compute_div_loss(self, model, dist_class, train_batch)
+        div_loss = compute_div_loss(self, model, dist_class, train_batch)
         #div_loss = compute_div_loss_weight(self, copy.deepcopy(self.get_weights()), dist_class, train_batch)
         print('total_loss')
         print(total_loss)
@@ -398,8 +398,8 @@ config = {
     'env_config': {
         'verbose': 1,
         "force_victim_hit": False,
-        'flush_inst': True,
-        "allow_victim_multi_access": True, #False,
+        'flush_inst': False,#True,
+        "allow_victim_multi_access": False, #True, #False,
         "attacker_addr_s": 0,
         "attacker_addr_e": 3,
         "victim_addr_s": 0,
@@ -424,8 +424,8 @@ config = {
     }, 
     #'gamma': 0.9, 
     'num_gpus': 1, 
-    'num_workers': 32, 
-    'num_envs_per_worker': 2, 
+    'num_workers': 1, 
+    'num_envs_per_worker': 1, 
     #'entropy_coeff': 0.001, 
     #'num_sgd_iter': 5, 
     #'vf_loss_coeff': 1e-05, 
