@@ -89,7 +89,7 @@ def replay_agent():
     num_correct = 0
     pattern_dict = {}
     for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
-        for repeat in range(1):
+        for repeat in range(1):#000):
             obs = env.reset(victim_address=victim_addr)
             #env._randomize_cache()#"union")#"victim")
             action_buffer = []
@@ -141,7 +141,7 @@ def replay_agent():
             plt.xlabel('action label')
             plt.ylabel('logp')
             plt.legend(legend)
-            plt.show()
+            #plt.show()
 
     with open('temp.txt', 'a') as out:
         pprint.pprint(pattern_buffer, stream=out)

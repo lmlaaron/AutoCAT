@@ -65,8 +65,8 @@ if __name__ == "__main__":
     env = CacheGuessingGameEnv(config["env_config"])
     #env = CacheSimulatorMultiGuessWrapper(config["env_config"]) 
     
-    #trainer = PPOCustomTrainer(config=config)
-    trainer = SACTrainer(config=config)
+    trainer = PPOCustomTrainer(config=config)
+    #trainer = SACTrainer(config=config)
     
     def signal_handler(sig, frame):
         print('You pressed Ctrl+C!')
@@ -108,7 +108,7 @@ if __name__ == "__main__":
                     # this agent might have high accuracy but 
                     # it ccould be that it is still the same agent
                     # add  this agent to blacklist
-                    ####trainer.get_policy().push_current_model()
+                    trainer.get_policy().push_current_model()
                     #buf.append(copy.deepcopy(trainer.get_weights()))
 
     policy = trainer.get_policy()

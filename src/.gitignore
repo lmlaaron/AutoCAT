@@ -5,3 +5,4 @@ example/log
 log
 src/log
 log
+*.png
