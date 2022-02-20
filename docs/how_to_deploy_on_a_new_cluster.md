@@ -3,10 +3,11 @@
 The RL training requires rllib and lots of other dependencies. The best way to resolve it is to use an conda environment. We have preparared a yaml file to create the conda environment. Assuming ```conda``` is already installed the cluster.
 
 The following creates teh conda environment ```rllib```
+
 ```
 $ cd {path-to-CacheSimulator}/src
 $ conda activate base
-$ conda-env create -n rllib -f=rllib=lib.yml
+$ conda-env create -n rllib -f=rllib.yml
 ```
 
 Then activate the environment
