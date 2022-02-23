@@ -34,7 +34,7 @@ It will generate `temp.txt` file under current directory, which includes entries
  ...
 ```
 To parse the action labels, use ```parse_action()``` function in ```cache_guessing_game_env_impl.py```
-
+See https://github.com/lmlaaron/CacheSimulator/blob/e959a63cb09eec8728e30413112097efc741a481/src/replay_checkpoint.py#L120 for example.
 
 And `victim.txt` with same number of rows which correspond to the trajectories above.
 ```
