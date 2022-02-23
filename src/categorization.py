@@ -1,45 +1,57 @@
-
+import pandas as pd 
 
 # def read_file
 # def parser_action()
 
-def rename_addr():
-# rename the addres in the pattern based on the set and the order appeared in the pattern 
-# each row indicates the list of [(attacker) address, is_guess, is_victim, is_flush, victim_addr]
+number_of_set = 2
 
-# below 'test' needs to be replaced by parser_action
-  test = [[1, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [1, 0, 0, 0, 0], [5, 0, 0, 0, 0], [0, 0, 1, 0, 0], [1, 0, 0, 0, 0], [3, 0, 0, 0, 0]]
-  import pandas as pd 
+def get_set(addr):
+
+	return addr%number_of_set
+
+def get_order(addr): # return (addr)/number_of_set
+
   input = pd.DataFrame(test)
   df = input.astype('int')
-  df.columns =['atk_addr', 'is_guess', 'is_victim', 'is_flush', 'victim_addr'] 
-  df['set'] = df.atk_addr%2 #assumed this is 2-way associative cache
 
-  def set1(x):
-    if x%2!=0:
-      return (x+1)/2
-    elif x%2==0:
-      return (x+2)/2
+   # each row indicates the list of [(attacker) address, is_guess, is_victim, is_flush, victim_addr]
+  df.columns =['addr', 'is_guess', 'is_victim', 'is_flush', 'victim_addr']
+  df['set'] = df(get_set)
 
-  df['order'] = df['atk_addr'].apply(set1).astype(int) #the order the address appear in the attack
+  df_set0 = df[df.set==0]
+  df_set0['order'] = df_set0['addr'].rank(method='dense',ascending=False).astype(int)
+  print(df_set0)
 
-  # output = [#set, #the order the address appear in the attack, is_guess, is_victim, is_flush, victim_addr]
+  df_set1 = df[df.set==1]
+  df_set1['order'] = df_set1['addr'].rank(method='dense',ascending=True).astype(int)
+  print(df_set1)
+
+  frames = [df_set0, df_set1]
+  result = pd.concat(frames)
+  df = pd.DataFrame(result)
+  df =df.sort_index(axis=0, ascending=True)
+
+def rename_addr(df): # rename the addres in the pattern based on the set and the order appeared in the pattern 
+# output = [#set, #the order the address appear in the attack, is_guess, is_victim, is_flush, victim_addr]
   df = df[['set','order','is_guess', 'is_victim', 'is_flush', 'victim_addr']] 
+  return df
 
-def remove(): # remove repeated access
-  df2= df.drop_duplicates()
-  print(df2)
+def remove(df): # remove repeated access
+
+  return df.drop_duplicates()
 
 # Defining main function
 def main():
-    rename_addr() 
-    remove()
+  test = [[1, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [1, 0, 0, 0, 0], [5, 0, 0, 0, 0], [0, 0, 1, 0, 0], [1, 0, 0, 0, 0], [3, 0, 0, 0, 0]]
   
-
+  input = pd.DataFrame(test)  
+  df = input.astype('int')
+   
+  df = rename_addr(df) 
+  df = remove(df)
+  print(df)
 
 # Using the special variable 
 # __name__
 if __name__=="__main__":
     main()
-
-
