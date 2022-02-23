@@ -89,7 +89,7 @@ def replay_agent():
     num_guess = 0
     num_correct = 0
     for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
-        for repeat in range(1):
+        for repeat in range(10):
             obs = env.reset(victim_address=victim_addr)
             #env._randomize_cache()#"union")#"victim")
             action_buffer = []
