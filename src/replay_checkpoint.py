@@ -37,6 +37,7 @@ if os.path.isfile(config_path):
     #exit(0) 
     with open(config_path, 'rb') as handle:
         config["env_config"] = pickle.load(handle)
+    print(config["env_config"])
 else:
     print('env.config not found! using defualt one')
     print('be careful to that the env.cofnig matches the env which generate the checkpoint')
@@ -106,9 +107,20 @@ def replay_agent():
                 correct = False
             num_guess += 1
             pattern_buffer.append((victim_addr, action_buffer, correct))
-    
+
+    secret = open('victim.txt', 'a') 
     with open('temp.txt', 'a') as out:
-        pprint.pprint(pattern_buffer, stream=out)
+        for pattern in pattern_buffer:
+            trajectory = pattern[1]
+            for point in trajectory:    
+                print(point[0], end=' ', file=out)
+            
+            print(pattern[0], file = secret)
+            print(' ', file = out)
+                #print(env.parse_action(point[0]))
+            
+            #print(pattern[1], file=out)
+            #pprint.pprint(pattern_buffer, stream=out)
     return 1.0 * num_correct / num_guess, pattern_buffer
 
 replay_agent()
