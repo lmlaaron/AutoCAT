@@ -1,55 +1,82 @@
-import pandas as pd 
+import pandas as pd
+from pandas.core.arrays import numeric
 
-# def read_file
-# def parser_action()
+def number_of_set(x):
+  return x%2 #number_of_set = 2
 
-number_of_set = 2
+  # suppose "dummy" is a dual list of 7 for example. Will be relaced later
+dummy = [[1, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [1, 0, 0, 0, 0], [5, 0, 0, 0, 0], [0, 0, 1, 0, 0], [3, 0, 0, 0, 0]]
 
-def get_set(addr):
+def read_file(): # will read the files in json. I have just left this function blank.
 
-	return addr%number_of_set
+  pass
 
-def get_order(addr): # return (addr)/number_of_set
+def parser_action(): # split the input into [(attacker's)addr, is_guess, is_victim, is_flush, victim_addr]
 
-  input = pd.DataFrame(test)
-  df = input.astype('int')
+  input = pd.DataFrame(dummy)  
+  input = input.astype('int')
+  input.columns =['addr', 'is_guess', 'is_victim', 'is_flush', 'victim_addr']
+  #input['set'] = 2
+  #input['set'] = input['addr']%2
+  input.assign(set = lambda x: (x['addr'])%2)
+  #input['set'] = input['addr'].apply(number_of_set(x))
 
-   # each row indicates the list of [(attacker) address, is_guess, is_victim, is_flush, victim_addr]
-  df.columns =['addr', 'is_guess', 'is_victim', 'is_flush', 'victim_addr']
-  df['set'] = df(get_set)
 
-  df_set0 = df[df.set==0]
-  df_set0['order'] = df_set0['addr'].rank(method='dense',ascending=False).astype(int)
-  print(df_set0)
+def get_set(): # return addr%number_of_set
 
-  df_set1 = df[df.set==1]
-  df_set1['order'] = df_set1['addr'].rank(method='dense',ascending=True).astype(int)
-  print(df_set1)
+  #input2 = pd.DataFrame(input)
+  #input2 = input2.astype('int')
+  #input2 = input.assign(set = 2)
+  #input[:,'set'] = 2
+  #input2[:,'set'] = 2
+  #input2['set'] = input2['addr'].apply(lambda x: x% 2) 
+  #input2['set'] = input2[0].apply(lambda x: x% 2) 
+  #input['set'] = input['addr'].apply(lambda x: x% 2) 
+  #input['set'] = input.columns=['addr']% 2
+  #input2['set'] = input2[0]% 2
+  #input2['set'] = input2[0].apply(lambda x: x% 2) 
+  #input2['set'] = input2[0].apply(lambda x: x% 2) 
+  #input['set'] = input.apply(number_of_set) 
+  pass
+get_set()
 
-  frames = [df_set0, df_set1]
+def get_order(): # return (addr)/number_of_set
+
+  input_set0 = input[input.set==0]
+  input_set0['order'] = input_set0['addr'].rank(method='dense',ascending=False).astype(int)
+  print(input_set0)
+
+  input_set1 = input[input.set==1]
+  input_set1['order'] = input_set1['addr'].rank(method='dense',ascending=True).astype(int)
+  print(input_set1)
+
+  frames = [input_set0, input_set1]
   result = pd.concat(frames)
-  df = pd.DataFrame(result)
-  df =df.sort_index(axis=0, ascending=True)
+  output = pd.DataFrame(result)
+  output =output.sort_index(axis=0, ascending=True)
 
-def rename_addr(df): # rename the addres in the pattern based on the set and the order appeared in the pattern 
+get_order()
+
+def rename_addr(): # rename the addres in the pattern based on the set and the order appeared in the pattern 
 # output = [#set, #the order the address appear in the attack, is_guess, is_victim, is_flush, victim_addr]
-  df = df[['set','order','is_guess', 'is_victim', 'is_flush', 'victim_addr']] 
-  return df
+  output = output[['set','order','is_guess', 'is_victim', 'is_flush', 'victim_addr']] 
+  return output
 
-def remove(df): # remove repeated access
 
-  return df.drop_duplicates()
+def remove(): # remove repeated access
+
+  return output.drop_duplicates()
+  print(output)
 
 # Defining main function
 def main():
-  test = [[1, 0, 0, 0, 0], [3, 0, 0, 0, 0], [4, 0, 0, 0, 0], [1, 0, 0, 0, 0], [5, 0, 0, 0, 0], [0, 0, 1, 0, 0], [1, 0, 0, 0, 0], [3, 0, 0, 0, 0]]
-  
-  input = pd.DataFrame(test)  
-  df = input.astype('int')
-   
-  df = rename_addr(df) 
-  df = remove(df)
-  print(df)
+  number_of_set(x)
+  read_file()
+  parser_action()
+  get_set()
+  get_order()
+  rename_addr()
+  remove()
 
 # Using the special variable 
 # __name__
