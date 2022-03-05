@@ -26,7 +26,7 @@ Now, depdending on the configuration of the cluster and how much resource you wa
 Then launch the training in 
 
 ```
-(rllib) $ python run_gym_rllib_agent_balcklist.py
+(rllib) $ python run_gym_rllib_agent_blacklist.py
 ```
 To start training.
 
