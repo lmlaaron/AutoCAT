@@ -87,7 +87,7 @@ if __name__ == "__main__":
                 config["env_config"]["attacker_addr_s"] = 0
                 config["env_config"]["attacker_addr_e"] = 2 * nset * nway - 1 
                 config["env_config"]["flush_inst"] = True 
-            print(config)
+            #print(config)
             #exit(0)
         
         elif len(sys.argv)!= 2:
@@ -97,13 +97,13 @@ if __name__ == "__main__":
     else:
         print("(warning) config file not specified! use default configrations!")
 
-
     #tune.run(PPOTrainer, config=config)#config={"env": 'Freeway-v0', "num_gpus":1})
     from ray.tune.logger import pretty_print
     #tune.register_env("cache_guessing_game_env_fix", CacheSimulatorMultiGuessWrapper)
     #from run_gym_rllib_simd import *
     #config['num_workers'] = 6
     #config['num_envs_per_worker']= 2
+    print(config)
     env = CacheGuessingGameEnv(config["env_config"])
     #env = CacheSimulatorMultiGuessWrapper(config["env_config"]) 
     
@@ -160,6 +160,5 @@ if __name__ == "__main__":
     #    print(weight['_value_branch._model.0.bias'])
         #print(weight['default_policy']['_value_branch._model.0.bias'])
     #print(policy.model.state_dict()['_hidden_layers.1._model.0.weight'])
-
     #for w in buf:
     #    print(w['default_policy']['_value_branch._model.0.bias'])

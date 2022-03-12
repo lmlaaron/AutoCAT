@@ -19,7 +19,7 @@ config["env_config"]["verbose"] = 1
 #config["num_workers"] = 1
 #config["num_envs_per_worker"] = 1
 
-print(config)
+#print(config)
 #tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
 #exit(0)
 
@@ -42,6 +42,7 @@ else:
     print('be careful to that the env.cofnig matches the env which generate the checkpoint')
     print(config["env_config"])
 
+print(config)
 trainer = PPOCustomTrainer(config=config)
 trainer.restore(checkpoint_path)
 
