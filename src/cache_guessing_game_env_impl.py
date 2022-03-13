@@ -459,6 +459,7 @@ class CacheGuessingGameEnv(gym.Env):
         address = action
       elif action < 2 * len(self.attacker_address_space):
         address = action - len(self.attacker_address_space) 
+        is_flush = 1
       elif action == 2 * len(self.attacker_address_space):
         is_victim = 1
       else:
