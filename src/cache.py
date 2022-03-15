@@ -94,6 +94,7 @@ class Cache:
             if tag in in_cache:
                 if len(tag) == 0:
                     print('false')
+                self.data[index][tag].read(current_step)
                 r = response.Response({self.name:True}, self.hit_time)
             else:
                 #Read from the next level of memory
