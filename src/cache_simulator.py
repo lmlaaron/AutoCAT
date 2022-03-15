@@ -11,6 +11,7 @@ def main():
     parser.add_argument('-l', '--log-file', help='Log file name', required=False)
     parser.add_argument('-p', '--pretty', help='Use pretty colors', required=False, action='store_true')
     parser.add_argument('-d', '--draw-cache', help='Draw cache layouts', required=False, action='store_true')
+    parser.add_argument('-f', '--result_file', help='Result trace', required=False)
     arguments = vars(parser.parse_args())
     
     if arguments['pretty']:
@@ -19,6 +20,14 @@ def main():
     log_filename = 'cache_simulator.log'
     if arguments['log_file']:
         log_filename = arguments['log_file']
+
+    result_file = ''
+    if arguments['result_file']:
+        result_file = arguments['result_file']
+    #print(result_file)
+
+    with open(result_file, 'w'):
+        pass
 
     #Clear the log file if it exists
     with open(log_filename, 'w'):
@@ -47,7 +56,7 @@ def main():
     trace = [item for item in trace if not item.startswith('#')]
     logger.info('Loaded tracefile ' + arguments['trace_file'])
     logger.info('Begin simulation!')
-    simulate(hierarchy, trace, logger)
+    simulate(hierarchy, trace, logger, result_file = result_file)
     if arguments['draw_cache']:
         for cache in hierarchy:
             if hierarchy[cache].next_level:
@@ -103,13 +112,16 @@ def print_cache(cache):
         table = UnixTable(sets)
         table.title = cache.name
         table.inner_row_border = True
-        print("\n")
+        #print("\n")
         print(table.table)
 
 #Loop through the instructions in the tracefile and use
 #the given memory hierarchy to find AMAT
-def simulate(hierarchy, trace, logger):
+def simulate(hierarchy, trace, logger, result_file=''):
     responses = []
+    if result_file != '':
+        f = open(result_file, 'w')
+    #print(result_file)
     #We only interface directly with L1. Reads and writes will automatically
     #interact with lower levels of the hierarchy
     l1 = hierarchy['cache_1']
@@ -136,11 +148,10 @@ def simulate(hierarchy, trace, logger):
         else:
             raise InvalidOpError
         
-        if int(address, 16) >= l1.block_size * l1.n_blocks  and op != 'F':   # receiver adress space is larger than the cache size, receiver is able to measure time      
-            print('trace ' + address + ' ' + str(r.time) + '\n' ) 
-        else:  # senders address space is within the cache size, sender do not measure time
-            print('trace ' + address + ' -1\n')
-
+        #if result_file != '':
+        # print the trace 
+        print(address + ' ' + str(r.time), file = f ) 
+    
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
 
