@@ -3,7 +3,7 @@ import pprint
 from replacement_policy import * 
 
 class Cache:
-    def __init__(self, name, word_size, block_size, n_blocks, associativity, hit_time, write_time, write_back, logger, next_level=None, rep_policy=rand_policy):
+    def __init__(self, name, word_size, block_size, n_blocks, associativity, hit_time, write_time, write_back, logger, next_level=None, rep_policy=lru_policy):
         #Parameters configured by the user
         self.name = name
         self.word_size = word_size
@@ -65,7 +65,7 @@ class Cache:
             
             #Delete the old block and write the new one
             del self.data[index][tag] 
-            self.set_rep_policy[index].reset(tag)
+            self.set_rep_policy[index].invalidate(tag)
 
         #Read from the next level of memory
         if self.next_level != None and self.next_level.name != "mem":
@@ -99,7 +99,7 @@ class Cache:
             if tag in in_cache:
                 if len(tag) == 0:
                     print('false')
-                #self.data[index][tag].read(current_step)
+                self.data[index][tag].read(current_step)
                 self.set_rep_policy[index].touch(tag, current_step)
                 r = response.Response({self.name:True}, self.hit_time)
             else:
@@ -110,7 +110,7 @@ class Cache:
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity:
                     self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
-                    self.set_rep_policy[index].touch(tag, current_step)
+                    self.set_rep_policy[index].instantiate_entry(tag, current_step)
                 else:
 
                     #Find the victim block and replace it
@@ -129,13 +129,11 @@ class Cache:
                             r.time += temp.time
                     #Delete the old block and write the new one
                     del self.data[index][victim_tag]
-                    self.set_rep_policy[index].reset(victim_tag)
+                    self.set_rep_policy[index].invalidate(victim_tag)
                     self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
-                    self.set_rep_policy[index].touch(tag, current_step)
+                    self.set_rep_policy[index].instantiate_entry(tag, current_step)
 
         return r
-   
-        
 
     def write(self, address, from_cpu, current_step):
         #wat is cache pls
@@ -163,7 +161,7 @@ class Cache:
             elif len(in_cache) < self.associativity:
                 #If there is space in this set, create a new block and set its dirty bit to true if this write is coming from the CPU
                 self.data[index][tag] = block.Block(self.block_size, current_step, from_cpu, address)
-                self.set_rep_policy[index].touch(tag, current_step)
+                self.set_rep_policy[index].instantiate_entry(tag, current_step)
                 if self.write_back:
                     r = response.Response({self.name:False}, self.write_time)
                 else:
@@ -187,9 +185,9 @@ class Cache:
                     r.deepen(self.write_time, self.name)
 
                 del self.data[index][victim_tag]
-                self.set_rep_policy[index].reset(victim_tag)
+                self.set_rep_policy[index].invalidate(victim_tag)
                 self.data[index][tag] = block.Block(self.block_size, current_step, from_cpu, address)
-                self.set_rep_policy[index].touch(tag, current_step)
+                self.set_rep_policy[index].instantiate_entry(tag, current_step)
                 if not r:
                     r = response.Response({self.name:False}, self.write_time)
 

@@ -83,6 +83,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.force_victim_hit =env_config["force_victim_hit"] if "force_victim_hit" in env_config else False
     self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
     self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
+    self.victim_miss_reward = env_config["victim_miss_reward"] if "victim_miss_reward" in env_config else -10000 if self.force_victim_hit else self.victim_access_reward
     self.double_victim_access_reward = env_config["double_victim_access_reward"] if "double_victim_access_reward" in env_config else -10000
     self.allow_victim_multi_access = env_config["allow_victim_multi_access"] if "allow_victim_multi_access" in env_config else True
     self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
@@ -236,11 +237,14 @@ class CacheGuessingGameEnv(gym.Env):
           self.victim_accessed = True
           self.vprint("victim access %d" % self.victim_address)
           t = self.l1.read(str(self.victim_address), self.current_step).time
-          if self.force_victim_hit == True and t > 500:   # for LRU attack, has to force victim access being hit
+          if t > 500:   # for LRU attack, has to force victim access being hit
             self.current_step += 1
-            reward = -5000
-            done = False
-            self.vprint("victim access has to be hit! terminate!")
+            reward = self.victim_miss_reward #-5000
+            if self.force_victim_hit == True:
+              done = True
+              self.vprint("victim access has to be hit! terminate!")
+            else:
+              done = False
           else:
             self.current_step += 1
             reward = self.victim_access_reward #-10
