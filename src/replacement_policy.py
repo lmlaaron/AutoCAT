@@ -74,11 +74,12 @@ class rand_policy(rep_policy):
         index = random.randint(0,len(in_cache)-1)
         victim_tag = in_cache[index] 
         return victim_tag
-'''
+
+import math
 INVALID = '--------'
 # based on c implementation of tree_plru
 # https://github.com/gem5/gem5/blob/87c121fd954ea5a6e6b0760d693a2e744c2200de/src/mem/cache/replacement_policies/tree_plru_rp.cc
-class tree_plru(rep_policy):
+class tree_plru_policy(rep_policy):
     import math
     def __init__(self, associativity, block_size):
         self.associativity = associativity
@@ -89,38 +90,38 @@ class tree_plru(rep_policy):
         self.candidate_tags = [ INVALID ] * self.num_leaves
         #self.tree_instance = # holds the latest temporary tree instance created by 
 
-    @staticmethod
-    def parent_index(index):
+    def parent_index(self,index):
         return math.floor((index - 1) / 2)
 
-    @staticmethod
-    def left_subtree_index(index):
+    def left_subtree_index(self,index):
         return 2 * index + 1
 
-    @staticmethod
-    def right_subtree_index(index):
+    def right_subtree_index(self,index):
         return 2 * index + 2
 
-    @staticmethod
-    def is_right_subtree(index):
+    def is_right_subtree(self, index):
         return index % 2 == 0
 
     def touch(self, tag, timestamp):
         # find the index
         tree_index = 0
-        while tree_index < len(condidate_tags):
-            if candidate_tags[tree_index] == tag:
+        print(tree_index)
+        while tree_index < len(self.candidate_tags):
+            if self.candidate_tags[tree_index] == tag:
                 break
             else:
                 tree_index += 1
-        # set the path        
-        right = is_right_subtree(tree_index)
-        tree_index = parent_index(tree_index)
-        tree[tree_index] = not right
+        # set the path       
+        print(tree_index) 
+        #right = self.is_right_subtree(tree_index)
+        #tree_index = self.parent_index(tree_index)
+        #self.plrutree[tree_index] = not right
         while tree_index != 0:
-            right = is_right_subtree(tree_index)
-            tree_index = parent_index(tree_index)
-            tree[tree_index] = not right
+            right = self.is_right_subtree(tree_index)
+            tree_index = self.parent_index(tree_index)
+            print(tree_index)
+            #exit(-1)
+            self.plrutree[tree_index] = not right
 
     def reset(self, tag, timestamp):
         self.touch(tag, timestamp)
@@ -129,43 +130,51 @@ class tree_plru(rep_policy):
     def invalidate(self, tag):
         # find index of tag
         tree_index = 0
-        while tree_index < len(condidate_tags):
-            if candidate_tags[tree_index] == tag:
+        while tree_index < len(self.candidate_tags):
+            if self.candidate_tags[tree_index] == tag:
                 break
             else:
                 tree_index += 1
-        candidate_tags[tree_index] = INVALID
+        self.candidate_tags[tree_index] = INVALID
         # invalidate the path
-        right = is_right_subtree(tree_index)
-        tree_index = parent_index(tree_index)
-        tree[tree_index] = right
+        ####right = self.is_right_subtree(tree_index)
+        ####tree_index = self.parent_index(tree_index)
+        ####self.plrutree[tree_index] = right
         while tree_index != 0:
-            right = is_right_subtree(tree_index)
-            tree_index = parent_index(tree_index)
-            tree[tree_index] = right
+            right = self.is_right_subtree(tree_index)
+            tree_index = self.parent_index(tree_index)
+            self.plrutree[tree_index] = right
 
     def find_victim(self, timestamp):
         tree_index = 0
-        while tree_index < len(plrutree): 
-            if plru_tree[tree_index] == 1:
-                tree_index = right_subtree_index(tree_index)
+        while tree_index < len(self.plrutree): 
+            if self.plrutree[tree_index] == 1:
+                tree_index = self.right_subtree_index(tree_index)
             else:
-                tree_index = left_subtree_index(tree_index)
+                tree_index = self.left_subtree_index(tree_index)
             
-        victim_tag = candidate_tags[tree_index - (self.num_leaves - 1) ]
+        victim_tag = self.candidate_tags[tree_index - (self.num_leaves - 1) ]
         return victim_tag 
 
+    # notice the usage of instantiate_entry() here is 
+    # different from instantiateEntry() in gem5
+    # in gem5 the function is only called during cache initialization
+    # while here instantiate_entry is used when a line is evicted and new line is installed
     def instantiate_entry(self, tag, timestamp):
         # find a tag that can be invalidated
+        index = 0
+        while index < self.num_leaves:
+            if self.candidate_tags[index] == INVALID:
+                self.candidate_tags[index] = tag  
+                break 
+            else:
+                index += 1     
+        # touch the entry
+        self.touch(tag, timestamp)
 
-        # create replacement data using current tree instance
-        self.candidate_tags[count ]
-
-        # update instance counter
-        self.count += 1
-
-
+'''
 class brrip_policy(rep_policy):
+
 class bit_plru(rep_policy):
 class plru_rp_cache_policy(rep_policy):
 '''
