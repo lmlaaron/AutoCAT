@@ -24,7 +24,7 @@ class lru_policy(rep_policy):
 
     def touch(self, tag, timestamp):
         assert(tag in self.blocks)
-        self.blocks[tag].last_accessesd = timestamp
+        self.blocks[tag].last_accessed = timestamp
 
     def reset(self, tag, timestamp):
         return self.touch(tag, timestamp)
@@ -42,6 +42,7 @@ class lru_policy(rep_policy):
         in_cache = list(self.blocks.keys())
         victim_tag = in_cache[0] 
         for b in in_cache:
+            print(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
                 victim_tag = b
         return victim_tag 
@@ -55,7 +56,7 @@ class rand_policy(rep_policy):
 
     def touch(self, tag, timestamp):
         assert(tag in self.blocks)
-        self.blocks[tag].last_accessesd = timestamp
+        self.blocks[tag].last_accessed = timestamp
 
     def reset(self, tag, timestamp):
         return self.touch(tag, timestamp)

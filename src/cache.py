@@ -115,7 +115,8 @@ class Cache:
 
                     #Find the victim block and replace it
                     
-                    victim_tag = self.set_rep_policy[index].find_victim(current_step) 
+                    victim_tag = self.set_rep_policy[index].find_victim(current_step)
+                    print(victim_tag) 
                     #oldest_tag = in_cache[0] 
                     #for b in in_cache:
                     #    if self.data[index][b].last_accessed < self.data[index][oldest_tag].last_accessed:
