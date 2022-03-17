@@ -111,17 +111,19 @@ class tree_plru_policy(rep_policy):
                 break
             else:
                 tree_index += 1
+        tree_index += ( self.num_leaves - 1)
+
         # set the path       
-        print(tree_index) 
-        #right = self.is_right_subtree(tree_index)
-        #tree_index = self.parent_index(tree_index)
-        #self.plrutree[tree_index] = not right
+        right = self.is_right_subtree(tree_index)
+        tree_index = self.parent_index(tree_index)
+        self.plrutree[tree_index] = not right
         while tree_index != 0:
             right = self.is_right_subtree(tree_index)
             tree_index = self.parent_index(tree_index)
-            print(tree_index)
             #exit(-1)
             self.plrutree[tree_index] = not right
+        print(self.plrutree)
+        print(self.candidate_tags)
 
     def reset(self, tag, timestamp):
         self.touch(tag, timestamp)
@@ -135,11 +137,13 @@ class tree_plru_policy(rep_policy):
                 break
             else:
                 tree_index += 1
+        tree_index += (self.num_leaves - 1 )
+        
         self.candidate_tags[tree_index] = INVALID
         # invalidate the path
-        ####right = self.is_right_subtree(tree_index)
-        ####tree_index = self.parent_index(tree_index)
-        ####self.plrutree[tree_index] = right
+        right = self.is_right_subtree(tree_index)
+        tree_index = self.parent_index(tree_index)
+        self.plrutree[tree_index] = right
         while tree_index != 0:
             right = self.is_right_subtree(tree_index)
             tree_index = self.parent_index(tree_index)

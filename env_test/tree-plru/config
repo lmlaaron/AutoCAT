@@ -9,7 +9,7 @@ cache_1: #required
   blocks: 4 
   associativity: 4  
   hit_time: 1 #cycles
-  rep_policy: lru
+  rep_policy: tree_plru
 
 mem: #required
   hit_time: 1000 #cycles

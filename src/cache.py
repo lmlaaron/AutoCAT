@@ -3,7 +3,7 @@ import pprint
 from replacement_policy import * 
 
 class Cache:
-    def __init__(self, name, word_size, block_size, n_blocks, associativity, hit_time, write_time, write_back, logger, next_level=None, rep_policy=lru_policy):
+    def __init__(self, name, word_size, block_size, n_blocks, associativity, hit_time, write_time, write_back, logger, next_level=None, rep_policy=''):
         #Parameters configured by the user
         self.name = name
         self.word_size = word_size
@@ -15,7 +15,15 @@ class Cache:
         self.write_back = write_back
         self.logger = logger
         self.set_rep_policy = {}
-        
+        if rep_policy == 'lru':
+            self.rep_policy = lru_policy
+        elif rep_policy == 'tree_plru':
+            self.rep_policy = tree_plru_policy
+        elif rep_policy == 'rand':
+            self.rep_policy = rand_policy
+        else:
+            self.rep_policy = lru_policy
+
         #Total number of sets in the cache
         self.n_sets =int( n_blocks / associativity )
         
@@ -38,7 +46,7 @@ class Cache:
                 if index == '':
                     index = '0'
                 self.data[index] = {}   #Create a dictionary of blocks for each set
-                self.set_rep_policy[index] = rep_policy(associativity, block_size) 
+                self.set_rep_policy[index] = self.rep_policy(associativity, block_size) 
 
 
     # flush the cache line that contains the address from all cache hierachy

@@ -11,7 +11,7 @@ def main():
     parser.add_argument('-l', '--log-file', help='Log file name', required=False)
     parser.add_argument('-p', '--pretty', help='Use pretty colors', required=False, action='store_true')
     parser.add_argument('-d', '--draw-cache', help='Draw cache layouts', required=False, action='store_true')
-    parser.add_argument('-f', '--result_file', help='Result trace', required=False)
+    parser.add_argument('-f', '--result-file', help='Result trace', required=False)
     arguments = vars(parser.parse_args())
     
     if arguments['pretty']:
@@ -266,7 +266,8 @@ def build_cache(configs, name, next_level_cache, logger):
                 configs[name]['hit_time'],
                 configs['architecture']['write_back'],
                 logger,
-                next_level_cache)
+                next_level_cache,
+                configs[name]['rep_policy'] if 'rep_policy' in configs[name] else '')
 
 
 if __name__ == '__main__':
