@@ -132,6 +132,8 @@ class Cache:
                     
                     #Write the block back down if it's dirty and we're using write back
                     if self.write_back:
+                        #print( self.set_rep_policy[index].candidate_tags  )
+                        #print( self.set_rep_policy[index].plrutree )
                         if self.data[index][victim_tag].is_dirty():
                             self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
                             temp = self.next_level.write(self.data[index][victim_tag].address, True, current_step)

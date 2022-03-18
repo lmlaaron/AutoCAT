@@ -75,6 +75,7 @@ class rand_policy(rep_policy):
         victim_tag = in_cache[index] 
         return victim_tag
 
+
 import math
 INVALID = '--------'
 # based on c implementation of tree_plru
@@ -176,9 +177,56 @@ class tree_plru_policy(rep_policy):
         # touch the entry
         self.touch(tag, timestamp)
 
-'''
-class brrip_policy(rep_policy):
 
 class bit_plru(rep_policy):
-class plru_rp_cache_policy(rep_policy):
+    def __init__(self, associativity, block_size):
+        self.associativity = associativity
+        self.block_size = block_size
+        self.blocks = {}
+
+    def touch(self, tag, timestamp):
+        assert(tag in self.blocks)
+        self.blocks[tag].last_accessed = 1
+
+    def reset(self, tag, timestamp):
+        return self.touch(tag, timestamp)
+
+    def instantiate_entry(self, tag, timestamp):
+        assert(tag not in self.blocks)
+        timestamp = 1
+        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+
+    #def reset(self, tag):
+    def invalidate(self, tag):
+        assert(tag in self.blocks)
+        del self.blocks[tag]
+
+    def find_victim(self, timestamp):
+        in_cache = list(self.blocks.keys())
+        victim_tag = in_cache[0] 
+        found = False
+        for b in in_cache:
+            print(b + ' '+ str(self.blocks[b].last_accessed))
+            # find the smallest last_accessed address 
+            if self.blocks[b].last_accessed == 0:
+                victim_tag = b
+                found = True
+                break
+        
+        if found == True:
+            return victim_tag
+        else:
+            # reset all last_accessed to 0
+            for b in in_cache:
+                self.blocks[b].last_accessed = 0
+            # find the leftmost tag
+            for b in in_cache:            
+                if self.blocks[b].last_accessed == 0:
+                    victim_tag = b
+                    break
+            return victim_tag         
+                
+'''
+class brrip_policy(rep_policy):
+class plru_pl_cache_policy(rep_policy):
 '''
