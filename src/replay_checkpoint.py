@@ -90,7 +90,13 @@ def replay_agent():
     num_guess = 0
     num_correct = 0
     pattern_dict = {}
-    for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
+
+    if env.allow_empty_victim_access == False:
+        end_address = env.victim_address_max + 1
+    else:
+        end_address = env.victim_address_max + 1 + 1
+
+    for victim_addr in range(env.victim_address_min, end_address):
         for repeat in range(1):#000):
             obs = env.reset(victim_address=victim_addr)
             
