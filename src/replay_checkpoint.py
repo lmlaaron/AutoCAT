@@ -12,6 +12,7 @@ import pprint
 import ray
 from ray import serve
 from test_custom_policy_diversity_works import *
+from cache_simulator import print_cache
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 
@@ -92,6 +93,9 @@ def replay_agent():
     for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
         for repeat in range(1):#000):
             obs = env.reset(victim_address=victim_addr)
+            
+            # for debugging purposes
+            print_cache(env.l1)
             #env._randomize_cache()#"union")#"victim")
             action_buffer = []
             done = False
@@ -99,6 +103,9 @@ def replay_agent():
             step = 0
             
             while done == False:
+                # for debugging purposes
+                print_cache(env.l1)
+
                 step += 1
                 #print(f"-> Sending observation {obs}")
                 action = trainer.compute_single_action(obs, explore=False) # randomized inference
