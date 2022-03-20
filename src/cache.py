@@ -120,9 +120,7 @@ class Cache:
                     self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
                 else:
-
                     #Find the victim block and replace it
-                    
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
                     print(victim_tag) 
                     #oldest_tag = in_cache[0] 
@@ -130,7 +128,7 @@ class Cache:
                     #    if self.data[index][b].last_accessed < self.data[index][oldest_tag].last_accessed:
                     #        oldest_tag = b
                     
-                    #Write the block back down if it's dirty and we're using write back
+                    # Write the block back down if it's dirty and we're using write back
                     if self.write_back:
                         #print( self.set_rep_policy[index].candidate_tags  )
                         #print( self.set_rep_policy[index].plrutree )
@@ -138,12 +136,11 @@ class Cache:
                             self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
                             temp = self.next_level.write(self.data[index][victim_tag].address, True, current_step)
                             r.time += temp.time
-                    #Delete the old block and write the new one
+                    # Delete the old block and write the new one
                     del self.data[index][victim_tag]
                     self.set_rep_policy[index].invalidate(victim_tag)
                     self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
-
         return r
 
     def write(self, address, from_cpu, current_step):
@@ -204,7 +201,6 @@ class Cache:
 
         return r
 
-
     def parse_address(self, address):
         #Calculate our address length and convert the address to binary string
         address_size = len(address) * 4
@@ -224,7 +220,6 @@ class Cache:
             else:
                 index = '0'
                 tag = binary_address
-
 
         return (block_offset, index, tag)
 

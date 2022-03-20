@@ -76,6 +76,7 @@ class rand_policy(rep_policy):
         return victim_tag
 
 
+# still needs to debug
 import math
 INVALID = '--------'
 # based on c implementation of tree_plru
@@ -89,6 +90,9 @@ class tree_plru_policy(rep_policy):
         self.plrutree = [ False ] * ( self.num_leaves - 1 )
         self.count = 0
         self.candidate_tags = [ INVALID ] * self.num_leaves
+
+        print(self.plrutree)
+        print(self.candidate_tags)
         #self.tree_instance = # holds the latest temporary tree instance created by 
 
     def parent_index(self,index):
@@ -132,15 +136,18 @@ class tree_plru_policy(rep_policy):
     #def reset(self, tag):
     def invalidate(self, tag):
         # find index of tag
+        print('invalidate  ' + tag)
         tree_index = 0
         while tree_index < len(self.candidate_tags):
             if self.candidate_tags[tree_index] == tag:
                 break
             else:
                 tree_index += 1
-        tree_index += (self.num_leaves - 1 )
+        #print(tree_index)
         
         self.candidate_tags[tree_index] = INVALID
+        tree_index += (self.num_leaves - 1 )
+        
         # invalidate the path
         right = self.is_right_subtree(tree_index)
         tree_index = self.parent_index(tree_index)
@@ -149,6 +156,9 @@ class tree_plru_policy(rep_policy):
             right = self.is_right_subtree(tree_index)
             tree_index = self.parent_index(tree_index)
             self.plrutree[tree_index] = right
+
+        print(self.plrutree)
+        print(self.candidate_tags)
 
     def find_victim(self, timestamp):
         tree_index = 0
@@ -168,12 +178,22 @@ class tree_plru_policy(rep_policy):
     def instantiate_entry(self, tag, timestamp):
         # find a tag that can be invalidated
         index = 0
-        while index < self.num_leaves:
-            if self.candidate_tags[index] == INVALID:
-                self.candidate_tags[index] = tag  
-                break 
+        
+        tree_index = 0
+        while tree_index < len(self.plrutree): 
+            if self.plrutree[tree_index] == 1:
+                tree_index = self.right_subtree_index(tree_index)
             else:
-                index += 1     
+                tree_index = self.left_subtree_index(tree_index)        
+        index = tree_index - (self.num_leaves - 1) 
+        assert(self.candidate_tags[index] == INVALID)
+        self.candidate_tags[index] = tag
+        ###while index < self.num_leaves:
+        ###    if self.candidate_tags[index] == INVALID:
+        ###        self.candidate_tags[index] = tag  
+        ###        break 
+        ###    else:
+        ###        index += 1     
         # touch the entry
         self.touch(tag, timestamp)
 
