@@ -260,6 +260,7 @@ class plru_pl_policy(rep_policy):
         self.lockarray = [ PL_UNLOCK ] * self.num_leaves
 
         print(self.plrutree)
+        print(self.lockarray)
         print(self.candidate_tags)
         #self.tree_instance = # holds the latest temporary tree instance created by 
 
@@ -296,6 +297,7 @@ class plru_pl_policy(rep_policy):
             #exit(-1)
             self.plrutree[tree_index] = not right
         print(self.plrutree)
+        print(self.lockarray)
         print(self.candidate_tags)
 
     def reset(self, tag, timestamp):
@@ -325,6 +327,7 @@ class plru_pl_policy(rep_policy):
             self.plrutree[tree_index] = right
 
         print(self.plrutree)
+        print(self.lockarray) 
         print(self.candidate_tags)
 
     def find_victim(self, timestamp):
@@ -370,6 +373,7 @@ class plru_pl_policy(rep_policy):
 
     # pl cache set lock scenario
     def setlock(self, tag, lock):
+        print("setlock "+ tag + ' ' + str(lock))
         # find the index
         index = 0
         print(index)

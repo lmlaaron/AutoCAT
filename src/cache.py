@@ -90,6 +90,7 @@ class Cache:
     # pl_opt = PL_LOCK: lock the cache line
     # pl_opt = PL_UNLOCK: unlock the cache line
     def read(self, address, current_step, pl_opt= -1):
+        print('pl_opt ' + str(pl_opt))
         r = None
         #Check if this is main memory
         #Main memory is always a hit
@@ -119,7 +120,7 @@ class Cache:
                 
                 # pl cache
                 if pl_opt != -1: 
-                    self.setlock(tag, pl_opt)
+                    self.set_rep_policy[index].setlock(tag, pl_opt)
                 r = response.Response({self.name:True}, self.hit_time)
             else:
                 #Read from the next level of memory
@@ -130,6 +131,8 @@ class Cache:
                 if len(in_cache) < self.associativity:
                     self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
+                    if pl_opt != -1:
+                        self.set_rep_policy[index].setlock(tag, pl_opt)
                 else:
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
@@ -155,7 +158,7 @@ class Cache:
                         self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
                         if pl_opt != -1:
-                            self.setlock(tag, pl_opt)
+                            self.set_rep_policy[index].setlock(tag, pl_opt)
         return r
 
     # pl_opt: indicates the PL cache option
@@ -178,7 +181,7 @@ class Cache:
                 self.set_rep_policy[index].touch(tag, current_step) # touch in the replacement policy
                 
                 if pl_opt != -1:
-                    self.setlock(tag, pl_opt)
+                    self.set_rep_policy[index].setlock(tag, pl_opt)
 
                 if self.write_back:
                     r = response.Response({self.name:True}, self.write_time)
@@ -198,6 +201,8 @@ class Cache:
                     self.logger.info('\tWriting through block ' + address + ' to ' + self.next_level.name)
                     r = self.next_level.write(address, from_cpu, current_step)
                     r.deepen(self.write_time, self.name)
+                    if pl_opt != -1:
+                        self.set_rep_policy[index].setlock(tag, pl_opt)
             
             elif len(in_cache) == self.associativity:
                 
@@ -224,7 +229,7 @@ class Cache:
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
                     # pl cache
                     if pl_opt != -1:
-                        self.setlock(tag, pl_opt)
+                        self.set_rep_policy[index].setlock(tag, pl_opt)
 
                 if not r:
                     r = response.Response({self.name:False}, self.write_time)

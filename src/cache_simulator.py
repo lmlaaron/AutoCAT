@@ -135,13 +135,13 @@ def simulate(hierarchy, trace, logger, result_file=''):
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         elif op == 'RL':      # pl cache lock cacheline
-            assert(l1.rep_policy == ) # must be pl cache 
+            assert(l1.rep_policy == plru_pl_policy) # must be pl cache 
             logger.info(str(current_step) + ':\tReading ' + address)
             r = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         elif op == 'RU':      # pl cache unlock cacheline
-            assert(l1.rep_policy == )
+            assert(l1.rep_policy == plru_pl_policy)
             logger.info(str(current_step) + ':\tReading ' + address)
             r = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
