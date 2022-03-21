@@ -36,7 +36,6 @@ class Cache:
                     index = '0'
                 self.data[index] = {}   #Create a dictionary of blocks for each set
 
-
     # flush the cache line that contains the address from all cache hierachy
     def cflush(self, address, current_step):
         r = None
