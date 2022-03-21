@@ -1,5 +1,6 @@
 import block
 import random
+INVALID_TAG = '--------'
 
 # interface for cache replacement policy per set
 class rep_policy:
@@ -78,7 +79,6 @@ class rand_policy(rep_policy):
 
 # still needs to debug
 import math
-INVALID = '--------'
 # based on c implementation of tree_plru
 # https://github.com/gem5/gem5/blob/87c121fd954ea5a6e6b0760d693a2e744c2200de/src/mem/cache/replacement_policies/tree_plru_rp.cc
 class tree_plru_policy(rep_policy):
@@ -89,7 +89,7 @@ class tree_plru_policy(rep_policy):
         self.num_leaves = associativity
         self.plrutree = [ False ] * ( self.num_leaves - 1 )
         self.count = 0
-        self.candidate_tags = [ INVALID ] * self.num_leaves
+        self.candidate_tags = [ INVALID_TAG ] * self.num_leaves
 
         print(self.plrutree)
         print(self.candidate_tags)
@@ -145,7 +145,7 @@ class tree_plru_policy(rep_policy):
                 tree_index += 1
         #print(tree_index)
         
-        self.candidate_tags[tree_index] = INVALID
+        self.candidate_tags[tree_index] = INVALID_TAG
         tree_index += (self.num_leaves - 1 )
         
         # invalidate the path
@@ -178,7 +178,6 @@ class tree_plru_policy(rep_policy):
     def instantiate_entry(self, tag, timestamp):
         # find a tag that can be invalidated
         index = 0
-        
         tree_index = 0
         while tree_index < len(self.plrutree): 
             if self.plrutree[tree_index] == 1:
@@ -186,17 +185,16 @@ class tree_plru_policy(rep_policy):
             else:
                 tree_index = self.left_subtree_index(tree_index)        
         index = tree_index - (self.num_leaves - 1) 
-        assert(self.candidate_tags[index] == INVALID)
+        assert(self.candidate_tags[index] == INVALID_TAG)
         self.candidate_tags[index] = tag
         ###while index < self.num_leaves:
-        ###    if self.candidate_tags[index] == INVALID:
+        ###    if self.candidate_tags[index] == INVALID_TAG:
         ###        self.candidate_tags[index] = tag  
         ###        break 
         ###    else:
         ###        index += 1     
         # touch the entry
         self.touch(tag, timestamp)
-
 
 class bit_plru(rep_policy):
     def __init__(self, associativity, block_size):
@@ -246,7 +244,144 @@ class bit_plru(rep_policy):
                     break
             return victim_tag         
                 
+
+#pl cache option
+PL_NOTSET = 0
+PL_LOCK = 1
+PL_UNLOCK = 2
+class plru_pl_policy(rep_policy):
+    def __init__(self, associativity, block_size):
+        self.associativity = associativity
+        self.block_size = block_size
+        self.num_leaves = associativity
+        self.plrutree = [ False ] * ( self.num_leaves - 1 )
+        self.count = 0
+        self.candidate_tags = [ INVALID_TAG ] * self.num_leaves
+        self.lockarray = [ PL_UNLOCK ] * self.num_leaves
+
+        print(self.plrutree)
+        print(self.candidate_tags)
+        #self.tree_instance = # holds the latest temporary tree instance created by 
+
+    def parent_index(self,index):
+        return math.floor((index - 1) / 2)
+
+    def left_subtree_index(self,index):
+        return 2 * index + 1
+
+    def right_subtree_index(self,index):
+        return 2 * index + 2
+
+    def is_right_subtree(self, index):
+        return index % 2 == 0
+
+    def touch(self, tag, timestamp):
+        # find the index
+        tree_index = 0
+        print(tree_index)
+        while tree_index < len(self.candidate_tags):
+            if self.candidate_tags[tree_index] == tag:
+                break
+            else:
+                tree_index += 1
+        tree_index += ( self.num_leaves - 1)
+
+        # set the path       
+        right = self.is_right_subtree(tree_index)
+        tree_index = self.parent_index(tree_index)
+        self.plrutree[tree_index] = not right
+        while tree_index != 0:
+            right = self.is_right_subtree(tree_index)
+            tree_index = self.parent_index(tree_index)
+            #exit(-1)
+            self.plrutree[tree_index] = not right
+        print(self.plrutree)
+        print(self.candidate_tags)
+
+    def reset(self, tag, timestamp):
+        self.touch(tag, timestamp)
+
+    #def reset(self, tag):
+    def invalidate(self, tag):
+        # find index of tag
+        print('invalidate  ' + tag)
+        tree_index = 0
+        while tree_index < len(self.candidate_tags):
+            if self.candidate_tags[tree_index] == tag:
+                break
+            else:
+                tree_index += 1
+        #print(tree_index)
+        self.candidate_tags[tree_index] = INVALID_TAG
+        tree_index += (self.num_leaves - 1 )
+        
+        # invalidate the path
+        right = self.is_right_subtree(tree_index)
+        tree_index = self.parent_index(tree_index)
+        self.plrutree[tree_index] = right
+        while tree_index != 0:
+            right = self.is_right_subtree(tree_index)
+            tree_index = self.parent_index(tree_index)
+            self.plrutree[tree_index] = right
+
+        print(self.plrutree)
+        print(self.candidate_tags)
+
+    def find_victim(self, timestamp):
+        tree_index = 0
+        while tree_index < len(self.plrutree): 
+            if self.plrutree[tree_index] == 1:
+                tree_index = self.right_subtree_index(tree_index)
+            else:
+                tree_index = self.left_subtree_index(tree_index)
+        index = tree_index - (self.num_leaves - 1) 
+        
+        # pl cache 
+        if self.lockarray[index] == PL_UNLOCK:
+            victim_tag = self.candidate_tags[index]
+            return victim_tag 
+        else:
+            return INVALID_TAG
+
+    # notice the usage of instantiate_entry() here is 
+    # different from instantiateEntry() in gem5
+    # in gem5 the function is only called during cache initialization
+    # while here instantiate_entry is used when a line is evicted and new line is installed
+    def instantiate_entry(self, tag, timestamp):
+        # find a tag that can be invalidated
+        index = 0
+        tree_index = 0
+        while tree_index < len(self.plrutree): 
+            if self.plrutree[tree_index] == 1:
+                tree_index = self.right_subtree_index(tree_index)
+            else:
+                tree_index = self.left_subtree_index(tree_index)        
+        index = tree_index - (self.num_leaves - 1) 
+        assert(self.candidate_tags[index] == INVALID_TAG)
+        self.candidate_tags[index] = tag
+        ###while index < self.num_leaves:
+        ###    if self.candidate_tags[index] == INVALID:
+        ###        self.candidate_tags[index] = tag  
+        ###        break 
+        ###    else:
+        ###        index += 1     
+        # touch the entry
+        self.touch(tag, timestamp)
+
+    # pl cache set lock scenario
+    def setlock(self, tag, lock):
+        # find the index
+        index = 0
+        print(index)
+        while index < len(self.candidate_tags):
+            if self.candidate_tags[index] == tag:
+                break
+            else:
+                index += 1
+        # set / unset lock
+        self.lockarray[index] = lock 
+
+
 '''
 class brrip_policy(rep_policy):
-class plru_pl_cache_policy(rep_policy):
 '''

@@ -2,7 +2,7 @@
 
 import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
-
+from replacement_policy import *
 def main():
     #Set up our arguments
     parser = argparse.ArgumentParser(description='Simulate a cache')
@@ -132,6 +132,18 @@ def simulate(hierarchy, trace, logger, result_file=''):
         if op == 'R':
             logger.info(str(current_step) + ':\tReading ' + address)
             r = l1.read(address, current_step)
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            responses.append(r)
+        elif op == 'RL':      # pl cache lock cacheline
+            assert(l1.rep_policy == ) # must be pl cache 
+            logger.info(str(current_step) + ':\tReading ' + address)
+            r = l1.read(address, current_step, pl_opt = PL_LOCK )
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            responses.append(r)
+        elif op == 'RU':      # pl cache unlock cacheline
+            assert(l1.rep_policy == )
+            logger.info(str(current_step) + ':\tReading ' + address)
+            r = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         #Call write

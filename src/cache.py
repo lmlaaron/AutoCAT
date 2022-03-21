@@ -21,6 +21,10 @@ class Cache:
             self.rep_policy = tree_plru_policy
         elif rep_policy == 'rand':
             self.rep_policy = rand_policy
+        elif rep_policy == 'plru_pl':
+            self.rep_policy = plru_pl_policy
+        #elif rep_policy == 'brrip': 
+        #   self.rep_policy = brrip
         else:
             self.rep_policy = lru_policy
 
@@ -75,14 +79,17 @@ class Cache:
             del self.data[index][tag] 
             self.set_rep_policy[index].invalidate(tag)
 
-        #Read from the next level of memory
+        # clflush from the next level of memory
         if self.next_level != None and self.next_level.name != "mem":
             self.next_level.cflush(address, current_step)
 
         return r
 
-
-    def read(self, address, current_step):
+    # pl_opt: indicates the PL cache option
+    # pl_opt = -1: normal read
+    # pl_opt = PL_LOCK: lock the cache line
+    # pl_opt = PL_UNLOCK: unlock the cache line
+    def read(self, address, current_step, pl_opt= -1):
         r = None
         #Check if this is main memory
         #Main memory is always a hit
@@ -109,10 +116,14 @@ class Cache:
                     print('false')
                 self.data[index][tag].read(current_step)
                 self.set_rep_policy[index].touch(tag, current_step)
+                
+                # pl cache
+                if pl_opt != -1: 
+                    self.setlock(tag, pl_opt)
                 r = response.Response({self.name:True}, self.hit_time)
             else:
                 #Read from the next level of memory
-                r = self.next_level.read(address, current_step)
+                r = self.next_level.read(address, current_step, pl_opt)
                 r.deepen(self.write_time, self.name)
 
                 #If there's space in this set, add this block to it
@@ -122,28 +133,36 @@ class Cache:
                 else:
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
-                    print(victim_tag) 
-                    #oldest_tag = in_cache[0] 
-                    #for b in in_cache:
-                    #    if self.data[index][b].last_accessed < self.data[index][oldest_tag].last_accessed:
-                    #        oldest_tag = b
+                    print(victim_tag)
+                    # pl cache may find the victim that is partition locked
+                    if victim_tag != INVALID_TAG: 
+                        #oldest_tag = in_cache[0] 
+                        #for b in in_cache:
+                        #    if self.data[index][b].last_accessed < self.data[index][oldest_tag].last_accessed:
+                        #        oldest_tag = b
                     
-                    # Write the block back down if it's dirty and we're using write back
-                    if self.write_back:
-                        #print( self.set_rep_policy[index].candidate_tags  )
-                        #print( self.set_rep_policy[index].plrutree )
-                        if self.data[index][victim_tag].is_dirty():
-                            self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
-                            temp = self.next_level.write(self.data[index][victim_tag].address, True, current_step)
-                            r.time += temp.time
-                    # Delete the old block and write the new one
-                    del self.data[index][victim_tag]
-                    self.set_rep_policy[index].invalidate(victim_tag)
-                    self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
-                    self.set_rep_policy[index].instantiate_entry(tag, current_step)
+                        # Write the block back down if it's dirty and we're using write back
+                        if self.write_back:
+                            #print( self.set_rep_policy[index].candidate_tags  )
+                            #print( self.set_rep_policy[index].plrutree )
+                            if self.data[index][victim_tag].is_dirty():
+                                self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
+                                temp = self.next_level.write(self.data[index][victim_tag].address, True, current_step)
+                                r.time += temp.time
+                        # Delete the old block and write the new one
+                        del self.data[index][victim_tag]
+                        self.set_rep_policy[index].invalidate(victim_tag)
+                        self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
+                        self.set_rep_policy[index].instantiate_entry(tag, current_step)
+                        if pl_opt != -1:
+                            self.setlock(tag, pl_opt)
         return r
 
-    def write(self, address, from_cpu, current_step):
+    # pl_opt: indicates the PL cache option
+    # pl_opt = -1: normal read
+    # pl_opt = 1: lock the cache line
+    # pl_opt = 2: unlock the cache line
+    def write(self, address, from_cpu, current_step, pl_opt = -1):
         #wat is cache pls
         r = None
         if not self.next_level:
@@ -157,6 +176,9 @@ class Cache:
 
                 self.data[index][tag].write(current_step)
                 self.set_rep_policy[index].touch(tag, current_step) # touch in the replacement policy
+                
+                if pl_opt != -1:
+                    self.setlock(tag, pl_opt)
 
                 if self.write_back:
                     r = response.Response({self.name:True}, self.write_time)
@@ -181,21 +203,29 @@ class Cache:
                 
                 #If this set is full, find the oldest block, write it back if it's dirty, and replace it
                 victim_tag = self.set_rep_policy[index].find_victim(timestamp) 
-                
-                if self.write_back:
-                    if self.data[index][victim_tag].is_dirty():
-                        self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
-                        r = self.next_level.write(self.data[index][victim_tag].address, from_cpu, current_step)
+                    
+                # pl cache may find the victim that is partition locked
+                # the Pl cache condition for write is not tested
+                if victim_tag != INVALID_TAG: 
+                    if self.write_back:
+                        if self.data[index][victim_tag].is_dirty():
+                            self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
+ 
+                            r = self.next_level.write(self.data[index][victim_tag].address, from_cpu, current_step)
+                            r.deepen(self.write_time, self.name)
+                    else:
+                        self.logger.info('\tWriting through block ' + address + ' to ' + self.next_level.name)
+                        r = self.next_level.write(address, from_cpu, current_step)
                         r.deepen(self.write_time, self.name)
-                else:
-                    self.logger.info('\tWriting through block ' + address + ' to ' + self.next_level.name)
-                    r = self.next_level.write(address, from_cpu, current_step)
-                    r.deepen(self.write_time, self.name)
 
-                del self.data[index][victim_tag]
-                self.set_rep_policy[index].invalidate(victim_tag)
-                self.data[index][tag] = block.Block(self.block_size, current_step, from_cpu, address)
-                self.set_rep_policy[index].instantiate_entry(tag, current_step)
+                    del self.data[index][victim_tag]
+                    self.set_rep_policy[index].invalidate(victim_tag)
+                    self.data[index][tag] = block.Block(self.block_size, current_step, from_cpu, address)
+                    self.set_rep_policy[index].instantiate_entry(tag, current_step)
+                    # pl cache
+                    if pl_opt != -1:
+                        self.setlock(tag, pl_opt)
+
                 if not r:
                     r = response.Response({self.name:False}, self.write_time)
 

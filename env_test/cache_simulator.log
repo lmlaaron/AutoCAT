@@ -1,7 +1,7 @@
 [32mLoading config...[0m
 [32mMemory hierarchy built.[0m
 [32mLoading tracefile...[0m
-[32mLoaded tracefile tree-plru/test.txt[0m
+[32mLoaded tracefile plru_pl/test.txt[0m
 [32mBegin simulation![0m
 [32m0:	Reading 00000000[0m
 [33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
