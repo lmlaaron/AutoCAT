@@ -9,6 +9,7 @@ import os
 import yaml, logging
 from cache_simulator import *
 import sys
+import replacement_policy
 
 class CacheGuessingGameEnv(gym.Env):
   """
@@ -119,6 +120,9 @@ class CacheGuessingGameEnv(gym.Env):
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
     
+    if "rep_policy" not in self.configs['cache_1']:
+      self.config['cache_1']['rep_policy'] = 'lru'
+    
     if window_size == 0:
       self.window_size = self.cache_size * 4 + 8 #10 
     else:
@@ -184,6 +188,9 @@ class CacheGuessingGameEnv(gym.Env):
     self.victim_accessed = False
     self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
     self._randomize_cache()
+    
+    if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
+      self.l1.read(str(self.victim_address), self.current_step, replacement_policy.PL_LOCK)
 
     # internal guessing buffer
     # does not change after reset
@@ -236,7 +243,12 @@ class CacheGuessingGameEnv(gym.Env):
           r = 2 #
           self.victim_accessed = True
           self.vprint("victim access %d" % self.victim_address)
-          t = self.l1.read(str(self.victim_address), self.current_step).time
+
+          if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
+            t = self.l1.read(str(self.victim_address), self.current_step, replacement_policy.PL_LOCK).time
+          else: # normal victim access
+            t = self.l1.read(str(self.victim_address), self.current_step).time
+          
           if t > 500:   # for LRU attack, has to force victim access being hit
             self.current_step += 1
             reward = self.victim_miss_reward #-5000
@@ -331,6 +343,10 @@ class CacheGuessingGameEnv(gym.Env):
     self.state = [0, len(self.attacker_address_space), 0, 0] * self.window_size
     #self.state = [0, len(self.attacker_address_space), 0, 0, 0] * self.window_size
     self.reset_time = 0
+
+    if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
+      self.l1.read(str(self.victim_address), self.current_step, replacement_policy.PL_LOCK)
+    
     return np.array(self.state)
 
   '''

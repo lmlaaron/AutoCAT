@@ -11,7 +11,7 @@
         "force_victim_hit": true,
         "flush_inst": false,
         "allow_victim_multi_access": true,
-        "attacker_addr_s": 0,
+        "attacker_addr_s": 2,
         "attacker_addr_e": 3,
         "victim_addr_s": 0,
         "victim_addr_e": 1,
@@ -26,7 +26,7 @@
               "blocks": 2, 
               "associativity": 2,  
               "hit_time": 1,
-              "rep_policy": "lru"
+              "rep_policy": "plru_pl"
             },
             "mem": {
               "hit_time": 1000 
