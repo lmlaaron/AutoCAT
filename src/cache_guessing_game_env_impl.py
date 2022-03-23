@@ -257,9 +257,12 @@ class CacheGuessingGameEnv(gym.Env):
           # otherwise just do a fake access
           if self.force_victim_hit == True and t > 500:   # for LRU attack, has to force victim access being hit
             self.current_step += 1
-            reward = -5000
-            done = False
-            self.vprint("victim access has to be hit! terminate!")
+            reward = self.victim_access_reward
+            if self.force_victim_hit == True:
+               done = True
+               self.vprint("victim access has to be hit! terminate!")
+             else:
+               done = False
           else:
             self.current_step += 1
             reward = self.victim_access_reward #-10
