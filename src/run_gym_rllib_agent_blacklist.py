@@ -74,9 +74,13 @@ if __name__ == "__main__":
         print("checkpoint saved at", checkpoint)
         i = checkpoint.rfind('/')
         config_name = checkpoint[0:i] + '/../env.config' 
+        config_name_full = checkpoint[0:i] + '/../env.config_full'
         print("env config saved ad ", config_name)
         with open(config_name, 'wb') as handle:
             pickle.dump(config["env_config"], handle)
+        with open(config_name_full, 'wb') as handle:
+            pickle.dump(config, handle)
+            
 
         policy = trainer.get_policy()
         for model in policy.past_models:

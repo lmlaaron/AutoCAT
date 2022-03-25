@@ -32,7 +32,13 @@ print(checkpoint_path[0])
 
 i = checkpoint_path.rfind('/')
 config_path = checkpoint_path[0:i] + '/../env.config'
-if os.path.isfile(config_path): 
+config_path_full = checkpoint_path[0:i] + '/../env.config_full'
+
+if os.path.isfile(config_path_full): 
+    print('load env full configuration in', config_path_full)
+    with open(config_path_full, 'rb') as handle:
+        config = pickle.load(handle)
+elif os.path.isfile(config_path): 
     print('load env configuration in', config_path)
     #exit(0) 
     with open(config_path, 'rb') as handle:
