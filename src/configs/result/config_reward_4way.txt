@@ -1,3 +1,30 @@
+   (base) mulong@fukushima:~/RL_SCA/src/CacheSimulator/src$ python replay_checkpoint.py /home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-03-26_11-34-49py31oi6p/checkpoint_000506/checkpoint-506
+2022-03-26 18:20:29,324 WARNING deprecation.py:45 -- DeprecationWarning: `ray.rllib.utils.torch_ops.[...]` has been deprecated. Use `ray.rllib.utils.torch_utils.[...]` instead. This will raise an error in the future!
+/
+load env configuration in /home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-03-26_11-34-49py31oi6p/checkpoint_000506/../env.config
+{'env': 'cache_guessing_game_env_fix', 'env_config': {'length_violation_reward': -10000, 'double_victim_access_reward': -10, 'victim_access_reward': -10, 'correct_reward': 200, 'wrong_reward': -10000, 'step_reward': -10, 'verbose': 1, 'force_victim_hit': False, 'flush_inst': False, 'allow_victim_multi_access': True, 'allow_empty_victim_access': True, 'attacker_addr_s': 1, 'attacker_addr_e': 4, 'victim_addr_s': 0, 'victim_addr_e': 0, 'reset_limit': 1, 'cache_configs': {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 4, 'hit_time': 1}, 'mem': {'hit_time': 1000}}}, 'num_gpus': 1, 'num_workers': 1, 'num_envs_per_worker': 1, 'model': {}, 'framework': 'torch'}
+2022-03-26 18:20:38,313 INFO services.py:1338 -- View the Ray dashboard at http://127.0.0.1:8268
+(RolloutWorker pid=25513)  {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 4, 'hit_time': 1}, 'mem': {'hit_time': 1000}} 
+(RolloutWorker pid=25513) Initializing...
+(RolloutWorker pid=25513)  Reset... 
+(RolloutWorker pid=25513)  victim address  0 
+(RolloutWorker pid=25513) 2022-03-26 18:20:45,918       WARNING deprecation.py:45 -- DeprecationWarning: `ray.rllib.utils.torch_ops.[...]` has been deprecated. Use `ray.rllib.utils.torch_utils.[...]` instead. This will raise an error in the future!
+(RolloutWorker pid=25513) Load config from JSON
+(RolloutWorker pid=25513) total_loss
+(RolloutWorker pid=25513) tensor(0., grad_fn=<MeanBackward0>)
+(RolloutWorker pid=25513) div_loss
+(RolloutWorker pid=25513) 0
+total_loss
+tensor(0., device='cuda:0', grad_fn=<MeanBackward0>)
+div_loss
+0
+2022-03-26 18:20:49,431 INFO trainable.py:124 -- Trainable.setup took 19.770 seconds. If your trainable is slow to initialize, consider setting reuse_actors=True to reduce actor creation overheads.
+2022-03-26 18:20:49,432 WARNING util.py:57 -- Install gputil for GPU system monitoring.
+2022-03-26 18:20:49,463 INFO trainable.py:467 -- Restored on 198.82.230.72 from checkpoint: /home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-03-26_11-34-49py31oi6p/checkpoint_000506/checkpoint-506
+2022-03-26 18:20:49,463 INFO trainable.py:475 -- Current state after restoring: {'_iteration': 506, '_timesteps_total': 0, '_time_total': 17105.738839149475, '_episodes_total': 235483}
+Load config from JSON
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 4, 'hit_time': 1}, 'mem': {'hit_time': 1000}} 
+Initializing...
  Reset... 
  victim address  0 
 
