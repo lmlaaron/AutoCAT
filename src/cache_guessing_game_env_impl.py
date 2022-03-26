@@ -261,7 +261,7 @@ class CacheGuessingGameEnv(gym.Env):
             if self.force_victim_hit == True:
                done = True
                self.vprint("victim access has to be hit! terminate!")
-             else:
+            else:
                done = False
           else:
             self.current_step += 1
