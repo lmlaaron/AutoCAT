@@ -34,7 +34,7 @@
         }
     }, 
     "num_gpus": 1, 
-    "num_workers": 1, 
+    "num_workers": 4, 
     "num_envs_per_worker": 1, 
     "model": {
     }, 
