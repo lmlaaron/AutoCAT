@@ -170,7 +170,7 @@ class CacheGuessingGameEnv(gym.Env):
     # since the agent is dumb
     self.observation_space = spaces.MultiDiscrete(
       [
-        3,                                          #cache latency
+        3,                                          #cache latency #TODO(LISA)
         len(self.attacker_address_space) + 1,       #attacker accessed address
         self.window_size + 2,                       #current steps
         2,                                          #whether the victim has accessed yet
@@ -182,7 +182,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.current_step = 0
     self.victim_accessed = False
     self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
-    self._randomize_cache()
+    self._randomize_cache() 
 
     # internal guessing buffer
     # does not change after reset
@@ -226,6 +226,7 @@ class CacheGuessingGameEnv(gym.Env):
     
     if self.current_step > self.window_size : # if current_step is too long, terminate
       r = 2 #
+      # import pdb; pdb.set_trace()
       self.vprint("length violation!")
       reward = self.length_violation_reward #-10000 
       done = True
@@ -245,7 +246,7 @@ class CacheGuessingGameEnv(gym.Env):
             self.current_step += 1
             reward = self.victim_access_reward #-10
             done = False
-        else:
+        else: #NOTE(LISA): must let the victim access be at least once to make a guess
           r = 2
           #self.vprint("does not allow multi victim access in this config, terminate!")
           self.current_step += 1
@@ -254,13 +255,13 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         if is_guess == True:
           r = 2  # 
-          if self.victim_accessed and victim_addr == str(self.victim_address):
+          if self.victim_accessed and victim_addr == str(self.victim_address): # This means that the attacker has got to the victim's address 
               self.vprint("correct guess " + victim_addr)
               # update the guess buffer 
-              self.guess_buffer.append(True)
+              self.guess_buffer.append(True) #IGNORE(LISA)
               self.guess_buffer.pop(0) 
               reward = self.correct_reward # 200
-              done = True
+              done = True # The done signal will always be true after the attacker makes a guess, even if it is not the correct guess (like the else branch)
           else:
               self.vprint("wrong guess " + victim_addr )
               # update the guess buffer 
@@ -270,7 +271,7 @@ class CacheGuessingGameEnv(gym.Env):
               done = True
         elif is_flush == False or self.flush_inst == False:
           if self.l1.read(address, self.current_step).time > 500: # measure the access latency
-            self.vprint("acceee " + address + " miss")
+            self.vprint("access " + address + " miss")
             r = 1 # cache miss
           else:
             self.vprint("access " + address + " hit"  )
@@ -299,6 +300,7 @@ class CacheGuessingGameEnv(gym.Env):
       victim_accessed = 0
     #self.state = [r, action[0], current_step, victim_accessed, is_flush] + self.state 
     #self.state = self.state[0:len(self.state)-5]
+    # TODO(LISA): 
     self.state = [r, action[0], current_step, victim_accessed] + self.state 
     self.state = self.state[0:len(self.state)-4]
  
@@ -312,6 +314,7 @@ class CacheGuessingGameEnv(gym.Env):
       if self.reset_time == self.reset_limit:  # really need to end the simulation
         self.reset_time = 0
         done = True                            # reset will be called by the agent/framework
+        # import pdb; pdb.set_trace()
         self.vprint('correct rate:' + str(self.calc_correct_rate()))
       else:
         done = False                           # fake reset
@@ -319,10 +322,11 @@ class CacheGuessingGameEnv(gym.Env):
 
     return np.array(self.state), reward, done, info
 
-  def reset(self, victim_address=-1):
+  def reset(self, victim_address=-1, if_only_reinitialize_rl_related_variables=False): #Modified(LISA)
     self.vprint('Reset...')
-    self.hierarchy = build_hierarchy(self.configs, self.logger)
-    self.l1 = self.hierarchy['cache_1']
+    if if_only_reinitialize_rl_related_variables == False:
+      self.hierarchy = build_hierarchy(self.configs, self.logger) # Empty cache may not work for some settings, for example, flush is not useful
+      self.l1 = self.hierarchy['cache_1']
     self._reset(victim_address)  # fake reset
     self.state = [0, len(self.attacker_address_space), 0, 0] * self.window_size
     #self.state = [0, len(self.attacker_address_space), 0, 0, 0] * self.window_size
@@ -384,7 +388,7 @@ class CacheGuessingGameEnv(gym.Env):
     return
 
   def _randomize_cache(self, mode = "attacker"):
-    if mode == "attacker":
+    if mode == "attacker": 
       self.l1.read(str(0), -2)
       self.l1.read(str(1), -1)
       return
@@ -392,7 +396,7 @@ class CacheGuessingGameEnv(gym.Env):
     if mode == "none":
       return
     self.current_step = -self.cache_size * 2 
-    for _ in range(self.cache_size * 2):
+    for _ in range(self.cache_size * 2): # This is like true reset because we let the cache to be accessed randomly 
       if mode == "victim":
         addr = random.randint(self.victim_address_min, self.victim_address_max)
       elif mode == "attacker":
@@ -458,7 +462,6 @@ class CacheGuessingGameEnv(gym.Env):
       if action < len(self.attacker_address_space):
         address = action
       elif action < 2 * len(self.attacker_address_space):
-        is_flush = 1
         address = action - len(self.attacker_address_space) 
       elif action == 2 * len(self.attacker_address_space):
         is_victim = 1
