@@ -249,15 +249,20 @@ class CacheGuessingGameEnv(gym.Env):
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
-          self.vprint("victim access %d" % self.victim_address)
           if self.victim_address <= self.victim_address_max:   # if it is smaller than the range, then do a real access
+            self.vprint("victim access %d" % self.victim_address)
             t = self.l1.read(str(self.victim_address), self.current_step).time
+          else:
+            self.vprint("victim empty access!")
           # otherwise just do a fake access
           if self.force_victim_hit == True and t > 500:   # for LRU attack, has to force victim access being hit
             self.current_step += 1
-            reward = -5000
-            done = False
-            self.vprint("victim access has to be hit! terminate!")
+            reward = self.victim_access_reward
+            if self.force_victim_hit == True:
+               done = True
+               self.vprint("victim access has to be hit! terminate!")
+            else:
+               done = False
           else:
             self.current_step += 1
             reward = self.victim_access_reward #-10
