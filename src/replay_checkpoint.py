@@ -11,10 +11,21 @@ import requests
 import pprint
 import ray
 from ray import serve
-from test_custom_policy_diversity_works import *
+import sys
+import os
+import pickle
+from test_custom_policy_diversity_works import PPOCustomTrainer
+from cchunter_wrapper import CCHunterWrapper
+import ray.tune as tune
+from ray.rllib.agents.ppo import PPOTrainer
+
+tune.register_env("cchunter_wrapper", CCHunterWrapper)
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
+# from cchunter_wrapper import *
 
+config = {}
+config["env_config"] = {}
 config["env_config"]["verbose"] = 1 
 #config["num_workers"] = 1
 #config["num_envs_per_worker"] = 1
@@ -38,9 +49,10 @@ if os.path.isfile(config_path_full):
     print('load env full configuration in', config_path_full)
     with open(config_path_full, 'rb') as handle:
         config = pickle.load(handle)
+    import pdb; pdb.set_trace()
 elif os.path.isfile(config_path): 
     print('load env configuration in', config_path)
-    #exit(0) 
+    import pdb; pdb.set_trace()
     with open(config_path, 'rb') as handle:
         config["env_config"] = pickle.load(handle)
 else:
@@ -48,7 +60,8 @@ else:
     print('be careful to that the env.cofnig matches the env which generate the checkpoint')
     print(config["env_config"])
 
-trainer = PPOCustomTrainer(config=config)
+print(config)
+trainer = PPOTrainer(config=config)
 trainer.restore(checkpoint_path)
 
 #local_worker = trainer.workers.local_worker()
@@ -56,6 +69,7 @@ trainer.restore(checkpoint_path)
 
 
 env = CacheGuessingGameEnv(config["env_config"])
+
 #obs = env.reset()
 
 #for _ in range(1000):
