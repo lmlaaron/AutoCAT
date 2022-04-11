@@ -1,7 +1,7 @@
 '''
 Author Mulong Luo
 Date 2022.1.24
-usage: resotre the ray checkpoint to replay the agent and extract the attack pattern
+usage: restore the ray checkpoint to replay the agent and extract the attack pattern
 '''
 
 from copy import deepcopy
@@ -14,24 +14,26 @@ from ray import serve
 import sys
 import os
 import pickle
-from test_custom_policy_diversity_works import PPOCustomTrainer
+from test_custom_policy_diversity_works import PPOCustomTrainer, config
 from cchunter_wrapper import CCHunterWrapper
+from cache_guessing_game_env_impl import CacheGuessingGameEnv
 import ray.tune as tune
 from ray.rllib.agents.ppo import PPOTrainer
 
-tune.register_env("cchunter_wrapper", CCHunterWrapper)
+# The env is already registered when we call from cchunter_wrapper import CCHunterWrapper
+# tune.register_env("cchunter_wrapper", CCHunterWrapper)
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 # from cchunter_wrapper import *
 
-config = {}
-config["env_config"] = {}
-config["env_config"]["verbose"] = 1 
+# config = {}
+# config["env_config"] = {}
+# config["env_config"]["verbose"] = 1 
 #config["num_workers"] = 1
 #config["num_envs_per_worker"] = 1
 
 print(config)
-#tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
+tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)#Fix)
 #exit(0)
 
 checkpoint_path = sys.argv[1:][0]
@@ -46,26 +48,26 @@ config_path = checkpoint_path[0:i] + '/../env.config'
 config_path_full = checkpoint_path[0:i] + '/../env.config_full'
 
 if os.path.isfile(config_path_full): 
-    print('load env full configuration in', config_path_full)
+    print('load env configuration in', config_path_full)
+    #exit(0) 
     with open(config_path_full, 'rb') as handle:
         config = pickle.load(handle)
-    import pdb; pdb.set_trace()
 elif os.path.isfile(config_path): 
     print('load env configuration in', config_path)
     import pdb; pdb.set_trace()
     with open(config_path, 'rb') as handle:
         config["env_config"] = pickle.load(handle)
 else:
-    print('env.config not found! using defualt one')
-    print('be careful to that the env.cofnig matches the env which generate the checkpoint')
+    print('env.config not found! using default one')
+    print('be careful to that the env.config matches the env which generate the checkpoint')
     print(config["env_config"])
 
-print(config)
-trainer = PPOTrainer(config=config)
-trainer.restore(checkpoint_path)
 
-#local_worker = trainer.workers.local_worker()
-#env = local_worker.env_context
+config['num_envs_per_worker'] = 1
+print(config)
+
+trainer = PPOCustomTrainer(config=config)
+trainer.restore(checkpoint_path)
 
 
 env = CacheGuessingGameEnv(config["env_config"])

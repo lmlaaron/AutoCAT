@@ -278,7 +278,7 @@ ModelCatalog.register_custom_model("test_model", TestModel)
 # from cache_guessing_game_env_fix_impl_evict import * # for evict time attack
 # from cache_guessing_game_env_fix_impl_flush import * # for flush reload attack
 # from cache_guessing_game_env_fix_impl import * # for prime and probe attack
-from cache_guessing_game_env_impl import *
+from cache_guessing_game_env_impl import CacheGuessingGameEnv
 # (Re)Start the ray runtime.
 if ray.is_initialized():
   ray.shutdown()
@@ -314,7 +314,7 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
     def __init__(self, env_config, keep_latency=True):
         self.keep_latency = keep_latency
         self.env_config = env_config
-        self.cc_hunter_episode_scale = 10
+        self.cc_hunter_episode_scale = 20
         self._env = CacheGuessingGameEnv(env_config)
         #     in this case the pattern has to be stored
         self.validation_env = CacheGuessingGameEnv(env_config)
@@ -333,7 +333,6 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
      
     def reset(self):
         self.action_buffer = []
-        # import pdb; pdb.set_trace()
         self.cc_hunter_length = self._env.cache_size
         self.cc_hunter_buffer = []
         self.validation_env.reset() # Is this needed?
@@ -407,6 +406,7 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
     '''        
     def step(self,action):
         state, reward, done, info = self._env.step(action) 
+        # info is an empty dict
         # TODO(LISA): when done, the agent will call reset()
         # (LISA) state gives a history of the [hit_info, addr, ****]
         # add to buffer 
@@ -427,23 +427,38 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
         #make sure the current existing correct guessing rate is high enough beofre 
         # altering the reward
         if done == False:
+            if self._env.parse_action_degenerate(action, self._env.flush_inst)[1] == True:
+                # if the guess is correct, we will store this in info
+                if reward > 0:
+                    info['correct_guess'] = True
+                else:
+                    info['correct_guess'] = False
+                    
+                
             return state, reward, done, info
         else: # DONE
             length = len(self.cc_hunter_buffer)
             self._env.reset(victim_address = -1, if_only_reinitialize_rl_related_variables = True)
             print('cc hunter buffer length is', length)
+            if self._env.parse_action_degenerate(action, self._env.flush_inst)[1] == 1:
+                  # if the guess is correct, we will store this in info
+                if reward > 0:
+                    info['correct_guess'] = True
+                else:
+                    info['correct_guess'] = False
+                    
             if length < self.cc_hunter_episode:
                 done = False
             else:
-                if self.cc_hunter_attack(self.cc_hunter_buffer) == True:
-                    reward -= 0 # TODO
+                if self.cc_hunter_attack(self.cc_hunter_buffer, self._env.flush_inst) == 1:
+                    reward -= 10 # TODO
             return state, reward, done, info
             
     
     
 
 
-ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1)
+ray.init(include_dashboard=True, ignore_reinit_error=False, num_gpus=1, num_cpus=8, local_mode=True)
 
 
 # Two ways of training
@@ -457,7 +472,7 @@ config = {
         "attacker_addr_s": 0,
         "attacker_addr_e": 3,#3,
         "victim_addr_s": 0,
-        "victim_addr_e": 1,#1,
+        "victim_addr_e": 3,#1,
         "reset_limit": 1,
         "cache_configs": {
                 # YAML config file for cache simulaton

@@ -11,12 +11,13 @@ import requests
 import pprint
 import ray
 from ray import serve
-from test_custom_policy_diversity_works import config
+# from test_custom_policy_diversity_works import config
 import sys
 import pickle 
 import ray.tune as tune
 from ray.rllib.agents.ppo import PPOTrainer
-
+from test_custom_policy_diversity_works import PPOCustomTrainer
+from cache_guessing_game_env_impl import CacheGuessingGameEnv
 from cchunter_wrapper import CCHunterWrapper
 import pandas as pd
 import numpy as np
@@ -25,9 +26,11 @@ import numpy as np
 
 # from pandas.compat import lmap
 os.environ['CUDA_VISIBLE_DEVICES']='0'
+tune.register_env("cache_guessing_game_env_fix", CacheGuessingGameEnv)
 tune.register_env("cchunter_wrapper", CCHunterWrapper)
 
-# config = {}
+config = {}
+config["env_config"] = {}
 def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False, change_core=False, **kwds):
     """
     Autocorrelation plot for time series.
@@ -85,7 +88,6 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
     x = np.arange(n_lags) + 1
     # y = lmap(r, x)
     y = np.array([r(xi) for xi in x])
-    import pdb; pdb.set_trace()
     z95 = 1.959963984540054
     z99 = 2.5758293035489004
     ax.axhline(y=z99 / np.sqrt(n_full), linestyle='--', color='grey')
@@ -104,10 +106,10 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 PLOT_CCHUNTER = True
-PLOT_LEAN = True
+PLOT_LEAN = False
 PLOT_DIST = False
 config["env_config"]["verbose"] = 1 
-#config["num_workers"] = 1
+config["num_workers"] = 1
 #config["num_envs_per_worker"] = 1
 
 print(config)
@@ -131,36 +133,40 @@ if os.path.isfile(config_path_full):
         config = pickle.load(handle)
 elif os.path.isfile(config_path): 
     print('load env configuration in', config_path)
-    import pdb; pdb.set_trace()
     with open(config_path, 'rb') as handle:
         config["env_config"] = pickle.load(handle)
 else:
     print('env.config not found! using default one')
-    print('be careful to that the env.cofnig matches the env which generate the checkpoint')
+    print('be careful to that the env.config matches the env which generate the checkpoint')
     print(config["env_config"])
 
 print(config)
+# config['num_workers'] = 1
 config['num_envs_per_worker'] = 1
+config["num_workers"] = 4
+
+
 trainer = PPOTrainer(config=config)
-import pdb; pdb.set_trace()
 trainer.restore(checkpoint_path)
 
 # local_worker = trainer.workers.local_worker()
 #env = local_worker.env_context
 
 
-# env = CCHunterWrapper(config["env_config"])
+env = CCHunterWrapper(config["env_config"])
 
 
 def replay_agent():
     # no cache randomization
     # rangomized inference ( 10 times)
     pattern_buffer = []
-    num_guess = 0
-    num_correct = 0
+    num_guess_all = 0
+    num_correct_all = 0
     pattern_dict = {}
     for victim_addr in range(env.victim_address_min, env.victim_address_max + 1):
-        for repeat in range(1):#000):
+        num_correct = 0
+        num_guess = 0
+        for repeat in range(1):
             if PLOT_CCHUNTER == True:
                 obs = env.reset()
             else:
@@ -174,7 +180,8 @@ def replay_agent():
             while done == False:
                 step += 1
                 #print(f"-> Sending observation {obs}")
-                action = trainer.compute_single_action(obs, explore=False) # randomized inference
+                action = trainer.compute_single_action(obs, explore=False) 
+                # deterministic inference
                 
                 # print the log likelihood for each action
                 # see https://github.com/ray-project/ray/blob/7f1bacc7dc9caf6d0ec042e39499bbf1d9a7d065/rllib/policy/policy.py#L228
@@ -200,36 +207,51 @@ def replay_agent():
                 # legend.append('step '+ str(step))
                 #print(f"<- Received response {action}")
                 obs, reward, done, info = env.step(action)
+                # import pdb; pdb.set_trace()
+                if 'correct_guess' in info.keys():
+                    num_guess += 1
+                    if info['correct_guess'] == True:
+                        print(f"victim_address! {victim_addr} correct guess! {info['correct_guess']}")
+                        num_correct += 1
+                        correct = True
+                    else:
+                        correct = False
                 action_buffer.append((action, obs[0]))
-            if reward > 0:
-                correct = True
-                num_correct += 1
+            # if reward > 0:
+            #     correct = True
+            #     num_correct += 1
+            # else:
+            #     correct = False
+            pattern_buffer.append((victim_addr, action_buffer, num_correct))
+            if pattern_dict.get((victim_addr, tuple(action_buffer), num_correct)) == None:
+                pattern_dict[(victim_addr, tuple(action_buffer), num_correct)] = 1 #1 means the number of occurence
             else:
-                correct = False
-            num_guess += 1
-            pattern_buffer.append((victim_addr, action_buffer, correct))
-            if pattern_dict.get((victim_addr, tuple(action_buffer), correct)) == None:
-                pattern_dict[(victim_addr, tuple(action_buffer), correct)] = 1
-            else:
-                pattern_dict[(victim_addr, tuple(action_buffer), correct)] += 1
+                pattern_dict[(victim_addr, tuple(action_buffer), num_correct)] += 1
             if PLOT_DIST == True:
                 plt.xlabel('action label')
                 plt.ylabel('logp')
                 plt.legend(legend)
                 plt.show()
-
+                
+        num_guess_all += num_guess
+        num_correct_all += num_correct
+        
     with open('temp.txt', 'a') as out:
         pprint.pprint(pattern_buffer, stream=out)
     
     print( "overall accuracy " + str(1.0 * num_correct / num_guess) )
+    print( "overall bandwidth " + str(1.0 * num_correct / len(pattern_buffer[0][1])) )
+
     pprint.pprint(pattern_dict)
     import matplotlib.pyplot as plt
+    
     address_trace = [i[0] for i in action_buffer]
     hit_trace = [i[1] for i in action_buffer][:-1]
     victim_access_or_attacker_guess_index = hit_trace.index(2)
     mask = [i != 2 for i in hit_trace] 
     address_trace_lean = [i for i, v in zip(address_trace, mask) if v]
     hit_trace_lean = [i for i, v in zip(hit_trace, mask) if v]
+    import pdb; pdb.set_trace()
     
     
     if PLOT_CCHUNTER == True:
@@ -246,35 +268,50 @@ def replay_agent():
             plt.ylabel('hit or victim access address')
             plt.savefig('cchunter_lean.png')
             
-            ax1 = plt.figure()
+            # ax1 = plt.figure()
             data = pd.Series(hit_trace_lean)
-            # import pdb; pdb.set_trace()
-
+            plt.figure()
             autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
             plt.savefig('cchunter_hit_trace_lean_acf.png')
+            print("Figure saved as cchunter_hit_trace_lean_acf.png")
             
-            # plt.figure()
-            # data = pd.Series(address_trace_lean)
-            # import pdb; pdb.set_trace()
-            # autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
-            # plt.savefig('cchunter_address_trace_lean_acf.png')
+            plt.figure()
+            data = pd.Series(address_trace_lean)
+            autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
+            plt.savefig('cchunter_address_trace_lean_acf.png')
+            print("Figure saved as cchunter_address_trace_lean_acf.png")
+
+            
         else:
             plt.plot(address_trace, label = 'address trace')
             plt.plot(hit_trace, label = 'hit trace')
             plt.xlabel('step')
             plt.ylabel('hit or victim access address')
             plt.savefig('cchunter.png')
+            print("Figure saved as cchunter.png")
 
+            plt.figure()
+            data = pd.Series(address_trace)
+            autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
+            plt.savefig('cchunter_address_trace_acf.png')
+            print("Figure saved as cchunter_address_trace_acf.png")
+            plt.figure()
+            data = pd.Series(hit_trace)
+            autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
+            plt.savefig('cchunter_hit_trace_acf.png')
+            print("Figure saved as cchunter_hit_trace_acf.png")
+            
         plt.figure()
         address_trace = pd.DataFrame(address_trace)
-        plot_acf(address_trace, lags=len(address_trace))
+        plot_acf(address_trace, lags=len(address_trace)-2)
         plt.savefig('cchunter_adress_trace_acf.png')
+        print("Figure saved as cchunter.png")
 
     print("num distinct patterns "+ str(len(pattern_dict)))
     return 1.0 * num_correct / num_guess, pattern_buffer
 
 
-# replay_agent()
+replay_agent()
 
 #if __name__ == "__main__":
 
