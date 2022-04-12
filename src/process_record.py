@@ -8,7 +8,7 @@ import sys
 #pathname = '/home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-03-30_09-03-46wrptlf7f'
 
 assert(len(sys.argv) == 2)
-pathname = '/home/geunbae/ray_results/' + sys.argv[1]
+pathname =   sys.argv[1]
 pathname += '/'
 filename =  pathname + '/result.json'
 configname = pathname + '/params.json'
@@ -89,7 +89,7 @@ plt.plot(num_steps_sampled, episode_len_mean)
 #plt.ylim(0,1)
 coverge_len=np.average(np.array(episode_len_mean[len(episode_len_mean)-100::len(episode_len_mean)-1]))
 plt.axhline(y=coverge_len, color='r', linestyle='-')
-plt.text(0, correct_rate_threshold - 0.1, 'coverge_len ='+str(coverge_len), color ='r')
+plt.text(0, coverge_len, 'coverge_len ='+str(coverge_len), color ='r')
 plt.xlim(left=0)
 plt.xlabel('num_steps_sampled')
 plt.ylabel('episode_len_mean')
