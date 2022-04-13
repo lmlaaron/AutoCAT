@@ -119,7 +119,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.cache_size = self.configs['cache_1']['blocks']
     
     if window_size == 0:
-      self.window_size = self.cache_size * 2 + 8 #10 
+      self.window_size = self.cache_size * 2 + 11 #10 
     else:
       self.window_size = window_size
     self.hierarchy = build_hierarchy(self.configs, self.logger)

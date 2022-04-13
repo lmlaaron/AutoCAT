@@ -90,11 +90,11 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
     y = np.array([r(xi) for xi in x])
     z95 = 1.959963984540054
     z99 = 2.5758293035489004
-    ax.axhline(y=z99 / np.sqrt(n_full), linestyle='--', color='grey')
-    ax.axhline(y=z95 / np.sqrt(n_full), color='grey')
+    ax.axhline(y=0.95, linestyle='--', color='grey')
+    # ax.axhline(y=z95 / np.sqrt(n_full), color='grey')
     ax.axhline(y=0.0, color='black')
-    ax.axhline(y=-z95 / np.sqrt(n_full), color='grey')
-    ax.axhline(y=-z99 / np.sqrt(n_full), linestyle='--', color='grey')
+    # ax.axhline(y=-z95 / np.sqrt(n_full), color='grey')
+    # ax.axhline(y=-z99 / np.sqrt(n_full), linestyle='--', color='grey')
     ax.set_xlabel("Lag")
     ax.set_ylabel("Autocorrelation")
     ax.plot(x, y, **kwds)
@@ -106,7 +106,7 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 PLOT_CCHUNTER = True
-PLOT_LEAN = False
+PLOT_LEAN = True
 PLOT_DIST = False
 config["env_config"]["verbose"] = 1 
 config["num_workers"] = 1
@@ -240,7 +240,7 @@ def replay_agent():
         pprint.pprint(pattern_buffer, stream=out)
     
     print( "overall accuracy " + str(1.0 * num_correct / num_guess) )
-    print( "overall bandwidth " + str(1.0 * num_correct / len(pattern_buffer[0][1])) )
+    print( "overall bandwidth " + str(1.0 * num_guess / len(pattern_buffer[0][1])) )
 
     pprint.pprint(pattern_dict)
     import matplotlib.pyplot as plt
@@ -282,24 +282,23 @@ def replay_agent():
             print("Figure saved as cchunter_address_trace_lean_acf.png")
 
             
-        else:
-            plt.plot(address_trace, label = 'address trace')
-            plt.plot(hit_trace, label = 'hit trace')
-            plt.xlabel('step')
-            plt.ylabel('hit or victim access address')
-            plt.savefig('cchunter.png')
-            print("Figure saved as cchunter.png")
+        plt.plot(address_trace, label = 'address trace')
+        plt.plot(hit_trace, label = 'hit trace')
+        plt.xlabel('step')
+        plt.ylabel('hit or victim access address')
+        plt.savefig('cchunter.png')
+        print("Figure saved as cchunter.png")
 
-            plt.figure()
-            data = pd.Series(address_trace)
-            autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
-            plt.savefig('cchunter_address_trace_acf.png')
-            print("Figure saved as cchunter_address_trace_acf.png")
-            plt.figure()
-            data = pd.Series(hit_trace)
-            autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
-            plt.savefig('cchunter_hit_trace_acf.png')
-            print("Figure saved as cchunter_hit_trace_acf.png")
+        plt.figure()
+        data = pd.Series(address_trace)
+        autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
+        plt.savefig('cchunter_address_trace_acf.png')
+        print("Figure saved as cchunter_address_trace_acf.png")
+        plt.figure()
+        data = pd.Series(hit_trace)
+        autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
+        plt.savefig('cchunter_hit_trace_acf.png')
+        print("Figure saved as cchunter_hit_trace_acf.png")
             
         plt.figure()
         address_trace = pd.DataFrame(address_trace)
@@ -314,10 +313,6 @@ def replay_agent():
 replay_agent()
 
 #if __name__ == "__main__":
-
-
-#import pickle
-#ickle.loads(pickle.dumps(trainer.get_policy()))
 
 # cache randomization
 # no randomized inference

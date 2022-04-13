@@ -1,5 +1,8 @@
-# look at https://github.com/ray-project/ray/blob/ea2bea7e309cd60457aa0e027321be5f10fa0fe5/rllib/examples/custom_env.py#L2
-#from CacheSimulator.src.gym_cache.envs.cache_simulator_wrapper import CacheSimulatorWrapper
+'''
+Author Yueying Li
+Date 2022.3.21
+usage: python cchunter_wrapper.py 
+'''
 import gym
 import ray
 import ray.tune as tune
@@ -314,7 +317,7 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
     def __init__(self, env_config, keep_latency=True):
         self.keep_latency = keep_latency
         self.env_config = env_config
-        self.cc_hunter_episode_scale = 20
+        self.cc_hunter_episode_scale = 10
         self._env = CacheGuessingGameEnv(env_config)
         #     in this case the pattern has to be stored
         self.validation_env = CacheGuessingGameEnv(env_config)
@@ -427,21 +430,20 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
         #make sure the current existing correct guessing rate is high enough beofre 
         # altering the reward
         if done == False:
-            if self._env.parse_action_degenerate(action, self._env.flush_inst)[1] == True:
+            if self._env.parse_action_degenerate(action, self._env.flush_inst)[1] == 1:
                 # if the guess is correct, we will store this in info
                 if reward > 0:
                     info['correct_guess'] = True
                 else:
                     info['correct_guess'] = False
-                    
-                
             return state, reward, done, info
         else: # DONE
             length = len(self.cc_hunter_buffer)
             self._env.reset(victim_address = -1, if_only_reinitialize_rl_related_variables = True)
             print('cc hunter buffer length is', length)
+            print('cc hunter attack result is ', self.cc_hunter_attack(self.cc_hunter_buffer, self._env.flush_inst))
             if self._env.parse_action_degenerate(action, self._env.flush_inst)[1] == 1:
-                  # if the guess is correct, we will store this in info
+                  # if the guess is correct, we will store this in info for later calculation of bandwidth
                 if reward > 0:
                     info['correct_guess'] = True
                 else:
@@ -455,8 +457,6 @@ class CCHunterWrapper(gym.Env): #TODO(LISA)
             return state, reward, done, info
             
     
-    
-
 
 ray.init(include_dashboard=True, ignore_reinit_error=False, num_gpus=1, num_cpus=8, local_mode=True)
 
@@ -499,9 +499,9 @@ config = {
     #'num_sgd_iter': 5, 
     #'vf_loss_coeff': 1e-05, 
     'model': {
-        #'custom_model': 'test_model',#'rnn', 
-        #'max_seq_len': 20, 
-        #'custom_model_config': {
+        # 'custom_model': 'test_model',#'rnn', 
+        # 'max_seq_len': 20, 
+        # 'custom_model_config': {
         #    'cell_size': 32
         #   }
     }, 
