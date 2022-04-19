@@ -4,7 +4,7 @@ import json
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
-
+import math
 #pathname = '/home/mulong/ray_results/PPO_cache_guessing_game_env_fix_2022-03-30_09-03-46wrptlf7f'
 
 assert(len(sys.argv) == 2)
@@ -53,8 +53,8 @@ while i < len(correct_rate):
         break
     i += 1
 if i == len(correct_rate):
-    coverage_time = math.nan
-    coverage_steps = math.nan
+    coverge_time = math.nan
+    coverge_steps = math.nan
 else:
     coverge_time = time_total_s[i]
     coverge_steps = num_steps_sampled[i]

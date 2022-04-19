@@ -126,7 +126,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.configs['cache_1']['rep_policy'] = 'lru'
     
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 
+      self.window_size = self.cache_size * 4 + 8 #10 
     else:
       self.window_size = window_size
     self.hierarchy = build_hierarchy(self.configs, self.logger)
@@ -451,7 +451,7 @@ class CacheGuessingGameEnv(gym.Env):
   def close(self):
     return
 
-  def _randomize_cache(self, mode = "attacker"):
+  def _randomize_cache(self, mode = "union"):
     if mode == "attacker":
       self.l1.read(str(0), -2)
       self.l1.read(str(1), -1)

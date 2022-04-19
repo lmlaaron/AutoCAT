@@ -16,7 +16,7 @@ from cache_simulator import print_cache
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 
-config["env_config"]["verbose"] = 1 
+config["env_config"]["verbose"] = 0 
 #config["num_workers"] = 1
 #config["num_envs_per_worker"] = 1
 
@@ -96,8 +96,11 @@ def replay_agent():
     else:
         end_address = env.victim_address_max + 1 + 1
 
+    length = 0
+    count = 0
     for victim_addr in range(env.victim_address_min, end_address):
-        for repeat in range(1):#000):
+        for repeat in range(1000):
+            count += 1
             obs = env.reset(victim_address=victim_addr)
             
             # for debugging purposes
@@ -148,6 +151,7 @@ def replay_agent():
                 correct = False
             num_guess += 1
             pattern_buffer.append((victim_addr, action_buffer, correct))
+            length += len(action_buffer)
             if pattern_dict.get((victim_addr, tuple(action_buffer), correct)) == None:
                 pattern_dict[(victim_addr, tuple(action_buffer), correct)] = 1
             else:
@@ -160,8 +164,9 @@ def replay_agent():
     with open('temp.txt', 'a') as out:
         pprint.pprint(pattern_buffer, stream=out)
     
-    print( "overall accuray " + str(1.0 * num_correct / num_guess) )
     pprint.pprint(pattern_dict)
+    print( "overall accuray " + str(1.0 * num_correct / num_guess) )
+    print("episode length " + str(length * 1.0 / count))
     print("num distinct patterns "+ str(len(pattern_dict)))
     return 1.0 * num_correct / num_guess, pattern_buffer
 
