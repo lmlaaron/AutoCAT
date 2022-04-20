@@ -44,6 +44,7 @@ else:
     print(config["env_config"])
 
 print(config)
+config['env_config']['verbose']=1
 trainer = PPOCustomTrainer(config=config)
 trainer.restore(checkpoint_path)
 
@@ -99,7 +100,7 @@ def replay_agent():
     length = 0
     count = 0
     for victim_addr in range(env.victim_address_min, end_address):
-        for repeat in range(1000):
+        for repeat in range(1):
             count += 1
             obs = env.reset(victim_address=victim_addr)
             

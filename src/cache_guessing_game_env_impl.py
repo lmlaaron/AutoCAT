@@ -126,7 +126,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.configs['cache_1']['rep_policy'] = 'lru'
     
     if window_size == 0:
-      self.window_size = self.cache_size * 4 + 8 #10 
+      self.window_size = self.cache_size * 8 + 8 #10 
     else:
       self.window_size = window_size
     self.hierarchy = build_hierarchy(self.configs, self.logger)
