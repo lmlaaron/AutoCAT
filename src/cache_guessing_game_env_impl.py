@@ -451,12 +451,18 @@ class CacheGuessingGameEnv(gym.Env):
   def close(self):
     return
 
-  def _randomize_cache(self, mode = "union"):
+  def _randomize_cache(self, mode = "victim_d"):
     if mode == "attacker":
       self.l1.read(str(0), -2)
       self.l1.read(str(1), -1)
       return
-    
+    elif mode == "victim_d":
+      self.current_step = - self.victim_address_max-1 + self.victim_address_min
+      for addr in range(self.victim_address_min, self.victim_address_max+1):
+        self.l1.read(str(addr), self.current_step)
+        self.current_step += 1
+      return
+
     if mode == "none":
       return
     self.current_step = -self.cache_size * 2 
