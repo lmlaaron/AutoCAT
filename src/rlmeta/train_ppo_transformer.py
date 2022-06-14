@@ -26,14 +26,16 @@ from cache_ppo_transformer_model import CachePPOTransformerModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 from metric_callbacks import MetricCallbacks
 
+from utils.wandb_logger import WandbLogger
 
 # @hydra.main(config_path="./config", config_name="ppo_lru_8way")
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
 # @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-# @hydra.main(config_path="./config", config_name="ppo_exp")
-@hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
+@hydra.main(config_path="./config", config_name="ppo_exp")
+# @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
+    wandb_logger = WandbLogger(project="rl4cache", config=cfg)
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
@@ -75,6 +77,7 @@ def main(cfg):
                      controller=a_ctrl,
                      optimizer=optimizer,
                      batch_size=cfg.batch_size,
+                     entropy_coeff=cfg.entropy_coeff,
                      learning_starts=cfg.get("learning_starts", None),
                      push_every_n_steps=cfg.push_every_n_steps)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
@@ -103,7 +106,7 @@ def main(cfg):
     servers.start()
     loops.start()
     agent.connect()
-
+    
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
         stats = agent.train(cfg.steps_per_epoch)
@@ -114,8 +117,9 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
+        train_stats = stats
         time.sleep(1)
-
+        
         stats = agent.eval(cfg.num_eval_episodes)
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
@@ -124,7 +128,10 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
+        eval_stats = stats
         time.sleep(1)
+        
+        wandb_logger.log(train_stats, eval_stats)
 
         torch.save(train_model.state_dict(), f"ppo_agent-{epoch}.pth")
 
