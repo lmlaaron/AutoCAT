@@ -77,8 +77,8 @@ def main(cfg):
                      controller=a_ctrl,
                      optimizer=optimizer,
                      batch_size=cfg.batch_size,
-                     entropy_coeff=cfg.entropy_coeff,
                      learning_starts=cfg.get("learning_starts", None),
+                     entropy_coeff=cfg.get("entropy_coeff", 0.01),
                      push_every_n_steps=cfg.push_every_n_steps)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
