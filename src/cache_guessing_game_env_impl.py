@@ -586,4 +586,14 @@ class CacheGuessingGameEnv(gym.Env):
         victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
         
     return [ address, is_guess, is_victim, is_flush, victim_addr ] 
- 
+
+
+if __name__ == '__main__':
+    env = CacheGuessingGameEnv()
+    obs = env.reset()
+    done = False
+    i=0
+    while not done:
+        i+=1
+        obs, reward, done, info = env.step(np.random.randint(9))
+        print("step ", i, ":", obs, reward, done, info) 
