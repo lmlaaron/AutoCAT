@@ -100,8 +100,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         opponent_reward = reward['opponent']
         # determine attacker's reward
         # modify the attacker's reward according to the detector results
-        if detector_flag and detector_correct:
-            opponent_reward -= 1
+        #if detector_flag and detector_correct:
+        #    opponent_reward -= 1
         
         rew = {}
         rew['detector'] = detector_reward

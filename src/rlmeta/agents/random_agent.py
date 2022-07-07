@@ -42,7 +42,6 @@ class RandomAgent(Agent):
         return Action(action)
 
     async def async_act(self, timestep: TimeStep) -> Action:
-        #action = await random.randint(0, self.action_space-1)
         action = random.randint(0, self.action_space-1)
 
         return Action(action)
