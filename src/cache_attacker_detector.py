@@ -15,7 +15,7 @@ class CacheAttackerDetectorEnv(gym.Env):
     def __init__(self,
                  env_config: Dict[str, Any],
                  keep_latency: bool = True) -> None:
-        env_config["cache_state_reset"] = False
+        #env_config["cache_state_reset"] = False
 
         self.reset_observation = env_config.get("reset_observation", False)
         self.keep_latency = keep_latency
@@ -34,7 +34,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
        
-        self.opponent_agent = 'benign' # 'benign', 'attacker' 
+        self.opponent_agent = 'attacker' # 'benign', 'attacker' 
 
         self.step_count = 0
     
@@ -62,7 +62,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         # Victim reset
         # TODO:check the randomized initialization behavior
         self.victim_address = self._env.victim_address
-        print("victim reset:", self.victim_address)
+        #print("victim reset:", self.victim_address)
         
         # TODO:Detector reset - check this function
         detector_obs = opponent_obs # so far the detector share the same observation space as 
@@ -92,7 +92,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         else:
             # else receive a timestep penalty
             detector_reward = -0.01
-            if self.opponent_agent == 'attacker' and opponent_done and opponent_guess_correct:
+            if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success:
                 # attacker has attacked *successfully*
                 detector_reward = -1
         
@@ -145,7 +145,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         # done = {'agent_id':bool, '__all__':bool}
         
         return obs, reward, done, info
-
 
 if __name__ == '__main__':
     env = CacheAttackerDetectorEnv({})

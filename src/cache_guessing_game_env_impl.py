@@ -139,12 +139,12 @@ class CacheGuessingGameEnv(gym.Env):
     
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
-
+    '''
     with open_dict(self.configs):
         self.configs['cache_1']['prefetcher'] = self.prefetcher
     print(self.prefetcher)
     #assert(False)
-
+    '''
     if window_size == 0:
       self.window_size = self.cache_size * 8 + 8 #10 
       #self.window_size = self.cache_size * 4 + 8 #10 
