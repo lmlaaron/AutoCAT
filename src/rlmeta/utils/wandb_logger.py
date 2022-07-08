@@ -14,9 +14,21 @@ class WandbLogger:
             train_stats,
             eval_stats):
         
-        # decode train stats:
-        train_stats = stats_filter(train_stats, prefix='train')
-        eval_stats = stats_filter(eval_stats, prefix='eval')
+        if type(train_stats) == dict:
+            stats = {}
+            for k,v in train_stats.items():
+                v = stats_filter(v, prefix=k+"_train")
+                stats.update(v)
+            train_stats = stats
+            stats = {}
+            for k,v in eval_stats.items():
+                v = stats_filter(v, prefix=k+"_train")
+                stats.update(v)
+            eval_stats = stats
+        else:
+            # decode train stats:
+            train_stats = stats_filter(train_stats, prefix='train')
+            eval_stats = stats_filter(eval_stats, prefix='eval')
 
         train_stats.update(eval_stats)
         stats = train_stats
