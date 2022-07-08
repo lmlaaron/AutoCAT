@@ -10,13 +10,13 @@ from starlette.requests import Request
 import requests
 import pprint
 import ray
+import json
 from ray import serve
 from test_custom_policy_diversity_works import *
 from cache_simulator import print_cache
 
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 
-config["env_config"]["verbose"] = 0 
 #config["num_workers"] = 1
 #config["num_envs_per_worker"] = 1
 
@@ -32,17 +32,22 @@ print(checkpoint_path[0])
 
 
 i = checkpoint_path.rfind('/')
-config_path = checkpoint_path[0:i] + '/../env.config'
-if os.path.isfile(config_path): 
-    print('load env configuration in', config_path)
-    #exit(0) 
-    with open(config_path, 'rb') as handle:
-        config["env_config"] = pickle.load(handle)
-else:
-    print('env.config not found! using defualt one')
-    print('be careful to that the env.cofnig matches the env which generate the checkpoint')
-    print(config["env_config"])
+config_path = checkpoint_path[0:i] + '/../params.json'
 
+print(config_path) 
+config = json.load(open(config_path))   
+##if os.path.isfile(config_path): 
+##    print('load env configuration in', config_path)
+##    #exit(0) 
+##    with open(config_path, 'rb') as handle:
+##        config["env_config"] = pickle.load(handle)
+##    print(config["env_config"])
+##else:
+##    print('env.config not found! using defualt one')
+##    print('be careful to that the env.cofnig matches the env which generate the checkpoint')
+##    print(config["env_config"])
+
+config["env_config"]["verbose"] = 1 
 print(config)
 config['env_config']['verbose']=1
 trainer = PPOCustomTrainer(config=config)
@@ -144,7 +149,8 @@ def replay_agent():
                 legend.append('step '+ str(step))
                 #print(f"<- Received response {action}")
                 obs, reward, done, info = env.step(action)
-                action_buffer.append((action, obs[0]))
+                latency = obs[0][0] #
+                action_buffer.append((action, latency))
             if reward > 0:
                 correct = True
                 num_correct += 1
@@ -152,7 +158,8 @@ def replay_agent():
                 correct = False
             num_guess += 1
             pattern_buffer.append((victim_addr, action_buffer, correct))
-            length += len(action_buffer)
+            print(pattern_buffer)
+
             if pattern_dict.get((victim_addr, tuple(action_buffer), correct)) == None:
                 pattern_dict[(victim_addr, tuple(action_buffer), correct)] = 1
             else:
@@ -161,10 +168,18 @@ def replay_agent():
             plt.ylabel('logp')
             plt.legend(legend)
             #plt.show()
-
+            
+    secret = open('victim.txt', 'a') 
     with open('temp.txt', 'a') as out:
-        pprint.pprint(pattern_buffer, stream=out)
-    
+        for pattern in pattern_buffer:
+            trajectory = pattern[1]
+            for point in trajectory:    
+                print(point[0], end=' ', file=out)
+            
+            print(pattern[0], file = secret)
+            print(' ', file = out)
+                
+    print( "overall accuray " + str(1.0 * num_correct / num_guess) )
     pprint.pprint(pattern_dict)
     print( "overall accuray " + str(1.0 * num_correct / num_guess) )
     print("episode length " + str(length * 1.0 / count))

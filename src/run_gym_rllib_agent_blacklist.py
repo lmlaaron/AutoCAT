@@ -106,7 +106,7 @@ if __name__ == "__main__":
     print(config)
     env = CacheGuessingGameEnv(config["env_config"])
     #env = CacheSimulatorMultiGuessWrapper(config["env_config"]) 
-    trainer = PPOCustomTrainer(config=config)
+    trainer = PPOTrainer(config=config)
     #trainer = SACTrainer(config=config)
     
     def signal_handler(sig, frame):
@@ -133,6 +133,8 @@ if __name__ == "__main__":
     thre =0.95 #0.98
     #buf = []
 
+    all_raw_patterns = []
+    all_categorized_patterns = []
     while True:
         # Perform one iteration of training the policy with PPO
         result = trainer.train()
