@@ -145,10 +145,10 @@ if __name__ == '__main__':
     obs = env.reset()
     done = {'__all__':False}
     i = 0
-    from IPython import embed; embed()
     while not done['__all__']:
         i += 1
-        obs, reward, done, info = env.step({'opponent':np.random.randint(low=0, high=128),
+        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=64),
+                                            'benign':np.random.randint(low=0, high=64),
                                             'detector':0})
         print("step: ", i)
         print("obs: ", obs)
