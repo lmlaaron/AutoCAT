@@ -16,15 +16,22 @@ class MetricCallbacks(EpisodeCallbacks):
 class MACallbacks(EpisodeCallbacks):
     def __init__(self):
         super().__init__()
+    
+    def on_episode_start(self, index: int) -> None:
+        self.tot_guess = 0
+        self.acc_guess = 0
 
     def on_episode_step(self, index: int, step: int, action: Action,
                         timestep: TimeStep) -> None:
         attacker_info = timestep['attacker'].info
-        if attacker_info["is_guess"]:
+        if attacker_info["is_guess"] and attacker_info['action_mask']['attacker']:
             self._custom_metrics["attacker_correct_rate"] = float(attacker_info["guess_correct"])
         detector_info = timestep['detector'].info
-        if detector_info["is_guess"]:
+        #if detector_info["is_guess"] and detector_info['action_mask']['detector']:
+        #    self._custom_metrics["detector_correct_rate"] = float(detector_info["guess_correct"])
+        if timestep['detector'].done:
             self._custom_metrics["detector_correct_rate"] = float(detector_info["guess_correct"])
+
 
 class CCHunterMetricCallbacks(EpisodeCallbacks):
     def __init__(self):

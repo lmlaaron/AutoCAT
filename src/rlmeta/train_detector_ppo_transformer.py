@@ -58,10 +58,10 @@ def main(cfg):
     #### detector 
     cfg.model_config["output_dim"] = 2
     train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
-        cfg.train_device)
+        cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
-    infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device)
+    infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
     infer_model_d.eval()
 
     ctrl_d = DummyController()
@@ -80,7 +80,6 @@ def main(cfg):
     md_server.add_service(infer_model_d)
     rd_server.add_service(rb_d)
     cd_server.add_service(ctrl_d)
-    #servers_d = ServerList([md_server, rd_server, cd_server])
     servers = ServerList([m_server, r_server, c_server, md_server, rd_server, cd_server])
 
     a_model = wrap_downstream_model(train_model, m_server)
@@ -110,10 +109,11 @@ def main(cfg):
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
     #### random detector 
-    # detector = RandomAgent(2)
-    # t_d_fac = AgentFactory(RandomAgent, 2)
-    # e_d_fac = AgentFactory(RandomAgent, 2)
-    
+    '''
+    detector = RandomAgent(2)
+    t_d_fac = AgentFactory(RandomAgent, 2)
+    e_d_fac = AgentFactory(RandomAgent, 2)
+    '''
     #### random benign agent
     benign = BenignAgent(env.action_space.n)
     t_b_fac = AgentFactory(BenignAgent, env.action_space.n)
@@ -170,12 +170,15 @@ def main(cfg):
 
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
-        
+        a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        a_stats = agent.train(cfg.steps_per_epoch)
-        d_stats = agent_d.train(cfg.steps_per_epoch) #TODO
-        stats = d_stats
-        
+        if epoch>40:
+            d_stats = agent_d.train(cfg.steps_per_epoch) #TODO
+        else:
+            a_stats = agent.train(cfg.steps_per_epoch)
+        #stats = d_stats
+        stats = a_stats or d_stats
+
         cur_time = time.perf_counter() - start_time
         info = f"T Epoch {epoch}"
         if cfg.table_view:
@@ -183,13 +186,17 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        train_stats = {"attacker":a_stats, "detector":d_stats}
+        if epoch>40:
+            train_stats = {"detector":d_stats}
+        else:
+            train_stats = {"attacker":a_stats}
         time.sleep(1)
         
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True) #TODO: what is num_episodes doing
         a_stats = agent.eval(cfg.num_eval_episodes)
         d_stats = agent_d.eval(cfg.num_eval_episodes) #TODO
-        stats = d_stats
+        #stats = d_stats
+        stats = a_stats
 
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
@@ -199,6 +206,7 @@ def main(cfg):
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
         eval_stats = {"attacker":a_stats, "detector":d_stats}
+        #eval_stats = {"attacker":a_stats}
         time.sleep(1)
         
         wandb_logger.log(train_stats, eval_stats)

@@ -18,8 +18,9 @@ cd_server_addr: "127.0.0.1:4733"
 
 train_device: "cuda:0"
 infer_device: "cuda:1"
-
-num_train_rollouts: 24 #24
+train_device_d: "cuda:2"
+infer_device_d: "cuda:3"
+num_train_rollouts: 72 #48 #24
 num_train_workers: 24 #24
 
 num_eval_rollouts: 2 #2

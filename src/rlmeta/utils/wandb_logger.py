@@ -22,7 +22,7 @@ class WandbLogger:
             train_stats = stats
             stats = {}
             for k,v in eval_stats.items():
-                v = stats_filter(v, prefix=k+"_train")
+                v = stats_filter(v, prefix=k+"_eval")
                 stats.update(v)
             eval_stats = stats
         else:
