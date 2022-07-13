@@ -34,7 +34,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
        
-        self.opponent_agent = random.choice(['attacker','benign']) # 'benign', 'attacker' 
+        self.opponent_agent = random.choice(['benign','attacker']) # 'benign', 'attacker' 
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
 
@@ -42,7 +42,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         """
         returned obs = {'agent_id':obs}
         """
-        self.opponent_agent = random.choice(['attacker','benign']) 
+        self.opponent_agent = random.choice(['benign','attacker']) 
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
         self.victim_address = self._env.victim_address
@@ -78,16 +78,19 @@ class CacheAttackerDetectorEnv(gym.Env):
                 detector_correct = True
         else:
             # else receive a timestep penalty
-            detector_reward = -0.01
+            if self.opponent_agent == 'benign':
+                detector_reward = 1
+            else:
+                detector_reward = -1
             if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success:
                 # attacker has attacked *successfully*
-                detector_reward = -1
+                detector_reward = -20
         
         attacker_reward = reward['attacker']
         
         # determine detector's reward
         # if detector_flag and detector_correct:
-        #    opponent_reward -= 1
+        #    attacker_reward -= 0.1
         
         rew = {}
         rew['detector'] = detector_reward
@@ -122,14 +125,15 @@ class CacheAttackerDetectorEnv(gym.Env):
         reward['detector'] = updated_reward['detector']
         obs['detector'] = opponent_obs # so far the detector shares the same observation as attacker
         done['detector'] = opponent_done
-        info['detector'] = {"guess_correct":reward['detector']>0.5, "is_guess":action['detector']}
+        info['detector'] = {"guess_correct":reward['detector']>0.5, "is_guess":bool(action['detector'])}
         
         # Change the criteria to determine wether the game is done
         if opponent_done:
             done['__all__'] = True
         
         info['__all__'] = {'action_mask':self.action_mask}
-        
+        for k,v in info.items():
+            info[k].update({'action_mask':self.action_mask})
         return obs, reward, done, info
 
 if __name__ == '__main__':
