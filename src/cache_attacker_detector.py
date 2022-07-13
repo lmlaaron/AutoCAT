@@ -96,6 +96,9 @@ class CacheAttackerDetectorEnv(gym.Env):
         rew['detector'] = detector_reward
         rew['attacker'] = attacker_reward
         return rew
+    
+    def get_detector_obs(self):
+        pass
 
     def step(self, action):
         # TODO should action be a dict or list 
@@ -123,7 +126,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         updated_reward = self.compute_reward(action, reward, opponent_done, opponent_attack_success)
         reward['attacker'] = updated_reward['attacker']
         reward['detector'] = updated_reward['detector']
-        obs['detector'] = opponent_obs # so far the detector shares the same observation as attacker
+        obs['detector'] = opponent_obs # TODO(John):so far the detector shares the same observation as attacker
         done['detector'] = opponent_done
         info['detector'] = {"guess_correct":reward['detector']>0.5, "is_guess":bool(action['detector'])}
         
