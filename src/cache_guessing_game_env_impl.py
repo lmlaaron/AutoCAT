@@ -479,7 +479,10 @@ class CacheGuessingGameEnv(gym.Env):
     info["cache_state_change"] = cache_state_change
     info["cyclic_way_index"] = cyclic_way_index
     info["cyclic_set_index"] = cyclic_set_index
-
+    
+    domain_id = 0
+    info['domain_id'] = domain_id
+    
     return np.array(list(reversed(self.state))), reward, done, info
 
   '''
