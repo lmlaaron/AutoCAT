@@ -150,7 +150,7 @@ class CacheGuessingGameEnv(gym.Env):
       #self.window_size = self.cache_size * 4 + 8 #10 
     else:
       self.window_size = window_size
-    self.feature_size = 4
+    self.feature_size = 4 
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     #self.state = [0, self.cache_size, 0, 0] * self.window_size
     # self.state = [-1, -1, -1, -1] * self.window_size # Xiaomeng

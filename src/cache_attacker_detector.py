@@ -54,7 +54,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         detector_obs = opponent_obs # so far the detector share the same observation space as 
         obs['detector'] = detector_obs
         obs['attacker'] = opponent_obs
-        obs['benign'] = opponent_obs
+        obs['benign'] = opponent_obs 
         return obs
     
     def compute_reward(self, action, reward, opponent_done, opponent_attack_success=False):
@@ -98,7 +98,13 @@ class CacheAttackerDetectorEnv(gym.Env):
         return rew
     
     def get_detector_obs(self):
-        pass
+        pass #refer space.Box
+
+        # operation = [read, write] as binary
+        # cache_access_time =
+        # wall_clock_time =
+        # bit_size in operation = 
+        # domain_id = 
 
     def step(self, action):
         # TODO should action be a dict or list 
@@ -120,6 +126,12 @@ class CacheAttackerDetectorEnv(gym.Env):
         reward['benign'] = opponent_reward
         done['benign'] = opponent_done
         info['benign'] = opponent_info
+
+        domain_id = opponent_info["domain_id"]
+        # obs['domain_id'] = opponent_obs
+        new_detector_obs = {detector_obs, domain_id} # new observation space will include new feature "domain_id" to the current observation space
+        window_size = self._env.window_size # check for matrix size, 20 x 4 >> 20 x 5
+
         opponent_attack_success = opponent_info.get('guess_correct', False)
 
         # obs, reward, done, info 
