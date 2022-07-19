@@ -159,6 +159,29 @@ class Cache:
             # prefetchter not known
             assert(False)
 
+    '''
+    returns the cache state for value net
+    the cache state is encoded in a matrix
+    '''
+    def get_cache_state(self, include_addr=False, include_rep_policy_state=False ):#, history_window_length = 1):
+        domain_id_tags_array = np.zeros([self.n_sets, self.associativity])
+        for i in range(self.n_sets):
+            index = str(bin(i))[2:].zfill(self.index_size)
+                for j in range(associativity):
+                    domain_id_tags_array[i][j] = self.domain_id_tags[index][j][0] # first element
+
+        ####if include_addr == True:
+        ####    addr_array =
+
+        ####if include_rep_policy_state == True:
+        ####    rep_policy_array =
+        return domain_id_tags_array
+        
+
+         
+
+        
+
     # pl_opt: indicates the PL cache option
     # pl_opt = -1: normal read
     # pl_opt = PL_LOCK: lock the cache line
