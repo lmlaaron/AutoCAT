@@ -489,6 +489,7 @@ class CacheGuessingGameEnv(gym.Env):
     valuenet_obs["attacker_obs"] = np.array(list(reversed(self.state)))
     valuenet_obs["victim_addr"] = self.victim_address
     valuenet_obs["cache_state"] = self.l1.get_cache_state()
+    # 2d np array nset * nways, each element is 0 ('X'), 1 ('a'), or 2 ('v') representing current cache_state 
     info["valuenet_obs"] = valuenet_obs
 
     return np.array(list(reversed(self.state))), reward, done, info
