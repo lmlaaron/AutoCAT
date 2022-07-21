@@ -33,11 +33,19 @@ class CacheQueryEnv(gym.Env):
 
         #sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         from cache_guessing_game_env_wrapper import CacheGuessingGameEnvWrapper as CacheGuessingGameEnv
-
+        
+        env_config["show_latency"] = False                  # for blind training with cachequery, the env is just used as an interface
+        # the observation especially the latency should not be printed out 
         self.env = CacheGuessingGameEnv(env_config)   
         self.action_space_size = self.env.action_space.n + 1 # increase the action space by one
         self.action_space = spaces.Discrete(self.action_space_size)
         self.observation_space = self.env.observation_space
+        self.allow_empty_victim_access = self.env.allow_empty_victim_access
+
+        self.attacker_address_min = self.env.attacker_address_min
+        self.attacker_address_max = self.env.attacker_address_max
+        self.victim_address_min   = self.env.victim_address_min
+        self.victim_address_max   = self.env.victim_address_max
         
         self.revealed = False # initially 
 
@@ -88,18 +96,35 @@ class CacheQueryEnv(gym.Env):
 
         # instantiate cq
         self.CQ = CacheQuery(config)
-        self.cq_command = "A B C D E F G H A B"  #establish the address alphabet to number mapping
+        '''
+        A -> 0
+        B -> 1
+        C -> 2
+        D -> 3
+        E -> 4
+        F -> 5
+        G -> 6
+        H -> 7
+        I -> 8
+        '''
+        self.cq_command = "A B C D E F G H I A B"  #establish the address alphabet to number mapping
+        '''
+        after this the 4-way cache should be
+        [ A B H I] or [0 1 7 8]
+        since 7 and 8 are out of the address space, we can consider it empty
+        '''
 
-    def reset(self):
+
+    def reset(self, victim_address=-1):
         self.revealed = False # reset the revealed 
         done = False
         reward = 0 
         info = {}
-        state = self.env.reset()
+        state = self.env.reset(victim_address=victim_address)
         self.last_unmasked_tuple = (state, reward, done, info)
 
         #reset CacheQuery Command
-        self.cq_command = "A B C D E F G H A B"
+        self.cq_command = "A B C D E F G H I A B"
         return state
 
     def step(self, action):
@@ -154,7 +179,7 @@ class CacheQueryEnv(gym.Env):
                     return state, reward, done, info
                 elif is_guess != 0:  # this must be guess and terminate
                     done = True
-                    #return self.env.step(action)
+                    _, _, done, info = self.env.step(action)
                     if int(victim_addr,16) == self.env.victim_address:
                         reward = self.env.correct_reward
                     else:
@@ -165,7 +190,7 @@ class CacheQueryEnv(gym.Env):
             elif self.revealed == False:
                 if is_guess != 0:
                     # guess without revewl --> huge penalty
-                    self.env.vprint("guess without reward! terminate")
+                    self.env.vprint("guess without reveal! terminate")
                     done = True
                     reward = self.env.wrong_reward
                     info = {}
@@ -173,9 +198,13 @@ class CacheQueryEnv(gym.Env):
                     return state, reward, done, info   
                 else:
                     state, reward, done, info = self.env.step(action)
+
                     # append to the cq_command
                     if is_victim == True: 
-                        self.cq_command += (' ' + chr(ord('A') + self.env.victim_address))
+                        if self.env.victim_address <= self.env.victim_address_max: # check whether it is an empty access
+                            self.cq_command += (' ' + chr(ord('A') + self.env.victim_address))
+                        else:                                                  # empty access, doing nothing
+                           self.cq_command += '' 
                     elif is_flush == True:
                         self.cq_command += (' ' + chr(ord('A') + int(address, 16)) + '!') 
                     else:
@@ -202,11 +231,11 @@ if __name__ == "__main__":
             "force_victim_hit": False,
             'flush_inst': False,
             "allow_victim_multi_access": True,#False,
-            "allow_empty_victim_access": False,
+            "allow_empty_victim_access": True,#False,
             "attacker_addr_s": 0,
-            "attacker_addr_e": 7,#4,#11,#15,
+            "attacker_addr_e": 4,#4,#11,#15,
             "victim_addr_s": 0,
-            "victim_addr_e": 3,#7,
+            "victim_addr_e": 0,#7,
             "reset_limit": 1,
             "cache_configs": {
                 # YAML config file for cache simulaton
