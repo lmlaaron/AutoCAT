@@ -150,13 +150,14 @@ class CacheGuessingGameEnv(gym.Env):
       #self.window_size = self.cache_size * 4 + 8 #10 
     else:
       self.window_size = window_size
-    self.feature_size = 4 
+    self.feature_size = 5 # changer number
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     #self.state = [0, self.cache_size, 0, 0] * self.window_size
     # self.state = [-1, -1, -1, -1] * self.window_size # Xiaomeng
     #self.state = [0, self.cache_size, 0, 0, 0] * self.window_size
 
-    self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+    #self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+    self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
     self.step_count = 0
 
     self.attacker_address_min = attacker_addr_s
@@ -236,7 +237,9 @@ class CacheGuessingGameEnv(gym.Env):
     #    #2,                                          # whether it is a cflush
     #  ] * self.window_size
     #)
-    self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
+
+    #max(self.window_size + 2, len(self.attacker_address_space) + 1)
+    self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1) 
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
 
     
@@ -416,11 +419,30 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       victim_accessed = 0
     
+    '''
+    n_blocks = 10 # hard-code for test
+    associativity = 1 # hard-code for test
+    n_sets = int( n_blocks / associativity )
+    self.index_size = int(math.log(n_sets, 2))
+
+    for i in range(n_sets):  # from #L70 of cache.py
+      index = str(bin(i))[2:].zfill(self.index_size) 
+      if index == '':
+          index = '0'
+      
+    #self.l1.domain_id_tags[index] = [] 
+    #self.l1.domain_id_tags[index].append(('x','x')) 
+    
+    #domain_id = self.l1.domain_id_tags[index][0][0]
+    '''
+    domain_id = 3 # temporarily hard-coded
+    
     ####self.state = [r, action[0], current_step, victim_accessed] + self.state 
     #Xiaomeng
     # self.state = [r, victim_accessed, original_action, current_step ] + self.state  
     # self.state = self.state[0:len(self.state)-4]
-    self.state.append([r, victim_accessed, original_action, self.step_count])
+    self.state.append([r, victim_accessed, original_action, self.step_count, domain_id])
+    #self.state.append([r, victim_accessed, original_action, self.step_count])
     self.state.popleft()
     self.step_count += 1
     
@@ -461,7 +483,10 @@ class CacheGuessingGameEnv(gym.Env):
     info["cyclic_way_index"] = cyclic_way_index
     info["cyclic_set_index"] = cyclic_set_index
 
-    return np.array(list(reversed(self.state))), reward, done, info
+    info['domain_id'] = domain_id # additional feature information 
+    
+
+    return np.array(list(reversed(self.state)), dtype=object), reward, done, info
 
   def reset(self,
             victim_address=-1,

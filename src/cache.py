@@ -1,4 +1,4 @@
-import math, block, response
+import math, block, response # block = block.py, response = response.py
 import pprint
 from replacement_policy import * 
 
@@ -58,7 +58,8 @@ class Cache:
         #Dictionary that holds the actual cache data
         self.data = {}
         self.set = {}
-        self.domain_id_tags = {} # for cyclone
+        self.domain_id_tags = {} # for cyclone 
+                                               
 
         #Pointer to the next lowest level of memory
         #Main memory gets the default None value
@@ -81,7 +82,7 @@ class Cache:
                     # isntantiate with empty tags
                     self.data[index].append((INVALID_TAG, block.Block(self.block_size, 0, False, 'x')))
                     self.domain_id_tags[index].append(('X','X')) # for cyclone
-
+                
                 self.set_rep_policy[index] = self.rep_policy(associativity, block_size) 
 
     def vprint(self, *args):
@@ -438,6 +439,10 @@ class Cache:
                 tag = binary_address
 
         return (block_offset, index, tag)
+
+    def getdomainID(self, set_number, way_number):
+        
+        return (self.domain_id_tags[set_number, way_number])        
 
 class InvalidOpError(Exception):
     pass

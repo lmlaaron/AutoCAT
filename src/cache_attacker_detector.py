@@ -10,7 +10,6 @@ import gym
 
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
 
-
 class CacheAttackerDetectorEnv(gym.Env):
     def __init__(self,
                  env_config: Dict[str, Any],
@@ -20,7 +19,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.reset_observation = env_config.get("reset_observation", False)
         self.keep_latency = keep_latency
         self.env_config = env_config
-        self.episode_length = env_config.get("episode_length", 80)
+        self.episode_length = env_config.get("episode_length", 80) # len for each array ('attacker','detector','benign') = 40
         self.threshold = env_config.get("threshold", 0.8)
 
         self._env = CacheGuessingGameEnv(env_config)
@@ -35,6 +34,9 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.victim_address = self._env.victim_address
        
         self.opponent_agent = random.choice(['benign','attacker']) # 'benign', 'attacker' 
+ 
+        self.domain_id = {0:self.opponent_agent=='attacker', 1:self.opponent_agent=='benign'}
+
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
 
@@ -52,7 +54,8 @@ class CacheAttackerDetectorEnv(gym.Env):
                                        reset_cache_state=True
                                       )
         detector_obs = opponent_obs # so far the detector share the same observation space as 
-        obs['detector'] = detector_obs
+        obs['detector'] = detector_obs #new_detector_obs = [obs, domain_id]
+        
         obs['attacker'] = opponent_obs
         obs['benign'] = opponent_obs 
         return obs
@@ -91,20 +94,15 @@ class CacheAttackerDetectorEnv(gym.Env):
         # determine detector's reward
         # if detector_flag and detector_correct:
         #    attacker_reward -= 0.1
-        
+       
         rew = {}
         rew['detector'] = detector_reward
         rew['attacker'] = attacker_reward
         return rew
     
-    def get_detector_obs(self):
+    def get_detector_obs(self, opponent_agent):
         pass #refer space.Box
 
-        # operation = [read, write] as binary
-        # cache_access_time =
-        # wall_clock_time =
-        # bit_size in operation = 
-        # domain_id = 
 
     def step(self, action):
         # TODO should action be a dict or list 
@@ -113,7 +111,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.step_count += 1
         obs = {}
         reward = {}
-        done = {'__all__':False}
+        done = {'__all__':False} # where this '__all__' come from? meaning the imported parameters in '__init__' ?
         info = {}
 
         # Attacker update
@@ -128,8 +126,15 @@ class CacheAttackerDetectorEnv(gym.Env):
         info['benign'] = opponent_info
 
         domain_id = opponent_info["domain_id"]
+        '''
+        if opponent_agent == 'benign':
+            domain_id = 1
+        else:
+            domain_id = 0
+        '''
         # obs['domain_id'] = opponent_obs
-        new_detector_obs = {detector_obs, domain_id} # new observation space will include new feature "domain_id" to the current observation space
+       
+        #new_detector_obs = {detector_obs, domain_id} # new observation space will include new feature "domain_id" to the current observation space
         window_size = self._env.window_size # check for matrix size, 20 x 4 >> 20 x 5
 
         opponent_attack_success = opponent_info.get('guess_correct', False)
@@ -159,8 +164,8 @@ if __name__ == '__main__':
     i = 0
     while not done['__all__']:
         i += 1
-        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=64),
-                                            'benign':np.random.randint(low=0, high=64),
+        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=4),
+                                            'benign':np.random.randint(low=0, high=4),
                                             'detector':0})
         print("step: ", i)
         print("obs: ", obs)
