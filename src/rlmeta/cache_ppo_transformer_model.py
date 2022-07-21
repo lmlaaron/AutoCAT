@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import rlmeta.core.remote as remote
 
 from rlmeta.agents.ppo.ppo_model import PPOModel
-
+from rlmeta.core.model import DownstreamModel, RemotableModel
 
 class CachePPOTransformerModel(PPOModel):
     def __init__(self,
@@ -116,3 +116,94 @@ class CachePPOTransformerModel(PPOModel):
             logpi = logpi.gather(dim=-1, index=action)
 
             return action.cpu(), logpi.cpu(), v.cpu()
+
+
+class CachePPOTransformerPoolModel(PPOModel):
+    def __init__(self,
+                 latency_dim: int,
+                 victim_acc_dim: int,
+                 action_dim: int,
+                 step_dim: int,
+                 window_size: int,
+                 action_embed_dim: int,
+                 step_embed_dim: int,
+                 hidden_dim: int,
+                 output_dim: int,
+                 num_layers: int = 1) -> None:
+        super().__init__(latency_dim,
+                        victim_acc_dim,
+                        action_dim,
+                        step_dim,
+                        window_size,
+                        action_embed_dim,
+                        step_embed_dim,
+                        hidden_dim,
+                        output_dim,
+                        num_layers)
+        self.history = []
+        self.latest = None
+
+    @remote.remote_method(batch_size=128)
+    def act(
+        self, 
+        obs: torch.Tensor, 
+        deterministic_policy: torch.Tensor,
+        use_history: bool,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if use_history:
+            state_dict = random.choice(self.history)
+            self.load_state_dict(state_dict)
+        else:
+            if self.latest is not None:
+                self.load_state_dict(self.latest)
+
+        if self._device is None:
+            self._device = next(self.parameters()).device
+
+        with torch.no_grad():
+            x = obs.to(self._device)
+            d = deterministic_policy.to(self._device)
+            logpi, v = self.forward(x)
+
+            greedy_action = logpi.argmax(-1, keepdim=True)
+            sample_action = logpi.exp().multinomial(1, replacement=True)
+            action = torch.where(d, greedy_action, sample_action)
+            logpi = logpi.gather(dim=-1, index=action)
+
+            return action.cpu(), logpi.cpu(), v.cpu()
+
+    @remote.remote_method(batch_size=None)
+    def push(self, state_dict: Dict[str, torch.Tensor]) -> None:
+        # Move state_dict to device before loading.
+        # https://github.com/pytorch/pytorch/issues/34880
+        device = next(self.parameters()).device
+        state_dict = nested_utils.map_nested(lambda x: x.to(device), state_dict)
+        self.history.append(self.latest)
+        self.latest = state_dict
+        self.load_state_dict(state_dict)
+    
+    def set_use_history(self, use_history):
+        self.use_history = use_history
+
+class DownstreamModelPool(DownstreamModel):
+     def __init__(self,
+                 model: nn.Module,
+                 server_name: str,
+                 server_addr: str,
+                 name: Optional[str] = None,
+                 timeout: float = 60) -> None:
+         super().__init__(model, sever_name, server_addr, name, timeout)
+
+
+    def set_use_history(self, use_history):
+        self.client.sync(self.server_name, self.remote_method_name("set_use_history"), use_history)
+
+
+ModelLike = Union[nn.Module, RemotableModel, DownstreamModel, remote.Remote]
+
+
+def wrap_downstream_model(model: nn.Module,
+                          server: Server,
+                          name: Optional[str] = None,
+                          timeout: float = 60) -> DownstreamModel:
+    return DownstreamModel(model, server.name, server.addr, name, timeout)

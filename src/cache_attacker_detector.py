@@ -37,6 +37,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.opponent_agent = random.choice(['benign','attacker']) # 'benign', 'attacker' 
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
+        self.max_step = 64
 
     def reset(self, victim_address=-1):
         """
@@ -80,6 +81,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             # else receive a timestep penalty
             if self.opponent_agent == 'benign':
                 detector_reward = 1
+                detector_correct = True
             else:
                 detector_reward = -1
             if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success:
@@ -89,8 +91,10 @@ class CacheAttackerDetectorEnv(gym.Env):
         attacker_reward = reward['attacker']
         
         # determine detector's reward
-        # if detector_flag and detector_correct:
+        #if detector_correct:
         #    attacker_reward -= 0.1
+        #else:
+        #    attacker_reward += 0.1
         
         rew = {}
         rew['detector'] = detector_reward
@@ -109,13 +113,21 @@ class CacheAttackerDetectorEnv(gym.Env):
 
         # Attacker update
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
+        if opponent_done:
+            opponent_obs = self._env.reset()
+        
+        if self.step_count>self.max_step:
+            detector_done = True
+        else:
+            detector_done = False
+
         obs['attacker'] = opponent_obs
         reward['attacker'] = opponent_reward
-        done['attacker'] = opponent_done
+        done['attacker'] = detector_done #Figure out correctness
         info['attacker'] = opponent_info
         obs['benign'] = opponent_obs
         reward['benign'] = opponent_reward
-        done['benign'] = opponent_done
+        done['benign'] = detector_done #Figure out correctness
         info['benign'] = opponent_info
         opponent_attack_success = opponent_info.get('guess_correct', False)
 
@@ -124,11 +136,11 @@ class CacheAttackerDetectorEnv(gym.Env):
         reward['attacker'] = updated_reward['attacker']
         reward['detector'] = updated_reward['detector']
         obs['detector'] = opponent_obs # so far the detector shares the same observation as attacker
-        done['detector'] = opponent_done
+        done['detector'] = detector_done
         info['detector'] = {"guess_correct":reward['detector']>0.5, "is_guess":bool(action['detector'])}
         
         # Change the criteria to determine wether the game is done
-        if opponent_done:
+        if detector_done:
             done['__all__'] = True
         
         info['__all__'] = {'action_mask':self.action_mask}
@@ -145,7 +157,8 @@ if __name__ == '__main__':
     from IPython import embed; embed()
     while not done['__all__']:
         i += 1
-        obs, reward, done, info = env.step({'opponent':np.random.randint(low=0, high=128),
+        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=4),
+                                            'benign':np.random.randint(low=0, high=4),
                                             'detector':0})
         print("step: ", i)
         print("obs: ", obs)

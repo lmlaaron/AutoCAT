@@ -34,8 +34,9 @@ class SpecAgent(Agent):
 
     def __init__(self,
                  env_config,
-                 trace_file):
+                 trace):
         super().__init__()
+        
         self.local_step = 0
         self.lat = []
         self.no_prime = False # set to true after first prime
@@ -57,38 +58,35 @@ class SpecAgent(Agent):
             #must be no shared address space
             assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
-
-        self.trace_file = trace_file
-        # load the data SPEC bengin traces
-        self.fp = open(self.trace_file)
-        line = self.fp.readline().split()
+        
+        self.trace = trace
+        self.trace_length = len(self.trace)
+        line = self.trace[0]
         self.domain_id_0 = line[0]
         self.domain_id_1 = line[0]
-        line = self.fp.readline().split()
-        while line != '':
+        '''
+        line = self.trace[1]
+        local_step=1
+        while len(line) > 0:
             self.domain_id_1 = line[0]
             if self.domain_id_1 != self.domain_id_0:
                 break
-            line = self.fp.readline().split()
- 
-        self.fp.close()
-        self.fp = open(self.trace_file) 
+            line = self.trace[local_step]
+            local_step+=1
+        '''
+        self.start_idx = random.randint(0, self.trace_length-1) #TODO randomize
+        self.step = 0
 
     def act(self, timestep: TimeStep) -> Action:
-        #action = random.randint(0, self.action_space-1)
-        info = {}
-        line = self.fp.readline().split()
+        line = self.trace[(self.start_idx+self.step) % self.trace_length]
         if len(line) == 0:
             action = self.cache_size
             addr = 0#addr % self.cache_size
             info={"file_done" : True}
-            return Action(action), info
-
+            return Action(action)
         domain_id = line[0]
         addr = int( int(line[3], 16) / 4 )
-        
-        print(addr)
-        
+        action = addr % self.cache_size
         if domain_id == self.domain_id_0: # attacker access
             action = addr % self.cache_size
             info ={}
@@ -96,24 +94,18 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
-        #return action, info 
         return Action(action)
 
     async def async_act(self, timestep: TimeStep) -> Action:
-        #action = random.randint(0, self.action_space-1)
-        info = {}
-        line = self.fp.readline().split()
+        line = self.trace[(self.start_idx+self.step) % self.trace_length]
         if len(line) == 0:
             action = self.cache_size
             addr = 0#addr % self.cache_size
             info={"file_done" : True}
-            return Action(action), info
-
+            return Action(action)
         domain_id = line[0]
         addr = int( int(line[3], 16) / 4 )
-        
-        print(addr)
-        
+        action = addr % self.cache_size
         if domain_id == self.domain_id_0: # attacker access
             action = addr % self.cache_size
             info ={}
@@ -121,8 +113,7 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
-        #return action, info
-        return Action(action), info
+        return Action(action)    
 
     async def async_observe_init(self, timestep: TimeStep) -> None:
         pass

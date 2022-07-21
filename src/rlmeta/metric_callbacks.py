@@ -20,18 +20,24 @@ class MACallbacks(EpisodeCallbacks):
     def on_episode_start(self, index: int) -> None:
         self.tot_guess = 0
         self.acc_guess = 0
+        self.tot_detect = 0
+        self.acc_detect = 0
 
     def on_episode_step(self, index: int, step: int, action: Action,
                         timestep: TimeStep) -> None:
         attacker_info = timestep['attacker'].info
         if attacker_info["is_guess"] and attacker_info['action_mask']['attacker']:
-            self._custom_metrics["attacker_correct_rate"] = float(attacker_info["guess_correct"])
+            self.tot_guess += 1
+            self.acc_guess += int(attacker_info["guess_correct"])
         detector_info = timestep['detector'].info
-        #if detector_info["is_guess"] and detector_info['action_mask']['detector']:
-        #    self._custom_metrics["detector_correct_rate"] = float(detector_info["guess_correct"])
+        self.tot_detect += 1
+        self.acc_detect += int(detector_info["guess_correct"])
         if timestep['detector'].done:
-            self._custom_metrics["detector_correct_rate"] = float(detector_info["guess_correct"])
-
+            self._custom_metrics["detector_correct_rate"] = self.acc_detect / self.tot_detect
+            if attacker_info['action_mask']['attacker']:
+                if self.tot_guess>0:
+                    self._custom_metrics["attacker_correct_rate"] = self.acc_guess / float(self.tot_guess)
+                self._custom_metrics["num_total_guess"] = float(self.tot_guess)
 
 class CCHunterMetricCallbacks(EpisodeCallbacks):
     def __init__(self):

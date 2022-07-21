@@ -30,6 +30,7 @@ from utils.wandb_logger import WandbLogger, stats_filter
 
 from agents.random_agent import RandomAgent
 from agents.benign_agent import BenignAgent
+from agents.spec_agent import SpecAgent
 # @hydra.main(config_path="./config", config_name="ppo_lru_8way")
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
@@ -114,10 +115,26 @@ def main(cfg):
     t_d_fac = AgentFactory(RandomAgent, 2)
     e_d_fac = AgentFactory(RandomAgent, 2)
     '''
+    '''
     #### random benign agent
     benign = BenignAgent(env.action_space.n)
     t_b_fac = AgentFactory(BenignAgent, env.action_space.n)
     e_b_fac = AgentFactory(BenignAgent, env.action_space.n)
+    #### spec benign agent
+    
+    '''
+    spec_trace_f = open('/private/home/jxcui/trace-505-2.txt','r')
+    spec_trace = spec_trace_f.read().split('\n')[:100]
+    y = []
+    for line in spec_trace:
+        line = line.split()
+        y.append(line)
+    spec_trace = y
+    benign = SpecAgent(cfg.env_config, spec_trace)
+    t_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
+    e_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
+    
+    
 
     #### detector agent
     a_model_d = wrap_downstream_model(train_model_d, md_server)
@@ -172,7 +189,7 @@ def main(cfg):
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        if epoch>40:
+        if epoch % 80 >= 40:
             d_stats = agent_d.train(cfg.steps_per_epoch) #TODO
         else:
             a_stats = agent.train(cfg.steps_per_epoch)
@@ -186,7 +203,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        if epoch>40:
+        if epoch % 80 >= 40:
             train_stats = {"detector":d_stats}
         else:
             train_stats = {"attacker":a_stats}
