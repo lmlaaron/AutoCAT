@@ -19,11 +19,12 @@ from rlmeta.core.rescalers import Rescaler, RMSRescaler
 from rlmeta.core.types import Action, TimeStep
 from rlmeta.core.types import Tensor, NestedTensor
 from rlmeta.utils.stats_dict import StatsDict
+from rlmeta.agents.ppo.ppo_agent import PPOAgent
 
 console = Console()
 
 
-class PPOAgent(Agent):
+class PPOAgent(PPOAgent):
 
     def __init__(self,
                  model: ModelLike,
@@ -46,10 +47,10 @@ class PPOAgent(Agent):
         super().__init__(model, deterministic_policy, replay_buffer,
                          controller, optimizer, batch_size, grad_clip,
                          gamma, gae_lambda, eps_clip, vf_loss_coeff,
-                         entropy_coeff, reward_scaling, 
+                         entropy_coeff, reward_rescaling, 
                          advantage_normalization, value_clip,
                          learning_starts, push_every_n_steps)
 
-        def set_use_history(self, use_history=False):
-            self.model.set_use_history(use_history)
+    def set_use_history(self, use_history):
+        self.model.set_use_history(use_history)
 

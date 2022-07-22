@@ -1,18 +1,20 @@
 import os
 import sys
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional, Union
 
 import gym
+import random
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 import rlmeta.core.remote as remote
-
+import rlmeta.utils.nested_utils as nested_utils
 from rlmeta.agents.ppo.ppo_model import PPOModel
 from rlmeta.core.model import DownstreamModel, RemotableModel
+from rlmeta.core.server import Server
 
 class CachePPOTransformerModel(PPOModel):
     def __init__(self,
@@ -118,7 +120,7 @@ class CachePPOTransformerModel(PPOModel):
             return action.cpu(), logpi.cpu(), v.cpu()
 
 
-class CachePPOTransformerPoolModel(PPOModel):
+class CachePPOTransformerModelPool(CachePPOTransformerModel):
     def __init__(self,
                  latency_dim: int,
                  victim_acc_dim: int,
@@ -142,21 +144,20 @@ class CachePPOTransformerPoolModel(PPOModel):
                         num_layers)
         self.history = []
         self.latest = None
+        self.use_history = False
 
     @remote.remote_method(batch_size=128)
     def act(
         self, 
         obs: torch.Tensor, 
         deterministic_policy: torch.Tensor,
-        use_history: bool,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if use_history:
+        if self.use_history and len(self.history)>0:
             state_dict = random.choice(self.history)
             self.load_state_dict(state_dict)
-        else:
-            if self.latest is not None:
-                self.load_state_dict(self.latest)
-
+        elif self.latest is not None:
+            self.load_state_dict(self.latest)
+        print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
         if self._device is None:
             self._device = next(self.parameters()).device
 
@@ -178,26 +179,28 @@ class CachePPOTransformerPoolModel(PPOModel):
         # https://github.com/pytorch/pytorch/issues/34880
         device = next(self.parameters()).device
         state_dict = nested_utils.map_nested(lambda x: x.to(device), state_dict)
-        self.history.append(self.latest)
         self.latest = state_dict
+        self.history.append(self.latest)
         self.load_state_dict(state_dict)
     
-    def set_use_history(self, use_history):
+    @remote.remote_method(batch_size=None) 
+    def set_use_history(self, use_history:bool) -> None:
+        print("set use history", use_history)
         self.use_history = use_history
+        print("after setting:", self.use_history)
 
 class DownstreamModelPool(DownstreamModel):
-     def __init__(self,
+    def __init__(self,
                  model: nn.Module,
                  server_name: str,
                  server_addr: str,
                  name: Optional[str] = None,
                  timeout: float = 60) -> None:
-         super().__init__(model, sever_name, server_addr, name, timeout)
-
+        super().__init__(model, server_name, server_addr, name, timeout)
 
     def set_use_history(self, use_history):
         self.client.sync(self.server_name, self.remote_method_name("set_use_history"), use_history)
-
+    
 
 ModelLike = Union[nn.Module, RemotableModel, DownstreamModel, remote.Remote]
 
@@ -206,4 +209,4 @@ def wrap_downstream_model(model: nn.Module,
                           server: Server,
                           name: Optional[str] = None,
                           timeout: float = 60) -> DownstreamModel:
-    return DownstreamModel(model, server.name, server.addr, name, timeout)
+    return DownstreamModelPool(model, server.name, server.addr, name, timeout)

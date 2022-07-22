@@ -1,6 +1,7 @@
 import copy
 
 from typing import Any, Dict, Sequence, Tuple
+from collections import deque
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -34,35 +35,41 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
        
-        self.opponent_agent = random.choice(['benign','attacker']) # 'benign', 'attacker' 
+        self.opponent_agent = random.choices(['benign','attacker'], weights=[0.5,0.5], k=1)[0] 
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
         self.max_step = 64
+        self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
 
     def reset(self, victim_address=-1):
         """
-        returned obs = {'agent_id':obs}
+        returned obs = { agent_name : obs }
         """
-        self.opponent_agent = random.choice(['benign','attacker']) 
+        self.opponent_agent = random.choices(['benign','attacker'], weights=[0.5,0.5], k=1)[0]
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
+        opponent_obs = self._env.reset(victim_address=victim_address,
+                                       reset_cache_state=True)
         self.victim_address = self._env.victim_address
+        detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
 
         obs = {}
-        opponent_obs = self._env.reset(victim_address=victim_address,
-                                       reset_cache_state=True
-                                      )
-        detector_obs = opponent_obs # so far the detector share the same observation space as 
         obs['detector'] = detector_obs
         obs['attacker'] = opponent_obs
         obs['benign'] = opponent_obs
         return obs
     
+    def get_detector_obs(self, opponent_obs):
+        cur_opponent_obs = opponent_obs[0]
+        if not np.any(cur_opponent_obs==-1):
+            # TODO should we include step number?
+            # r, victim_accessed, original action, current step
+            cur_opponent_obs[3] = 0
+            self.detector_obs.append(cur_opponent_obs)
+            self.detector_obs.popleft()
+        return np.array(list(reversed(self.detector_obs)))
+
     def compute_reward(self, action, reward, opponent_done, opponent_attack_success=False):
-        # TODO finish up criteria
-        # when detector decides to alarm, query wether the opponent is an attacker or benign agent
-        # if the attacker is correctly detected, then modify the attacker's reward
-        # if attacker attacks correctly as the detector alarms, detector wins.
         action_detector = action['detector']
         action_attacker = action['attacker']
         
@@ -102,9 +109,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         return rew
 
     def step(self, action):
-        # TODO should action be a dict or list 
-        # the action should selected outside the environment, which is produced by the detector's objective agent
-        # this can be produced by benign agent or malicious agent(two policy classes)
         self.step_count += 1
         obs = {}
         reward = {}
@@ -116,15 +120,18 @@ class CacheAttackerDetectorEnv(gym.Env):
         if opponent_done:
             opponent_obs = self._env.reset()
         
-        if self.step_count>self.max_step:
+        if self.step_count > self.max_step:
             detector_done = True
         else:
             detector_done = False
 
+        # attacker
         obs['attacker'] = opponent_obs
         reward['attacker'] = opponent_reward
         done['attacker'] = detector_done #Figure out correctness
         info['attacker'] = opponent_info
+        
+        #benign
         obs['benign'] = opponent_obs
         reward['benign'] = opponent_reward
         done['benign'] = detector_done #Figure out correctness
@@ -135,7 +142,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         updated_reward = self.compute_reward(action, reward, opponent_done, opponent_attack_success)
         reward['attacker'] = updated_reward['attacker']
         reward['detector'] = updated_reward['detector']
-        obs['detector'] = opponent_obs # so far the detector shares the same observation as attacker
+        obs['detector'] = self.get_detector_obs(opponent_obs) 
         done['detector'] = detector_done
         info['detector'] = {"guess_correct":reward['detector']>0.5, "is_guess":bool(action['detector'])}
         
@@ -154,7 +161,6 @@ if __name__ == '__main__':
     obs = env.reset()
     done = {'__all__':False}
     i = 0
-    from IPython import embed; embed()
     while not done['__all__']:
         i += 1
         obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=4),
