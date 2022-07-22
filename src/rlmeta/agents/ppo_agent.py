@@ -54,3 +54,34 @@ class PPOAgent(PPOAgent):
     def set_use_history(self, use_history):
         self.model.set_use_history(use_history)
 
+    def train(self, num_steps: int) -> Optional[StatsDict]:
+        self.controller.set_phase(Phase.TRAIN, reset=True)
+
+        self.replay_buffer.warm_up(self.learning_starts)
+        stats = StatsDict()
+
+        console.log(f"Training for num_steps = {num_steps}")
+        for step in track(range(num_steps), description="Training..."):
+            t0 = time.perf_counter()
+            batch = self.replay_buffer.sample(self.batch_size)
+            t1 = time.perf_counter()
+            step_stats = self._train_step(batch)
+            t2 = time.perf_counter()
+            time_stats = {
+                "sample_data_time/ms": (t1 - t0) * 1000.0,
+                "batch_learn_time/ms": (t2 - t1) * 1000.0,
+            }
+            stats.extend(step_stats)
+            stats.extend(time_stats)
+
+            if step % self.push_every_n_steps == self.push_every_n_steps - 1:
+                self.model.push()
+        
+        #push the last checkpoint to the model history checkpoint
+        self.model.push_to_history()
+
+        episode_stats = self.controller.get_stats()
+        stats.update(episode_stats)
+
+        return stats
+

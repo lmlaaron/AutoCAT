@@ -157,12 +157,15 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
             self.load_state_dict(state_dict)
         elif self.latest is not None:
             self.load_state_dict(self.latest)
-        print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
+        #print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
         if self._device is None:
             self._device = next(self.parameters()).device
 
         with torch.no_grad():
-            x = obs.to(self._device)
+            try:
+                x = obs.to(self._device)
+            except: 
+                print(obs)
             d = deterministic_policy.to(self._device)
             logpi, v = self.forward(x)
 
@@ -179,10 +182,20 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         # https://github.com/pytorch/pytorch/issues/34880
         device = next(self.parameters()).device
         state_dict = nested_utils.map_nested(lambda x: x.to(device), state_dict)
-        self.latest = state_dict
-        self.history.append(self.latest)
+        #self.latest = state_dict
+        #self.history.append(self.latest)
         self.load_state_dict(state_dict)
     
+    @remote.remote_method(batch_size=None)
+    def push_to_history(self, state_dict: Dict[str, torch.Tensor]) -> None:
+        # Move state_dict to device before loading.
+        # https://github.com/pytorch/pytorch/issues/34880
+        device = next(self.parameters()).device
+        state_dict = nested_utils.map_nested(lambda x: x.to(device), state_dict)
+        self.latest = state_dict
+        self.history.append(self.latest)
+        #self.load_state_dict(state_dict)
+   
     @remote.remote_method(batch_size=None) 
     def set_use_history(self, use_history:bool) -> None:
         print("set use history", use_history)
@@ -199,8 +212,14 @@ class DownstreamModelPool(DownstreamModel):
         super().__init__(model, server_name, server_addr, name, timeout)
 
     def set_use_history(self, use_history):
-        self.client.sync(self.server_name, self.remote_method_name("set_use_history"), use_history)
+        self.client.sync(self.server_name, self.remote_method_name("set_use_history"),
+                         use_history)
     
+    def push_to_history(self) -> None:
+        state_dict = self.wrapped.state_dict()
+        state_dict = nested_utils.map_nested(lambda x: x.cpu(), state_dict)
+        self.client.sync(self.server_name, self.remote_method_name("push_to_history"),
+                         state_dict)    
 
 ModelLike = Union[nn.Module, RemotableModel, DownstreamModel, remote.Remote]
 
