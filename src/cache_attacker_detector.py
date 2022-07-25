@@ -54,16 +54,23 @@ class CacheAttackerDetectorEnv(gym.Env):
         detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
 
         obs = {}
-        obs['detector'] = detector_obs
+        obs['detector'] = np.array(list(reversed(detector_obs)))
         obs['attacker'] = opponent_obs
         obs['benign'] = opponent_obs
         return obs
     
-    def get_detector_obs(self, opponent_obs):
+    def get_detector_obs(self, opponent_obs, opponent_info):
         cur_opponent_obs = opponent_obs[0]
         if not np.any(cur_opponent_obs==-1):
             # TODO should we include step number?
-            # r, victim_accessed, original action, current step
+            # attacker obs: r, victim_accessed, original action, current step
+            # detector obs: r, domain_id, memory address, 0
+            if opponent_info.get('invoke_victim'):
+                cur_opponent_obs[1] = 1
+                cur_opponent_obs[2] = opponent_info['victim_address']
+            else:
+                cur_opponent_obs[1] = 0
+                cur_opponent_obs[2] = opponent_info['attacker_address']
             cur_opponent_obs[3] = 0
             self.detector_obs.append(cur_opponent_obs)
             self.detector_obs.popleft()
@@ -98,10 +105,10 @@ class CacheAttackerDetectorEnv(gym.Env):
         attacker_reward = reward['attacker']
         
         # determine detector's reward
-        #if detector_correct:
-        #    attacker_reward -= 0.1
-        #else:
-        #    attacker_reward += 0.1
+        if detector_correct:
+            attacker_reward -= 0.1
+        else:
+            attacker_reward += 0.1
         
         rew = {}
         rew['detector'] = detector_reward
@@ -142,7 +149,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         updated_reward = self.compute_reward(action, reward, opponent_done, opponent_attack_success)
         reward['attacker'] = updated_reward['attacker']
         reward['detector'] = updated_reward['detector']
-        obs['detector'] = self.get_detector_obs(opponent_obs) 
+        obs['detector'] = self.get_detector_obs(opponent_obs, opponent_info) 
         done['detector'] = detector_done
         info['detector'] = {"guess_correct":reward['detector']>0.5, "is_guess":bool(action['detector'])}
         
@@ -163,12 +170,13 @@ if __name__ == '__main__':
     i = 0
     while not done['__all__']:
         i += 1
-        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=4),
-                                            'benign':np.random.randint(low=0, high=4),
+        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=5),
+                                            'benign':np.random.randint(low=0, high=5),
                                             'detector':0})
         print("step: ", i)
         print("obs: ", obs)
-        print("done:", done)
-        print("reward:", reward)
-        print("info:", info )
-
+        #print("done:", done)
+        #print("reward:", reward)
+        #print("info:", info )
+        #if info['attacker'].get('invoke_victim'):
+        #    print(info['attacker'])

@@ -12,18 +12,17 @@ import rlmeta.utils.hydra_utils as hydra_utils
 import rlmeta.utils.remote_utils as remote_utils
 
 from rlmeta.agents.agent import AgentFactory
-from rlmeta.agents.ppo.ppo_agent import PPOAgent
+#TODO from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from rlmeta.core.controller import Phase, Controller, DummyController
 from rlmeta.core.maloop import LoopList, MAParallelLoop
-from rlmeta.core.model import wrap_downstream_model
+#TODO from rlmeta.core.model import wrap_downstream_model
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
-
+from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model #CachePPOTransformerModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 from metric_callbacks import MACallbacks
 
@@ -32,6 +31,7 @@ from utils.wandb_logger import WandbLogger, stats_filter
 from agents.random_agent import RandomAgent
 from agents.benign_agent import BenignAgent
 from agents.spec_agent import SpecAgent
+from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_lru_8way")
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
@@ -48,7 +48,7 @@ def main(cfg):
     env = env_fac(0)
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(
+    train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
 
@@ -59,7 +59,7 @@ def main(cfg):
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### detector 
     cfg.model_config["output_dim"] = 2
-    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
+    train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
@@ -191,8 +191,12 @@ def main(cfg):
         a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
         if epoch % 80 >= 40:
+            agent_d.set_use_history(False)
+            agent.set_use_history(True)
             d_stats = agent_d.train(cfg.steps_per_epoch) #TODO
         else:
+            agent_d.set_use_history(True)
+            agent.set_use_history(False)
             a_stats = agent.train(cfg.steps_per_epoch)
         #stats = d_stats
         stats = a_stats or d_stats
@@ -211,6 +215,8 @@ def main(cfg):
         time.sleep(1)
         
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
+        agent.set_use_history(False)
+        agent_d.set_use_history(False)
         a_stats = agent.eval(cfg.num_eval_episodes)
         d_stats = agent_d.eval(cfg.num_eval_episodes) #TODO
         #stats = d_stats

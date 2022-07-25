@@ -78,8 +78,10 @@ class PPOAgent(PPOAgent):
                 self.model.push()
         
         #push the last checkpoint to the model history checkpoint
-        self.model.push_to_history()
-
+        try:
+            self.model.push_to_history()
+        except:
+            pass
         episode_stats = self.controller.get_stats()
         stats.update(episode_stats)
 

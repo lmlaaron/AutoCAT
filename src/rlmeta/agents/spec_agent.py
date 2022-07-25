@@ -64,17 +64,14 @@ class SpecAgent(Agent):
         line = self.trace[0]
         self.domain_id_0 = line[0]
         self.domain_id_1 = line[0]
-        '''
-        line = self.trace[1]
-        local_step=1
+        local_step = 0
         while len(line) > 0:
+            local_step+=1
+            line = self.trace[local_step]
             self.domain_id_1 = line[0]
             if self.domain_id_1 != self.domain_id_0:
                 break
-            line = self.trace[local_step]
-            local_step+=1
-        '''
-        self.start_idx = random.randint(0, self.trace_length-1) #TODO randomize
+        self.start_idx = random.randint(0, self.trace_length-1)
         self.step = 0
 
     def act(self, timestep: TimeStep) -> Action:
