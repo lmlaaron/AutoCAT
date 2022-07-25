@@ -60,7 +60,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         return obs
     
     def get_detector_obs(self, opponent_obs, opponent_info):
-        cur_opponent_obs = opponent_obs[0]
+        cur_opponent_obs = copy.deepcopy(opponent_obs[0])
         if not np.any(cur_opponent_obs==-1):
             # TODO should we include step number?
             # attacker obs: r, victim_accessed, original action, current step
@@ -125,8 +125,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         # Attacker update
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
         if opponent_done:
-            opponent_obs = self._env.reset()
-        
+            opponent_obs = self._env.reset(reset_cache_state=True)
+            self.victim_address = self._env.victim_address
         if self.step_count > self.max_step:
             detector_done = True
         else:
@@ -170,13 +170,17 @@ if __name__ == '__main__':
     i = 0
     while not done['__all__']:
         i += 1
-        obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=5),
-                                            'benign':np.random.randint(low=0, high=5),
-                                            'detector':0})
+        action = {'attacker':np.random.randint(low=3, high=5),
+                  'benign':np.random.randint(low=0, high=1),
+                  'detector':np.random.randint(low=0, high=2)}
+        obs, reward, done, info = env.step(action)
         print("step: ", i)
-        print("obs: ", obs)
+        print("obs: ", obs['attacker'], obs['detector'])
+        print("action: ", action)
+        print("victim: ", env.victim_address, env._env.victim_address)
+
         #print("done:", done)
-        #print("reward:", reward)
+        print("reward:", reward)
         #print("info:", info )
-        #if info['attacker'].get('invoke_victim'):
-        #    print(info['attacker'])
+        if info['attacker'].get('invoke_victim'):
+            print(info['attacker'])

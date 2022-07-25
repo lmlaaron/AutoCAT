@@ -8,12 +8,13 @@ import torch.nn
 
 import rlmeta.utils.nested_utils as nested_utils
 
-from rlmeta.agents.ppo.ppo_agent import PPOAgent
+#from rlmeta.agents.ppo.ppo_agent import PPOAgent
+from agents.ppo_agent import PPOAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
 
-from cache_env_wrapper import CacheEnvWrapperFactory
+from cache_env_wrapper import CacheAttackerDetectorEnvFactory
 from cache_ppo_model import CachePPOModel
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
@@ -34,19 +35,23 @@ def run_loop(env: Env, agent: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     else:
         timestep = env.reset(victim_address=victim_addr)
     print("victim address: ", env.env.victim_address ) 
-    agent.observe_init(timestep)
-    while not timestep.done:
+    agent.observe_init(timestep['attacker'])
+    while not timestep["__all__"].done:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
-        timestep.observation.unsqueeze_(0)
-        action = agent.act(timestep)
+        timestep['attacker'].observation.unsqueeze_(0)
+        
+        #print("attacker obs")
+        #print(timestep["attacker"].observation)
+        action = agent.act(timestep['attacker'])
         # Unbatch the action.
         action = unbatch_action(action)
-
+        print("action:",action)
+        action = {"attacker":action, 'benign':0, 'detector':0}
         timestep = env.step(action)
-        agent.observe(action, timestep)
+        agent.observe(action['attacker'], timestep['attacker'])
 
         episode_length += 1
-        episode_return += timestep.reward
+        episode_return += timestep['attacker'].reward
 
     metrics = {
         "episode_length": episode_length,
@@ -62,16 +67,17 @@ def run_loops(env: Env,
               seed: int = 0) -> StatsDict:
     env.seed(seed)
     metrics = StatsDict()
-
-    if env.env.allow_empty_victim_access == False:
-        end_address = env.env.victim_address_max + 1
+    if env.env._env.allow_empty_victim_access == False:
+        end_address = env.env._env.victim_address_max + 1
     else:
-        end_address = env.env.victim_address_max + 1 + 1
-
-    for victim_addr in range(env.env.victim_address_min, end_address):
+        end_address = env.env._env.victim_address_max + 1 + 1
+    '''
+    for victim_addr in range(env.env._env.victim_address_min, end_address):
         cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
         metrics.extend(cur_metrics)
-
+    '''
+    cur_metrics = run_loop(env, agent, victim_addr=-1)
+    metrics.extend(cur_metrics)
     return metrics
 
 
@@ -79,7 +85,7 @@ def run_loops(env: Env,
 def main(cfg):
     # Create env
     cfg.env_config['verbose'] = 1
-    env_fac = CacheEnvWrapperFactory(cfg.env_config)
+    env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     
     # Load model

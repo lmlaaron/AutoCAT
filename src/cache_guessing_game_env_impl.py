@@ -303,7 +303,7 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]                                             # check whether to invoke victim
     is_flush = action[3]                                              # check whether to flush
     victim_addr = hex(action[4] + self.victim_address_min)[2:]            # victim address
-    info['attacker_address'] = action[0]+self.attacker_address_min
+    info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min
 
     victim_latency = None
     # if self.current_step > self.window_size : # if current_step is too long, terminate
