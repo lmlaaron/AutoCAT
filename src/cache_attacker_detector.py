@@ -35,8 +35,6 @@ class CacheAttackerDetectorEnv(gym.Env):
        
         self.opponent_agent = random.choice(['benign','attacker']) # 'benign', 'attacker' 
  
-        self.domain_id = {0:self.opponent_agent=='attacker', 1:self.opponent_agent=='benign'}
-
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
 
@@ -126,12 +124,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         info['benign'] = opponent_info
 
         domain_id = opponent_info["domain_id"]
-        '''
-        if opponent_agent == 'benign':
-            domain_id = 1
-        else:
-            domain_id = 0
-        '''
+        
+    
         # obs['domain_id'] = opponent_obs
        
         #new_detector_obs = {detector_obs, domain_id} # new observation space will include new feature "domain_id" to the current observation space
@@ -165,7 +159,7 @@ if __name__ == '__main__':
     while not done['__all__']:
         i += 1
         obs, reward, done, info = env.step({'attacker':np.random.randint(low=0, high=4),
-                                            'benign':np.random.randint(low=0, high=4),
+                                            'benign':np.random.randint(low=0, high=64),
                                             'detector':0})
         print("step: ", i)
         print("obs: ", obs)

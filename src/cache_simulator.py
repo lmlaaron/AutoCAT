@@ -25,10 +25,10 @@ def main():
     if arguments['result_file']:
         result_file = arguments['result_file']
     #print(result_file)
-
+    '''
     with open(result_file, 'w'):
         pass
-
+    '''
     #Clear the log file if it exists
     with open(log_filename, 'w'):
         pass
