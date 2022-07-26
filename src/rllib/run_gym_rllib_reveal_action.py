@@ -123,6 +123,7 @@ if __name__ == "__main__":
                 "cache_1": {#required
                   "blocks": 4,#4, 
                   "associativity": 4,  
+                  "rep_policy": "rrip",
                   "hit_time": 1, #cycles
                   "prefetcher": "nextline"
                 },

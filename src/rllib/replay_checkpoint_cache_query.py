@@ -101,7 +101,7 @@ def replay_agent():
         end_address = env.victim_address_max + 1 + 1
 
     for victim_addr in range(env.victim_address_min, end_address):
-        for repeat in range(50):#000):
+        for repeat in range(1):#000):
             obs = env.reset(victim_address=victim_addr)
             
             # for debugging purposes
