@@ -205,19 +205,17 @@ class CacheGuessingGameEnv(gym.Env):
 		
 		# define the observaton space
   
-		#max(self.window_size + 2, len(self.attacker_address_space) + 1)
+		# max(self.window_size + 2, len(self.attacker_address_space) + 1)
 		self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1) 
 		self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
 		self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
 
 		# initilizate the environment configurations
   
-		#print('Initializing...')
 		self.l1 = self.hierarchy['cache_1']
 		self.current_step = 0
 		self.victim_accessed = False
 		if self.allow_empty_victim_access == True:
-			#self.victim_address = random.randint(self.victim_address_max +1, self.)
 			self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
 		else:
 			self.victim_address = random.randint(self.victim_address_min, self.victim_address_max)
@@ -228,8 +226,45 @@ class CacheGuessingGameEnv(gym.Env):
 			assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
 			self.vprint("[init] victim access %d locked cache line" % self.victim_address_max)
 			self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
-			domain_id = 1 # CHECK
 
+		
+		'''
+		l1 = hierarchy['cache_1'] #L133 def simulate in cache_simulator.py
+  		hierarchy = build_hierarchy(configs, logger) #L150 def main in cache_simulator.py
+
+		def build_hierarchy(configs, logger): #Build the cache hierarchy with the given configuration
+    		
+    		hierarchy = {}
+    		main_memory = build_cache(configs, 'mem', None, logger) #Main memory is required
+    		prev_level = main_memory
+    		hierarchy['mem'] = main_memory
+      
+    		if 'cache_3' in configs.keys():
+        		cache_3 = build_cache(configs, 'cache_3', prev_level, logger)
+        		prev_level = cache_3
+        		hierarchy['cache_3'] = cache_3
+    		if 'cache_2' in configs.keys():
+        		cache_2 = build_cache(configs, 'cache_2', prev_level, logger)
+        		prev_level = cache_2
+        		hierarchy['cache_2'] = cache_2
+    		
+    		cache_1 = build_cache(configs, 'cache_1', prev_level, logger) #Cache_1 is required
+    		hierarchy['cache_1'] = cache_1
+    		return hierarchy
+  
+		def ceaser_mapping(self, addr):
+			if self.rerandomize_victim == False:
+				return addr
+			else:
+				self.ceaser_access_count += 1
+				return self.perm[addr] # return self.mapping_func(addr)
+   
+   			if self.rerandomize_victim == True:
+				addr_space = max(self.victim_address_max, self.attacker_address_max) + 1
+				self.perm = [i for i in range(addr_space)]
+
+			self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
+		'''
 		# internal guessing buffer. does not change after reset
 		self.guess_buffer_size = 100
 		self.guess_buffer = [False] * self.guess_buffer_size
@@ -253,8 +288,7 @@ class CacheGuessingGameEnv(gym.Env):
 			return addr
 		else:
 			self.ceaser_access_count += 1
-			# return self.mapping_func(addr)
-			return self.perm[addr]
+			return self.perm[addr] # return self.mapping_func(addr)
 
   	# gym API: step, this is the function that implements most of the logic
 	def step(self, action):
@@ -288,9 +322,13 @@ class CacheGuessingGameEnv(gym.Env):
     	# 	5. do the access, first check if it is a flush, if so do flush, if not, do normal access
     	
 		victim_latency = None
+  
+		identity = {'default': -2, 'flushed': -1, 'attacker': 0, 'victim': 1}
+		domain_id = identity['default']
+    
 		# if self.current_step > self.window_size : # if current_step is too long, terminate
 		if self.step_count >= self.window_size - 1:
-			r = 2 #
+			r = 2 
 			self.vprint("length violation!")
 			reward = self.length_violation_reward #-10000 
 			done = True
@@ -305,11 +343,13 @@ class CacheGuessingGameEnv(gym.Env):
 							self.vprint("victim access %d " % self.victim_address)
 							t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
 							t = t.time # do not need to lock again
+							domain_id = identity['victim']
 							
 						else:
 							self.vprint("victim make a empty access!") # do not need to actually do something
 							t = 1 # empty access will be treated as HIT??? does that make sense???
 							#t = self.l1.read(str(self.victim_address), self.current_step).time 
+       
 					if t > 500:   # for LRU attack, has to force victim access being hit
 						info['victim_latency'] = 2
 						victim_latency = 1
@@ -342,27 +382,14 @@ class CacheGuessingGameEnv(gym.Env):
 					if self.victim_accessed and victim_addr == hex(self.victim_address)[2:]:
 							if victim_addr != hex(self.victim_address_max + 1)[2:]: 
 								self.vprint("correct guess " + victim_addr)
+        
 							else:
 								self.vprint("correct guess empty access!")
-							# update the guess buffer 
-							self.guess_buffer.append(True)
-							self.guess_buffer.pop(0)
-							reward = self.correct_reward # 200
-							done = True
-					else:
-							if victim_addr != hex(self.victim_address_max + 1)[2:]:
-								self.vprint("wrong guess " + victim_addr )
-							else:
-								self.vprint("wrong guess empty access!")
-
-							# update the guess buffer 
-							self.guess_buffer.append(False)
-							self.guess_buffer.pop(0)
-							reward = self.wrong_reward #-9999
-							done = True
+			
 				elif is_flush == False or self.flush_inst == False:
 					lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
 					lat = lat.time # measure the access latency
+					domain_id = identity['attacker']
 					
 					if lat > 500:
 						self.vprint("acceee " + address + " miss")
@@ -381,8 +408,10 @@ class CacheGuessingGameEnv(gym.Env):
 					self.current_step += 1
 					reward = self.step_reward
 					done = False
+					domain_id = identity['flushed'] #this means currently the cache line is empty after flush 
      
 		#return observation, reward, done, info
+  
 		if done == True and is_guess != 0:
 			info["is_guess"] = True
 			if reward > 0:
@@ -402,26 +431,7 @@ class CacheGuessingGameEnv(gym.Env):
 			victim_accessed = 0
 		
 		# JOHN LEE: the domain_id value will change according to cache configuration. 
-  	 	# L408 to 422 are conditions to return each domain_id
 		# TODO value for domain_id changes per cache configuration
-		# domain_id: for attacker = 'a' or 0, 1 for victim = 'v' or 1
-		
-		if self.configs['cache_1']["rep_policy"] == "plru_pl": 
-			domain_id = 1
-
-		if is_victim == True:
-			if self.victim_address <= self.victim_address_max:
-				domain_id = 1
-
-			elif self.victim_accessed == False:
-				domain_id = 1
-								 
-			elif self.allow_victim_multi_access == True:
-				domain_id = 1
-
-		elif is_flush == False or flush_inst == False:
-				domain_id = 0
-		
 
   		# append the current observation to the sliding window
 		self.state.append([r, victim_accessed, original_action, self.step_count, domain_id])
