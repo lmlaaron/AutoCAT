@@ -26,36 +26,46 @@ def unbatch_action(action: Action) -> Action:
     return Action(act, info)
 
 
-def run_loop(env: Env, agent: PPOAgent, victim_addr=-1) -> Dict[str, float]:
+def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     episode_length = 0
     episode_return = 0.0
+    detector_count = 0.0
+    detector_acc = 0.0
 
     if victim_addr == -1:
         timestep = env.reset()
     else:
         timestep = env.reset(victim_address=victim_addr)
     print("victim address: ", env.env.victim_address ) 
-    agent.observe_init(timestep['attacker'])
+    for agent_name, agent in agents.items():
+        agent.observe_init(timestep[agent_name])
     while not timestep["__all__"].done:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
-        timestep['attacker'].observation.unsqueeze_(0)
-        
-        #print("attacker obs")
-        #print(timestep["attacker"].observation)
-        action = agent.act(timestep['attacker'])
-        # Unbatch the action.
-        action = unbatch_action(action)
-        print("action:",action)
-        action = {"attacker":action, 'benign':0, 'detector':0}
-        timestep = env.step(action)
-        agent.observe(action['attacker'], timestep['attacker'])
+        actions = {'benign':0}
+        for agent_name, agent in agents.items():
+            timestep[agent_name].observation.unsqueeze_(0)
+            #print("attacker obs")
+            #print(timestep["attacker"].observation)
+            action = agent.act(timestep[agent_name])
+            # Unbatch the action.
+            action = unbatch_action(action)
+            print(agent_name, "action:",action.action.item())
+            actions.update({agent_name:action})
+        timestep = env.step(actions)
 
+        for agent_name, agent in agents.items():
+            agent.observe(actions[agent_name], timestep[agent_name])
+        
         episode_length += 1
         episode_return += timestep['attacker'].reward
+        if actions['detector'].action.item()==1:
+            detector_count += 1
+        detector_accuracy = detector_count/episode_length
 
     metrics = {
         "episode_length": episode_length,
         "episode_return": episode_return,
+        "detector_accuracy": detector_accuracy,
     }
 
     return metrics
@@ -81,7 +91,7 @@ def run_loops(env: Env,
     return metrics
 
 
-@hydra.main(config_path="./config", config_name="sample")
+@hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
     cfg.env_config['verbose'] = 1
@@ -90,17 +100,22 @@ def main(cfg):
     
     # Load model
     cfg.model_config["output_dim"] = env.action_space.n
-    params = torch.load(cfg.checkpoint)
-    #model = CachePPOModel(**cfg.model_config)
-    model = CachePPOTransformerModel(**cfg.model_config)
-    model.load_state_dict(params)
-    model.eval()
+    attacker_params = torch.load(cfg.attacker_checkpoint)
+    attacker_model = CachePPOTransformerModel(**cfg.model_config)
+    attacker_model.load_state_dict(attacker_params)
+    attacker_model.eval()
+    cfg.model_config["output_dim"] = 2
+    detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
+    detector_model = CachePPOTransformerModel(**cfg.model_config)
+    detector_model.load_state_dict(detector_params)
+    detector_model.eval()
 
     # Create agent
-    agent = PPOAgent(model, deterministic_policy=cfg.deterministic_policy)
-
+    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    agents = {"attacker": attacker_agent, "detector": detector_agent}
     # Run loops
-    metrics = run_loops(env, agent, cfg.num_episodes, cfg.seed)
+    metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
 
 

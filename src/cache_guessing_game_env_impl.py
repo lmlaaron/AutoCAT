@@ -384,7 +384,7 @@ class CacheGuessingGameEnv(gym.Env):
           lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
-            self.vprint("acceee " + address + " miss")
+            self.vprint("access " + address + " miss")
             r = 1 # cache miss
           else:
             self.vprint("access " + address + " hit"  )

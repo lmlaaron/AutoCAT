@@ -190,10 +190,14 @@ def main(cfg):
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        if epoch % 80 >= 40:
+        if epoch % 200 >= 100:
             d_stats = agent_d.train(cfg.steps_per_epoch) #TODO
+            wandb_logger.save(epoch, train_model_d, prefix="detector-")
+            torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
         else:
             a_stats = agent.train(cfg.steps_per_epoch)
+            wandb_logger.save(epoch, train_model, prefix="attacker-")
+            torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         #stats = d_stats
         stats = a_stats or d_stats
 
@@ -204,7 +208,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        if epoch % 80 >= 40:
+        if epoch % 200 >= 100:
             train_stats = {"detector":d_stats}
         else:
             train_stats = {"attacker":a_stats}
@@ -229,7 +233,6 @@ def main(cfg):
         
         wandb_logger.log(train_stats, eval_stats)
 
-        torch.save(train_model.state_dict(), f"ppo_agent-{epoch}.pth")
 
     loops.terminate()
     servers.terminate()

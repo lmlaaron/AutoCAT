@@ -15,7 +15,8 @@ from cache_guessing_game_env_impl import CacheGuessingGameEnv
 class CacheAttackerDetectorEnv(gym.Env):
     def __init__(self,
                  env_config: Dict[str, Any],
-                 keep_latency: bool = True) -> None:
+                 keep_latency: bool = True,
+                 opponent_weights = [0.5, 0.5]) -> None:
         #env_config["cache_state_reset"] = False
 
         self.reset_observation = env_config.get("reset_observation", False)
@@ -34,8 +35,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.attacker_address_max = self._env.attacker_address_max
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
-       
-        self.opponent_agent = random.choices(['benign','attacker'], weights=[0.5,0.5], k=1)[0] 
+        self.opponent_weights = opponent_weights 
+        self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
         self.max_step = 64
@@ -45,7 +46,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         """
         returned obs = { agent_name : obs }
         """
-        self.opponent_agent = random.choices(['benign','attacker'], weights=[0.5,0.5], k=1)[0]
+        self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
         opponent_obs = self._env.reset(victim_address=victim_address,

@@ -1,7 +1,9 @@
 num_episodes: 10
 seed: 1234
 
-checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-07-25/16-12-55/ppo_agent-649.pth"
+exp_name: "/2022-07-26/14-03-38/wandb/run-20220726_140343-2wwnweyz/"
+attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-07-26/16-25-20/wandb/run-20220726_162520-2jqwd1e9/files/attacker-model-99.th"
+detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-07-26/16-25-20/wandb/run-20220726_162520-2jqwd1e9/files/detector-model-199.th"
 deterministic_policy: true
 
 defaults:
