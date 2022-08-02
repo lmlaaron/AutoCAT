@@ -10,6 +10,7 @@ import rlmeta.utils.nested_utils as nested_utils
 
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from agents.ppo_agent import PPOAgent
+from agents.spec_agent import SpecAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
@@ -31,7 +32,8 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     episode_return = 0.0
     detector_count = 0.0
     detector_acc = 0.0
-
+    
+    env.env.opponent_weights = [0,1]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -41,16 +43,17 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         agent.observe_init(timestep[agent_name])
     while not timestep["__all__"].done:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
-        actions = {'benign':0}
+        actions = {}
         for agent_name, agent in agents.items():
             timestep[agent_name].observation.unsqueeze_(0)
             #print("attacker obs")
             #print(timestep["attacker"].observation)
             action = agent.act(timestep[agent_name])
             # Unbatch the action.
-            action = unbatch_action(action)
-            print(agent_name, "action:",action.action.item())
+            if not isinstance(action.action, int):
+                action = unbatch_action(action)
             actions.update({agent_name:action})
+        print(actions)
         timestep = env.step(actions)
 
         for agent_name, agent in agents.items():
@@ -86,8 +89,9 @@ def run_loops(env: Env,
         cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
         metrics.extend(cur_metrics)
     '''
-    cur_metrics = run_loop(env, agent, victim_addr=-1)
-    metrics.extend(cur_metrics)
+    for i in range(num_episodes):
+        cur_metrics = run_loop(env, agent, victim_addr=-1)
+        metrics.extend(cur_metrics)
     return metrics
 
 
@@ -113,7 +117,15 @@ def main(cfg):
     # Create agent
     attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-    agents = {"attacker": attacker_agent, "detector": detector_agent}
+    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace = spec_trace_f.read().split('\n')#[:100000]
+    y = []
+    for line in spec_trace:
+        line = line.split()
+        y.append(line)
+    spec_trace = y
+    benign_agent = SpecAgent(cfg.env_config, spec_trace)
+    agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     # Run loops
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")

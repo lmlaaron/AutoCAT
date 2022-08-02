@@ -16,7 +16,7 @@ class CacheAttackerDetectorEnv(gym.Env):
     def __init__(self,
                  env_config: Dict[str, Any],
                  keep_latency: bool = True,
-                 opponent_weights = [0.5, 0.5]) -> None:
+                 ) -> None:
         #env_config["cache_state_reset"] = False
 
         self.reset_observation = env_config.get("reset_observation", False)
@@ -35,7 +35,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.attacker_address_max = self._env.attacker_address_max
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
-        self.opponent_weights = opponent_weights 
+        self.opponent_weights = env_config.get("opponent_weights", [0.5,0.5]) 
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
@@ -63,7 +63,7 @@ class CacheAttackerDetectorEnv(gym.Env):
     def get_detector_obs(self, opponent_obs, opponent_info):
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
         if not np.any(cur_opponent_obs==-1):
-            # TODO should we include step number?
+            # TODO should we include step number? - yes we should - the guess step should not be observed by the detector
             # attacker obs: r, victim_accessed, original action, current step
             # detector obs: r, domain_id, memory address, 0
             if opponent_info.get('invoke_victim'):
@@ -106,10 +106,10 @@ class CacheAttackerDetectorEnv(gym.Env):
         attacker_reward = reward['attacker']
         
         # determine detector's reward
-        if detector_correct:
-            attacker_reward -= 0.1
-        else:
-            attacker_reward += 0.1
+        #if detector_correct:
+        #    attacker_reward -= 0.1
+        #else:
+        #    attacker_reward += 0.1
         
         rew = {}
         rew['detector'] = detector_reward
@@ -122,12 +122,12 @@ class CacheAttackerDetectorEnv(gym.Env):
         reward = {}
         done = {'__all__':False}
         info = {}
-
         # Attacker update
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
         if opponent_done:
             opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
+            self.step_count -= 1 # The reset/guess step should not be counted
         if self.step_count > self.max_step:
             detector_done = True
         else:

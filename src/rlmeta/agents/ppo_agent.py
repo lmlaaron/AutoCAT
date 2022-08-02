@@ -55,7 +55,7 @@ class PPOAgent(PPOAgent):
         self.model.set_use_history(use_history)
 
     def train(self, num_steps: int) -> Optional[StatsDict]:
-        self.controller.set_phase(Phase.TRAIN, reset=True)
+        #self.controller.set_phase(Phase.TRAIN, reset=True)
 
         self.replay_buffer.warm_up(self.learning_starts)
         stats = StatsDict()

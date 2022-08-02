@@ -76,6 +76,10 @@ class SpecAgent(Agent):
 
     def act(self, timestep: TimeStep) -> Action:
         line = self.trace[(self.start_idx+self.step) % self.trace_length]
+        if self.step >= self.trace_length:
+            self.step = 0
+        else:
+            self.step += 1
         if len(line) == 0:
             action = self.cache_size
             addr = 0#addr % self.cache_size
@@ -95,6 +99,8 @@ class SpecAgent(Agent):
 
     async def async_act(self, timestep: TimeStep) -> Action:
         line = self.trace[(self.start_idx+self.step) % self.trace_length]
+        if self.step >= self.trace_length:
+            self.step = 0
         if len(line) == 0:
             action = self.cache_size
             addr = 0#addr % self.cache_size
@@ -111,6 +117,7 @@ class SpecAgent(Agent):
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
         return Action(action)    
+
 
     async def async_observe_init(self, timestep: TimeStep) -> None:
         pass
