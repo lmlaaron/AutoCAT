@@ -58,7 +58,15 @@ class SpecAgent(Agent):
             #must be no shared address space
             assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
-        
+        '''
+        spec_trace_f = open(trace,'r')
+        spec_trace = spec_trace_f.read().split('\n')
+        y = []
+        for line in spec_trace:
+            line = line.split()
+            y.append(line)
+        spec_trace = y
+        '''
         self.trace = trace
         self.trace_length = len(self.trace)
         line = self.trace[0]

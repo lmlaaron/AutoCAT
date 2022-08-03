@@ -72,7 +72,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             else:
                 cur_opponent_obs[1] = 0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
-            cur_opponent_obs[3] = 0
+            cur_opponent_obs[3] = 0#self.step_count
             self.detector_obs.append(cur_opponent_obs)
             self.detector_obs.popleft()
         return np.array(list(reversed(self.detector_obs)))
@@ -88,7 +88,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             detector_flag = True
             # detector flag the opponent as an attacker
             if self.opponent_agent == 'benign':
-                detector_reward = -1
+                detector_reward = -2 #punish false positive
             elif self.opponent_agent == 'attacker':
                 detector_reward = 1
                 detector_correct = True
@@ -99,15 +99,17 @@ class CacheAttackerDetectorEnv(gym.Env):
                 detector_correct = True
             else:
                 detector_reward = -1
-            if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success:
-                # attacker has attacked *successfully*
-                detector_reward = -20
+        if action_detector == 0 and self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success:
+            # attacker has attacked *successfully*, but detector does not catch it
+            detector_reward = -20
+        elif opponent_done:
+            detector_reward = 0
         
         attacker_reward = reward['attacker']
         
         # determine detector's reward
-        #if detector_correct:
-        #    attacker_reward -= 0.1
+        if detector_correct:
+            attacker_reward -= 0.1 #0.1
         #else:
         #    attacker_reward += 0.1
         
@@ -171,8 +173,8 @@ if __name__ == '__main__':
     i = 0
     while not done['__all__']:
         i += 1
-        action = {'attacker':np.random.randint(low=3, high=5),
-                  'benign':np.random.randint(low=0, high=1),
+        action = {'attacker':np.random.randint(low=2, high=5),
+                  'benign':np.random.randint(low=2, high=5),
                   'detector':np.random.randint(low=0, high=2)}
         obs, reward, done, info = env.step(action)
         print("step: ", i)

@@ -33,7 +33,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     detector_count = 0.0
     detector_acc = 0.0
     
-    env.env.opponent_weights = [0,1]
+    env.env.opponent_weights = [1,0]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -117,8 +117,9 @@ def main(cfg):
     # Create agent
     attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')#[:100000]
+    spec_trace = spec_trace_f.read().split('\n')[:100]#[:100000]
     y = []
     for line in spec_trace:
         line = line.split()

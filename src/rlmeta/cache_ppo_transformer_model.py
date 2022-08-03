@@ -182,7 +182,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         # https://github.com/pytorch/pytorch/issues/34880
         device = next(self.parameters()).device
         state_dict = nested_utils.map_nested(lambda x: x.to(device), state_dict)
-        #self.latest = state_dict
+        self.latest = state_dict
         #self.history.append(self.latest)
         self.load_state_dict(state_dict)
     
