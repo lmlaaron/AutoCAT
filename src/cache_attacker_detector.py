@@ -72,7 +72,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             else:
                 cur_opponent_obs[1] = 0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
-            cur_opponent_obs[3] = 0#self.step_count
+            cur_opponent_obs[3] = self.step_count #0#self.step_count
             self.detector_obs.append(cur_opponent_obs)
             self.detector_obs.popleft()
         return np.array(list(reversed(self.detector_obs)))
