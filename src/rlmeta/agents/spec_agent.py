@@ -58,15 +58,8 @@ class SpecAgent(Agent):
             #must be no shared address space
             assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
-        '''
-        spec_trace_f = open(trace,'r')
-        spec_trace = spec_trace_f.read().split('\n')
-        y = []
-        for line in spec_trace:
-            line = line.split()
-            y.append(line)
-        spec_trace = y
-        '''
+        
+        self.cache_line_size = 8 #TODO: remove the hardcode
         self.trace = trace
         self.trace_length = len(self.trace)
         line = self.trace[0]
@@ -92,9 +85,9 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = 0#addr % self.cache_size
             info={"file_done" : True}
-            return Action(action)
+            return Action(action, info)
         domain_id = line[0]
-        addr = int( int(line[3], 16) / 4 )
+        addr = int( int(line[3],16) / self.cache_line_size)
         action = addr % self.cache_size
         if domain_id == self.domain_id_0: # attacker access
             action = addr % self.cache_size
@@ -103,7 +96,7 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
-        return Action(action)
+        return Action(action, info)
 
     async def async_act(self, timestep: TimeStep) -> Action:
         line = self.trace[(self.start_idx+self.step) % self.trace_length]
@@ -115,9 +108,9 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = 0#addr % self.cache_size
             info={"file_done" : True}
-            return Action(action)
+            return Action(action, info)
         domain_id = line[0]
-        addr = int( int(line[3], 16) / 4 )
+        addr = int( int(line[3],16) / self.cache_line_size)
         action = addr % self.cache_size
         if domain_id == self.domain_id_0: # attacker access
             action = addr % self.cache_size
@@ -126,7 +119,7 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
-        return Action(action)
+        return Action(action, info)
 
 
     async def async_observe_init(self, timestep: TimeStep) -> None:
