@@ -65,6 +65,7 @@ def main(cfg):
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### detector 
     cfg.model_config["output_dim"] = 2
+    cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
