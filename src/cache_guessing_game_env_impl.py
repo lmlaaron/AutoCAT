@@ -147,7 +147,7 @@ class CacheGuessingGameEnv(gym.Env):
 			
 		else:
 			self.window_size = window_size
-		self.feature_size = 5 
+		self.feature_size = 6 
   
 		# instantiate the cache
 
@@ -208,7 +208,7 @@ class CacheGuessingGameEnv(gym.Env):
 		# max(self.window_size + 2, len(self.attacker_address_space) + 1)
 		self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1) 
 		self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
-		self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+		self.state = deque([[-1, -1, -1, -1, -1, -1]] * self.window_size)
 
 		# initilizate the environment configurations
   
@@ -286,7 +286,7 @@ class CacheGuessingGameEnv(gym.Env):
     	
 		victim_latency = None
 		# John: configuration for different domain_id
-		identity = {'default': -2, 'flushed': -1, 'attacker': 0, 'victim': 1}
+		identity = {'default': -1, 'flushed': -2, 'attacker': 0, 'victim': 1}
 		domain_id = identity['default']
     
 		# if self.current_step > self.window_size : # if current_step is too long, terminate
@@ -378,6 +378,7 @@ class CacheGuessingGameEnv(gym.Env):
 					reward = self.step_reward
 					done = False
 					domain_id = identity['flushed'] #this means currently the cache line is empty after flush 
+					is_flush = 1
      
 		#return observation, reward, done, info
   
@@ -403,7 +404,7 @@ class CacheGuessingGameEnv(gym.Env):
 		# TODO value for domain_id changes per cache configuration
 
   		# append the current observation to the sliding window
-		self.state.append([r, victim_accessed, original_action, self.step_count, domain_id])
+		self.state.append([r, victim_accessed, original_action, self.step_count, domain_id, is_flush])
 		self.state.popleft()
 		self.step_count += 1
 		
@@ -440,11 +441,12 @@ class CacheGuessingGameEnv(gym.Env):
 						self.last_state = r
 
     	# this info is for use of various wrappers like cchunter_wrapper and cyclone_wrapper
-		info["cache_state_change"] = cache_state_change
-		info["cyclic_way_index"] = cyclic_way_index
-		info["cyclic_set_index"] = cyclic_set_index
+		#info["cache_state_change"] = cache_state_change
+		#info["cyclic_way_index"] = cyclic_way_index
+		#info["cyclic_set_index"] = cyclic_set_index
 		info['domain_id'] = domain_id # additional feature information
 		info['is_victim_random'] = is_victim_random
+		info['is_flush'] = is_flush
 		
 		return np.array(list(reversed(self.state)), dtype=object), reward, done, info 
 
@@ -475,7 +477,7 @@ class CacheGuessingGameEnv(gym.Env):
     	reset the observation space
     	'''
 		if reset_observation:
-				self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+				self.state = deque([[-1, -1, -1, -1, -1, -1]] * self.window_size)
 				self.step_count = 0
 
 		self.reset_time = 0
