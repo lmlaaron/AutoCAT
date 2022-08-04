@@ -107,7 +107,8 @@ class CacheQueryEnv(gym.Env):
         H -> 7
         I -> 8
         '''
-        self.cq_command = "A B C D E F G H I A B"  #establish the address alphabet to number mapping
+        self.cq_command = "@ q B C D E F G H I J K L M N O P a b" #"A B C D E F G H I A B"  #establish the address alphabet to number mapping
+                          #"@ q R S T U V W X Y Z AA BB CC DD EE FF a b" 
         '''
         after this the 4-way cache should be
         [ A B H I] or [0 1 7 8]
@@ -124,7 +125,7 @@ class CacheQueryEnv(gym.Env):
         self.last_unmasked_tuple = (state, reward, done, info)
 
         #reset CacheQuery Command
-        self.cq_command = "A B C D E F G H I A B"
+        self.cq_command ="@ q B C D E F G H I J K L M N O P a b" #  "A B C D E F G H I A B"
         return state
 
     def step(self, action):
@@ -143,12 +144,13 @@ class CacheQueryEnv(gym.Env):
             self.env.vprint("reveal observation")
             # when doing reveal, launch the actual cachequery
             #self.CQ.command(self.cq_command)
+            print(self.cq_command)
             answer = self.CQ.run(self.cq_command)[0]
             answer_index = answer.split().index('->')+1
             while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
                 answer = self.CQ.run(self.cq_command)[0]            
                 answer_index = answer.split().index('->')+1
-
+            
             if answer != None:
                 lat_cq = answer.split()[answer.split().index('->')+1:]
                 lat_cq_cnt = len(lat_cq) - 1
@@ -206,13 +208,13 @@ class CacheQueryEnv(gym.Env):
                     # append to the cq_command
                     if is_victim == True: 
                         if self.env.victim_address <= self.env.victim_address_max: # check whether it is an empty access
-                            self.cq_command += (' ' + chr(ord('A') + self.env.victim_address))
+                            self.cq_command += (' ' + chr(ord('a') + self.env.victim_address))
                         else:                                                  # empty access, doing nothing
                            self.cq_command += '' 
                     elif is_flush == True:
-                        self.cq_command += (' ' + chr(ord('A') + int(address, 16)) + '!') 
+                        self.cq_command += (' ' + chr(ord('a') + int(address, 16)) + '!') 
                     else:
-                        self.cq_command += (' ' + chr(ord('A') + int(address, 16)) + '?')  
+                        self.cq_command += (' ' + chr(ord('a') + int(address, 16)) + '?')  
 
                     self.last_unmasked_tuple = ( state.copy(), reward, done, info )
                     # mask the state so that nothing is revealed
@@ -237,7 +239,7 @@ if __name__ == "__main__":
             "allow_victim_multi_access": True,#False,
             "allow_empty_victim_access": True,#False,
             "attacker_addr_s": 0,
-            "attacker_addr_e": 4,#4,#11,#15,
+            "attacker_addr_e": 16,#4,#11,#15,
             "victim_addr_s": 0,
             "victim_addr_e": 0,#7,
             "reset_limit": 1,
@@ -251,8 +253,8 @@ if __name__ == "__main__":
                 # for L2 cache of Intel i7-6700 
                 # it is a 4-way cache, this should not be changed
                 "cache_1": {#required
-                  "blocks": 4,#4, 
-                  "associativity": 4,  
+                  "blocks": 16,#4, 
+                  "associativity": 16,  
                   "hit_time": 1 #cycles
                 },
                 "mem": {#required

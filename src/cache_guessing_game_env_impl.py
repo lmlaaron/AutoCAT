@@ -90,6 +90,9 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
+
+    # for blind training can disable the print
+    self.show_latency = env_config["show_latency"] if "show_latency" in env_config else True
     # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
@@ -394,10 +397,16 @@ class CacheGuessingGameEnv(gym.Env):
           lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
-            self.vprint("acceee " + address + " miss")
+            if self.show_latency == True:
+              self.vprint("access " + address + " miss")
+            else:
+              self.vprint("access " + address ) 
             r = 1 # cache miss
           else:
-            self.vprint("access " + address + " hit"  )
+            if self.show_latency == True:
+              self.vprint("access " + address + " hit"  )
+            else:
+              self.vprint("access " + address )
             r = 0 # cache hit
           self.current_step += 1
           reward = self.step_reward #-1 
