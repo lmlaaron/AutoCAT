@@ -205,12 +205,12 @@ class CacheGuessingGameEnv(gym.Env):
       if self.allow_empty_victim_access == True:
         # | attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | v | victim_guess_addr | 
         self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+          len(self.attacker_address_space) + 2 + len(self.victim_address_space)
         )
     else:
       # one-hot encoding
