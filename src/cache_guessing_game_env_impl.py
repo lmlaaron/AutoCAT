@@ -303,6 +303,7 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]                                             # check whether to invoke victim
     is_flush = action[3]                                              # check whether to flush
     victim_addr = hex(action[4] + self.victim_address_min)[2:]            # victim address
+    is_victim_random = action[5]
     info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min
 
     victim_latency = None
@@ -313,22 +314,27 @@ class CacheGuessingGameEnv(gym.Env):
       reward = self.length_violation_reward #-10000 
       done = True
     else:
-      if is_victim == True:
-        info['invoke_victim'] = is_victim
-        info['victim_address'] = self.victim_address
+      if is_victim == True or is_victim_random == True:
+        info['invoke_victim'] = True
+        info['victim_address'] = self.victim_address # temporarily record true victim address
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
 
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
-            if self.victim_address <= self.victim_address_max:
-              self.vprint("victim access %d " % self.victim_address)
-              t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
-              t = t.time # do not need to lock again
+            if is_victim_random == True:
+                victim_random = random.randint(self.victim_address_min, self.victim_address_max)
+                t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
+                t = t.time 
+                info['victim_address'] = victim_random
+            elif self.victim_address <= self.victim_address_max:
+                self.vprint("victim access %d " % self.victim_address)
+                t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
+                t = t.time # do not need to lock again
             else:
-              self.vprint("victim make a empty access!") # do not need to actually do something
-              t = 1 # empty access will be treated as HIT??? does that make sense???
-              #t = self.l1.read(str(self.victim_address), self.current_step).time 
+                self.vprint("victim make a empty access!") # do not need to actually do something
+                t = 1 # empty access will be treated as HIT??? does that make sense???
+                #t = self.l1.read(str(self.victim_address), self.current_step).time 
           if t > 500:   # for LRU attack, has to force victim access being hit
             info['victim_latency'] = 2
             victim_latency = 1
@@ -633,15 +639,18 @@ class CacheGuessingGameEnv(gym.Env):
     is_guess = 0
     is_victim = 0
     is_flush = 0
-    victim_addr = 0 
+    victim_addr = 0
+    is_victim_random = 0
     if self.flush_inst == False:
       if action < len(self.attacker_address_space):
         address = action
       elif action == len(self.attacker_address_space):
         is_victim = 1
+      elif action == len(self.attacker_address_space)+1:
+        is_victim_random = 1
       else:
         is_guess = 1
-        victim_addr = action - ( len(self.attacker_address_space) + 1 ) 
+        victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) # becuase the one that assigned to the is_victim_random is at the attacker address space+1  
     else:
       if action < len(self.attacker_address_space):
         address = action
@@ -655,7 +664,7 @@ class CacheGuessingGameEnv(gym.Env):
         is_guess = 1
         victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
         
-    return [ address, is_guess, is_victim, is_flush, victim_addr ] 
+    return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
 
 if __name__ == '__main__':

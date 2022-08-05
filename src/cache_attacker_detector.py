@@ -125,14 +125,14 @@ class CacheAttackerDetectorEnv(gym.Env):
         done = {'__all__':False}
         info = {}
         # Attacker update
-        action_info = action['info']
+        action_info = action.get('info')
         #if self.opponent_agent == 'benign':
-        benign_reset_victim = action_info.get('reset_victim_addr', False)
-        benign_victim_addr = action_info.get('victim_addr', None)
-        #TODO 
-        #if self.opponent_agent == 'benign' and benign_reset_victim:
-        #    self._env.set_victim(benign_victim_addr) 
-        #    self.victim_address = self._env.victim_address
+        if action_info:
+            benign_reset_victim = action_info.get('reset_victim_addr', False)
+            benign_victim_addr = action_info.get('victim_addr', None)
+            if self.opponent_agent == 'benign' and benign_reset_victim:
+                self._env.set_victim(benign_victim_addr) 
+                self.victim_address = self._env.victim_address
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
         if opponent_done:
             opponent_obs = self._env.reset(reset_cache_state=True)
@@ -175,13 +175,14 @@ class CacheAttackerDetectorEnv(gym.Env):
 
 if __name__ == '__main__':
     env = CacheAttackerDetectorEnv({})
+    env.opponent_weights = [0,1]
     action_space = env.action_space
     obs = env.reset()
     done = {'__all__':False}
     i = 0
     while not done['__all__']:
         i += 1
-        action = {'attacker':np.random.randint(low=2, high=5),
+        action = {'attacker':np.random.randint(low=3, high=6),
                   'benign':np.random.randint(low=2, high=5),
                   'detector':np.random.randint(low=0, high=2)}
         obs, reward, done, info = env.step(action)
@@ -192,6 +193,7 @@ if __name__ == '__main__':
 
         #print("done:", done)
         print("reward:", reward)
+        print(env.victim_address_min, env.victim_address_max)
         #print("info:", info )
         if info['attacker'].get('invoke_victim'):
             print(info['attacker'])
