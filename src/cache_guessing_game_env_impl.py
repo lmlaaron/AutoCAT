@@ -425,6 +425,15 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       victim_accessed = 0
     
+
+    #TODO remove the temporary test
+    if is_victim or is_victim_random:
+        victim_accessed = 1
+    else:
+        victim_accessed = 0
+    
+
+
     ####self.state = [r, action[0], current_step, victim_accessed] + self.state 
     #Xiaomeng
     # self.state = [r, victim_accessed, original_action, current_step ] + self.state  
