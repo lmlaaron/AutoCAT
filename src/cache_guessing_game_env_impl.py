@@ -296,7 +296,7 @@ class CacheGuessingGameEnv(gym.Env):
 			reward = self.length_violation_reward #-10000 
 			done = True
 		else:
-			if is_victim == True or is_victim_random == True:
+			if is_victim == True: #or is_victim_random == True:
 				if self.allow_victim_multi_access == True or self.victim_accessed == False:
 					r = 2 #
 					self.victim_accessed = True
