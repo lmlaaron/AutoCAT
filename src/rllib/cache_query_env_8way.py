@@ -70,7 +70,7 @@ class CacheQueryEnv(gym.Env):
         cacheset = None
         level = None
         cacheset='34'
-        level = 'L1'      # for 4-way cache
+        level = 'L2'      # for 4-way cache
         # read config
         try:
             config = configparser.ConfigParser()
@@ -108,6 +108,8 @@ class CacheQueryEnv(gym.Env):
         I -> 8
         '''
         self.cq_command = "A B C D E F G H I J K L M N O P A B"  #establish the address alphabet to number mapping
+        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
+ 
         '''
         after this the 4-way cache should be
         [ A B H I] or [0 1 7 8]
@@ -125,6 +127,7 @@ class CacheQueryEnv(gym.Env):
 
         #reset CacheQuery Command
         self.cq_command = "A B C D E F G H I J K L M N O P A B"
+        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
         return state
 
     def step(self, action):
@@ -144,7 +147,11 @@ class CacheQueryEnv(gym.Env):
             # when doing reveal, launch the actual cachequery
             #self.CQ.command(self.cq_command)
             answer = self.CQ.run(self.cq_command)[0]
-            #print(answer)
+            answer_index = answer.split().index('->')+1
+            while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
+                answer = self.CQ.run(self.cq_command)[0]            
+                answer_index = answer.split().index('->')+1
+            
             if answer != None:
                 lat_cq = answer.split()[answer.split().index('->')+1:]
                 lat_cq_cnt = len(lat_cq) - 1
