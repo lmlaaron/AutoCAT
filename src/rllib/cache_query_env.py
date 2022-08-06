@@ -63,18 +63,37 @@ class CacheQueryEnv(gym.Env):
         verbose = False
         interactive = False
         # options
-        config_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+ '/third_party/cachequery/tool/cachequery.ini' # default path
+        if "cq_config_path" in env_config:
+            cq_config_path = env_config["cq_config_path"]
+        else: # default path
+            cq_config_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+ '/third_party/cachequery/tool/cachequery.ini' # default path
+        
+        if "cq_proc" in env_config:
+            cq_proc = env_config["cq_proc"]
+        else:
+            cq_proc = 'i5-6500'
+
         batch = None
 
         # config overwrite
         cacheset = None
         level = None
-        cacheset='34'
-        level = 'L3'      # for 4-way cache
-        # read config
+
+        if  "cq_cacheset" in env_config:
+            cacheset = env_config["cq_cacheset"]
+        else:
+            cacheset='34'
+        
+        if "cq_level" in env_config:
+            level = env_config["cq_level"]
+        else:
+            level = 'L3'      # for 4-way cache
+        
+        
+        # read cq_config
         try:
             config = configparser.ConfigParser()
-            config.read(config_path)
+            config.read(cq_config_path)
             # add method for dynamic cache check
             def cache(self, prop):
                 return self.get(self.get('General', 'level'), prop)
@@ -94,6 +113,8 @@ class CacheQueryEnv(gym.Env):
         if output:
             config.set('General', 'log_file', output)
 
+        config.set('General', 'ways', str(env_config["cache_configs"]["cache_1"]["associativity"]))
+
         # instantiate cq
         self.CQ = CacheQuery(config)
         '''
@@ -107,7 +128,14 @@ class CacheQueryEnv(gym.Env):
         H -> 7
         I -> 8
         '''
-        self.cq_command = "A B C D E F G H I A B"  #establish the address alphabet to number mapping
+        
+        if 'cq_init_command' in config:
+            self.cq_init_command = config["cq_init_command"]
+        else:
+            self.cq_init_command = "A B C D E F G H I A B"  #establish the address alphabet to number mapping
+        
+        self.cq_command= self.cq_init_command
+        
         '''
         after this the 4-way cache should be
         [ A B H I] or [0 1 7 8]
@@ -124,7 +152,7 @@ class CacheQueryEnv(gym.Env):
         self.last_unmasked_tuple = (state, reward, done, info)
 
         #reset CacheQuery Command
-        self.cq_command = "A B C D E F G H I A B"
+        self.cq_command = self.cq_init_command
         return state
 
     def step(self, action):
@@ -229,6 +257,11 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
+            'cq_config_path': '../../third_party/cachequery/tool/cachequery.ini', # default path
+            'cq_proc': 'i5-6500',
+            'cq_cacheset': "34",
+            'cq_level': "L3",
+            'cq_init_command': "@ @",
             'verbose': 1,
             "prefetcher": "nextline",
             "rerandomize_victim": False,
