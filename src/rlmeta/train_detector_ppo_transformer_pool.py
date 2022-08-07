@@ -207,7 +207,7 @@ def main(cfg):
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        if epoch % 200 >= 100:
+        if epoch % 100 >= 50:
             # Train Detector
             agent_d.set_use_history(False)
             agent.set_use_history(True)
@@ -237,7 +237,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        if epoch % 200 >= 100:
+        if epoch % 100 >= 50:
             train_stats = {"detector":d_stats}
         else:
             train_stats = {"attacker":a_stats}

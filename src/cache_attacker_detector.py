@@ -109,7 +109,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         
         # determine detector's reward
         if detector_correct:
-            attacker_reward -= 0.1 #0.1
+            attacker_reward -= 1 #0.1
         #else:
         #    attacker_reward += 0.1
         
