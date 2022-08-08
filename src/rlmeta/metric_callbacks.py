@@ -30,9 +30,11 @@ class MACallbacks(EpisodeCallbacks):
             self.tot_guess += 1
             self.acc_guess += int(attacker_info["guess_correct"])
         detector_info = timestep['detector'].info
-        self.tot_detect += 1
-        self.acc_detect += int(detector_info["guess_correct"])
+        #self.tot_detect += 1
+        #self.acc_detect += int(detector_info["guess_correct"])
         if timestep['detector'].done:
+            self.tot_detect = 1
+            self.acc_detect += int(detector_info["guess_correct"])
             self._custom_metrics["detector_correct_rate"] = self.acc_detect / self.tot_detect
             if attacker_info['action_mask']['attacker']:
                 if self.tot_guess>0:
