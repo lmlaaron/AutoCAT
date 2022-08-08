@@ -1,7 +1,6 @@
 # Author: Mulong Luo
 # date 2021.12.3
 # description: environment for study RL for side channel attack
-
 from collections import deque
 
 import numpy as np
@@ -18,6 +17,8 @@ from gym import spaces
 from omegaconf.omegaconf import open_dict
 
 from cache_simulator import *
+
+import time
 
 class CacheGuessingGameEnv(gym.Env):
 	"""
@@ -94,7 +95,9 @@ class CacheGuessingGameEnv(gym.Env):
 		# remapping function for randomized cache
 		self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
 		self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
+		# set-based channel or address-based channel
 		self.allow_empty_victim_access = env_config["allow_empty_victim_access"] if "allow_empty_victim_access" in env_config else False
+		# self HPC-based detection esaping stealthystreamline
 		self.force_victim_hit =env_config["force_victim_hit"] if "force_victim_hit" in env_config else False
 		self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
 		self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
@@ -134,6 +137,8 @@ class CacheGuessingGameEnv(gym.Env):
 		# cache configuration
 		self.num_ways = self.configs['cache_1']['associativity'] 
 		self.cache_size = self.configs['cache_1']['blocks']
+		self.flush_inst = flush_inst
+		self.reset_time = 0
 		
 		if "rep_policy" not in self.configs['cache_1']:
 			self.configs['cache_1']['rep_policy'] = 'lru'
@@ -170,10 +175,10 @@ class CacheGuessingGameEnv(gym.Env):
   
 		self.ceaser_access_count = 0
 		self.mapping_func = lambda addr : addr
-		self.remap()
-		# initially do a remap for the remapped cache
-		self.flush_inst = flush_inst
-		self.reset_time = 0
+		self.remap()  # initially do a remap for the remapped cache
+  
+		#self.flush_inst = flush_inst
+		#self.reset_time = 0
   
 		# define the action space
   
@@ -211,7 +216,7 @@ class CacheGuessingGameEnv(gym.Env):
 		self.state = deque([[-1, -1, -1, -1, -1, -1]] * self.window_size)
 
 		# initilizate the environment configurations
-  
+		self.vprint('Initializing...')
 		self.l1 = self.hierarchy['cache_1']
 		self.current_step = 0
 		self.victim_accessed = False
@@ -337,7 +342,7 @@ class CacheGuessingGameEnv(gym.Env):
 						done = False
 				else:
 					r = 2
-					# self.vprint("does not allow multi victim access in this config, terminate!")
+					self.vprint("does not allow multi victim access in this config, terminate!")
 					self.current_step += 1
 					reward = self.double_victim_access_reward # -10000
 					done = True
@@ -354,7 +359,24 @@ class CacheGuessingGameEnv(gym.Env):
         
 							else:
 								self.vprint("correct guess empty access!")
-			
+        
+							# update the guess buffer
+							self.guess_buffer.append(True)
+							self.guess_buffer.pop(0)
+							reward = self.correct_guess # 200
+							done = True
+					else:
+							if victim_addr != hex(self.victim_address_max + 1)[2:]:
+									self.vprint("wrong guess" + victim_addr )
+							else:
+									self.vprint("wrong guess empty access!")
+         
+							# update the guess buffer
+							self.guess_buffer.append(False)
+							self.guess_buffer.pop(0)
+							reward = self.wrong_reward # -9999
+							done = True
+					
 				elif is_flush == False or self.flush_inst == False:
 					lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
 					lat = lat.time # measure the access latency
@@ -400,9 +422,6 @@ class CacheGuessingGameEnv(gym.Env):
 		else:
 			victim_accessed = 0
 		
-		# JOHN LEE: the domain_id value will change according to cache configuration. 
-		# TODO value for domain_id changes per cache configuration
-
   		# append the current observation to the sliding window
 		self.state.append([r, victim_accessed, original_action, self.step_count, domain_id, is_flush])
 		self.state.popleft()
@@ -490,7 +509,7 @@ class CacheGuessingGameEnv(gym.Env):
 
 		return np.array(list(reversed(self.state)), dtype=object)
 
-	# function to calculate the correctness rate
+	# function to calculate the correctness rate. using a sliding window
 	def calc_correct_rate(self):
 		return self.guess_buffer.count(True) / len(self.guess_buffer)
 
