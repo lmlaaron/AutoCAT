@@ -11,6 +11,7 @@ import rlmeta.utils.nested_utils as nested_utils
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from agents.ppo_agent import PPOAgent
 from agents.spec_agent import SpecAgent
+from agents.prime_probe_agent import PrimeProbeAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
@@ -33,7 +34,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     detector_count = 0.0
     detector_acc = 0.0
     
-    env.env.opponent_weights = [1,0]
+    env.env.opponent_weights = [0,1]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -50,10 +51,12 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             #print(timestep["attacker"].observation)
             action = agent.act(timestep[agent_name])
             # Unbatch the action.
+            if isinstance(action, tuple):
+                action = Action(action[0], action[1])
             if not isinstance(action.action, int):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
-        print(actions)
+        #print(actions)
         timestep = env.step(actions)
 
         for agent_name, agent in agents.items():
@@ -109,6 +112,7 @@ def main(cfg):
     attacker_model.load_state_dict(attacker_params)
     attacker_model.eval()
     cfg.model_config["output_dim"] = 2
+    cfg.model_config["step_dim"] += 2
     detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
     detector_model = CachePPOTransformerModel(**cfg.model_config)
     detector_model.load_state_dict(detector_params)
@@ -116,10 +120,11 @@ def main(cfg):
 
     # Create agent
     attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:100]#[:100000]
+    spec_trace = spec_trace_f.read().split('\n')[:100000]
     y = []
     for line in spec_trace:
         line = line.split()
