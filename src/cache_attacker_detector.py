@@ -84,14 +84,16 @@ class CacheAttackerDetectorEnv(gym.Env):
         # determine detector's reward 
         detector_flag = False
         detector_correct = False
+        
         if action_detector == 1:
             detector_flag = True
             # terminate the episode
             # detector flag the opponent as an attacker
             if self.opponent_agent == 'benign':
-                detector_reward = - self.max_step + self.step_count - 1 #punish false positive
+                #detector_reward = - self.max_step + self.step_count - 1 #punish false positive
+                detector_reward = - 2 * self.max_step
             elif self.opponent_agent == 'attacker':
-                detector_reward =   self.max_step - self.step_count
+                detector_reward = max(self.max_step - self.step_count, 0)
                 detector_correct = True
         else:
             # else receive a timestep penalty
@@ -100,17 +102,21 @@ class CacheAttackerDetectorEnv(gym.Env):
                 detector_correct = True
             else:
                 detector_reward = 0 # no reward if attacker has done nothing meaningful
+        
+
         if action_detector == 0 and self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success:
-            # attacker has attacked *successfully*, but detector does not catch it
+            # attacker episode terminate, and has attacked *successfully*
             detector_reward = -20
-        elif opponent_done:
-            # It is ok because this attacker is weak
+        elif action_detector == 0 and self.opponent_agent == 'attacker' and opponent_done:
+            # attacker episode terminates, but has done nothing successfully
             detector_reward = 0
         
+
         attacker_reward = reward['attacker']
         
-        if detector_correct:
-            attacker_reward -= 10 #0.1
+        if action_detector == 1 and detector_correct:
+            # the attacker should not receive as much reward if being detected
+            attacker_reward -= 10 
         #else:
         #    attacker_reward += 0.1
         

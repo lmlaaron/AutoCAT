@@ -5,9 +5,10 @@ exp_name: "/2022-07-26/14-03-38/wandb/run-20220726_140343-2wwnweyz/" # entangle-
 #exp_name: "2022-07-26/16-25-20/wandb/run-20220726_162520-2jqwd1e9/" # entangle
 #attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-07-26/16-25-20/wandb/run-20220726_162520-2jqwd1e9/files/attacker-model-99.th"
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-07-26/14-03-38/wandb/run-20220726_140343-2wwnweyz/files/detector-model-599.th"
-attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/15-34-36/attacker-249.pth"
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/10-14-11/detector-399.pth" #15-34-36/detector-272.pth" 
-detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/15-34-36/detector-272.pth" 
+attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/23-59-58/attacker-442.pth"
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/10-14-11/detector-399.pth" #soft flag
+detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/23-59-58/detector-399.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/15-34-36/detector-272.pth" #hard flag
 deterministic_policy: true
 
 defaults:

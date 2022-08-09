@@ -40,6 +40,13 @@ class PrimeProbeAgent():
     # returns an action
     def act(self, timestep):
         info = {}
+        if timestep.observation[0][0][0] == -1:
+            #reset the attacker
+            #from IPython import embed; embed()
+            self.local_step = 0
+            self.lat=[]
+            self.no_prime = False
+
         # do prime
         if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):#- 1:
             action = self.local_step # do prime 
