@@ -44,13 +44,19 @@ def main(cfg):
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
-    original_opponent_weights = cfg.env_config.get("opponent_weights", [0.5, 0.5])
+    #### Define env factory
+    # =========================================================================
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     unbalanced_env_config = copy.deepcopy(cfg.env_config)
     unbalanced_env_config["opponent_weights"] = [0,1]
     env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)
-    #cfg.env_config["opponent_weights"] = original_opponent_weights
+    benign_env_config = copy.deepcopy(cfg.env_config)
+    benign_env_config["opponent_weights"] = [1,0]
+    env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)
+    # =========================================================================
 
+    #### Define model
+    # =========================================================================
     env = env_fac(0)
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
@@ -72,11 +78,13 @@ def main(cfg):
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
     infer_model_d.eval()
-
+    
     ctrl_d = DummyController()
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
+    # =========================================================================
     
     #### start server
+    # =========================================================================
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
     r_server = Server(cfg.r_server_name, cfg.r_server_addr)
     c_server = Server(cfg.c_server_name, cfg.c_server_addr)
@@ -90,16 +98,22 @@ def main(cfg):
     rd_server.add_service(rb_d)
     cd_server.add_service(ctrl_d)
     servers = ServerList([m_server, r_server, c_server, md_server, rd_server, cd_server])
+    # =========================================================================
 
+    #### Define remote model and control
+    # =========================================================================
     a_model = wrap_downstream_model(train_model, m_server)
     t_model = remote_utils.make_remote(infer_model, m_server)
-    e_model = remote_utils.make_remote(infer_model, m_server)
+    ea_model = remote_utils.make_remote(infer_model, m_server)
+    ed_model = remote_utils.make_remote(infer_model, m_server)
     td_model = remote_utils.make_remote(infer_model, m_server)
-    #### TODO:What does control do?
+    # ---- control
     a_ctrl = remote_utils.make_remote(ctrl, c_server)
     ta_ctrl = remote_utils.make_remote(ctrl, c_server)
     td_ctrl = remote_utils.make_remote(ctrl, c_server)
-    e_ctrl = remote_utils.make_remote(ctrl, c_server)
+    ea_ctrl = remote_utils.make_remote(ctrl, c_server)
+    ed_ctrl = remote_utils.make_remote(ctrl, c_server)
+    # =========================================================================
 
     a_rb = make_remote_replay_buffer(rb, r_server, prefetch=cfg.prefetch)
     t_rb = make_remote_replay_buffer(rb, r_server)
@@ -114,7 +128,8 @@ def main(cfg):
                      push_every_n_steps=cfg.push_every_n_steps)
     ta_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
-    e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
+    ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
+    ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
     #### random detector 
     '''
     detector = RandomAgent(2)
@@ -146,7 +161,8 @@ def main(cfg):
     #### detector agent
     a_model_d = wrap_downstream_model(train_model_d, md_server)
     t_model_d = remote_utils.make_remote(infer_model_d, md_server)
-    e_model_d = remote_utils.make_remote(infer_model_d, md_server)
+    ea_model_d = remote_utils.make_remote(infer_model_d, md_server)
+    ed_model_d = remote_utils.make_remote(infer_model_d, md_server)
     ta_model_d = remote_utils.make_remote(infer_model_d, md_server)
     a_rb_d = make_remote_replay_buffer(rb_d, rd_server, prefetch=cfg.prefetch)
     t_rb_d = make_remote_replay_buffer(rb_d, rd_server)
@@ -161,12 +177,14 @@ def main(cfg):
                      push_every_n_steps=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
-    e_d_fac = AgentFactory(PPOAgent, e_model_d, deterministic_policy=True)
+    ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
+    ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list 
     ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
     td_ma_fac = {"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
-    e_ma_fac = {"benign":e_b_fac, "attacker":e_agent_fac, "detector":e_d_fac}
+    ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
+    ed_ma_fac = {"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
@@ -186,16 +204,26 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    e_loop = MAParallelLoop(env_fac,
-                          e_ma_fac,
-                          e_ctrl, #TODO
-                          running_phase=Phase.EVAL,
+    ea_loop = MAParallelLoop(env_fac_unbalanced,
+                          ea_ma_fac,
+                          ea_ctrl, #TODO
+                          running_phase=Phase.EVAL_ATTACKER,
                           should_update=False,
                           num_rollouts=cfg.num_eval_rollouts,
                           num_workers=cfg.num_eval_workers,
                           seed=cfg.eval_seed,
                           episode_callbacks=my_callbacks)
-    loops = LoopList([ta_loop, td_loop, e_loop])
+    ed_loop = MAParallelLoop(env_fac_benign,
+                          ed_ma_fac,
+                          ed_ctrl, #TODO
+                          running_phase=Phase.EVAL_DETECTOR,
+                          should_update=False,
+                          num_rollouts=cfg.num_eval_rollouts,
+                          num_workers=cfg.num_eval_workers,
+                          seed=cfg.eval_seed,
+                          episode_callbacks=my_callbacks)
+
+    loops = LoopList([ta_loop, td_loop, ea_loop, ed_loop])
 
     servers.start()
     loops.start()
@@ -246,8 +274,10 @@ def main(cfg):
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
         agent.set_use_history(False)
         agent_d.set_use_history(False)
+        agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
-        d_stats = agent_d.eval(cfg.num_eval_episodes) #TODO
+        agent.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
+        d_stats = agent_d.eval(cfg.num_eval_episodes) #TODO: remove this, not necessary
         #stats = d_stats
         stats = a_stats
 
@@ -258,7 +288,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        eval_stats = {"attacker":a_stats, "detector":d_stats}
+        eval_stats = {"attacker":a_stats, "detector":d_stats} # TODO: think about how to deal with this
         time.sleep(1)
         
         wandb_logger.log(train_stats, eval_stats)

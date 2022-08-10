@@ -86,4 +86,10 @@ class PPOAgent(PPOAgent):
         stats.update(episode_stats)
 
         return stats
-
+    
+    def eval(self, num_episodes: Optional[int] = None) -> Optional[StatsDict]:
+        #self.controller.set_phase(Phase.EVAL, limit=num_episodes, reset=True)
+        while self.controller.get_count() < num_episodes:
+            time.sleep(1)
+        stats = self.controller.get_stats()
+        return stats
