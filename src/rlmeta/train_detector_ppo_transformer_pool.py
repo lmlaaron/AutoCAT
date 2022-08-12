@@ -243,8 +243,10 @@ def main(cfg):
             d_stats = agent_d.train(cfg.steps_per_epoch)
             wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+            train_stats = {"detector":d_stats}
             if epoch % 10 == 9:
                 agent_d.model.push_to_history()
+        
         else:
             # Train Attacker
             agent_d.set_use_history(True)
@@ -253,9 +255,10 @@ def main(cfg):
             a_stats = agent.train(cfg.steps_per_epoch)
             wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
+            train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:
                 agent.model.push_to_history()
-        #stats = d_stats
+        
         stats = a_stats or d_stats
 
         cur_time = time.perf_counter() - start_time
@@ -265,10 +268,6 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        if epoch % 100 >= 50:
-            train_stats = {"detector":d_stats}
-        else:
-            train_stats = {"attacker":a_stats}
         time.sleep(1)
         
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
@@ -276,8 +275,8 @@ def main(cfg):
         agent_d.set_use_history(False)
         agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
-        agent.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
-        d_stats = agent_d.eval(cfg.num_eval_episodes) #TODO: remove this, not necessary
+        agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
+        d_stats = agent_d.eval(cfg.num_eval_episodes)
         #stats = d_stats
         stats = a_stats
 

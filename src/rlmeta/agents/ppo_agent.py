@@ -53,7 +53,21 @@ class PPOAgent(PPOAgent):
 
     def set_use_history(self, use_history):
         self.model.set_use_history(use_history)
+    
+    def act(self, timestep: TimeStep) -> Action:
+        obs = timestep.observation
+        reload_model = timestep.info.get("episode_reset", False)
+        action, logpi, v = self.model.act(
+            obs, torch.tensor([self.deterministic_policy]), reload_model)
+        return Action(action, info={"logpi": logpi, "v": v})
 
+    async def async_act(self, timestep: TimeStep) -> Action:
+        obs = timestep.observation
+        reload_model = timestep.info.get("episode_reset", False)
+        action, logpi, v = await self.model.async_act(
+            obs, torch.tensor([self.deterministic_policy]), reload_model)
+        return Action(action, info={"logpi": logpi, "v": v})
+    
     def train(self, num_steps: int) -> Optional[StatsDict]:
         #self.controller.set_phase(Phase.TRAIN, reset=True)
 

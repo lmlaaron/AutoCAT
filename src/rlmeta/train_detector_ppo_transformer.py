@@ -265,7 +265,7 @@ def main(cfg):
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
         agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
-        agent.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
+        agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
         d_stats = agent_d.eval(cfg.num_eval_episodes) #TODO: remove this, not necessary
         #stats = d_stats
         stats = a_stats
