@@ -1,7 +1,8 @@
-# a textbook prime probe attacker that serve as the agent 
+# a textbook evict+reload attacker that serve as the agent 
 # which can have high reward for the cache guessing game
 # used to generate the attack sequence that can be detected by cchunter
 # currently it only works for the direct-map cache (associativity=1)
+# code modifed based on Mulong's code
 class TextbookAgent():
 
     # the config is the same as the config cor cache_guessing_game_env_impl
@@ -18,15 +19,16 @@ class TextbookAgent():
             # self.n_sets = self.cache_size / self.num_ways # Total number of sets (M) in the cache
         
             attacker_addr_s = env_config["attacker_addr_s"] if "attacker_addr_s" in env_config else 0 # 0 or N*M
-            attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 7 # self.cache_size * 2 -1 # 2*N*M-1
+            attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 15 # self.cache_size * 2 -1 # 2*N*M-1
             victim_addr_s = env_config["victim_addr_s"] if "victim_addr_s" in env_config else 0
-            victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 3 # self.cache_size - 1 # N*M-1
+            victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 7 # self.cache_size - 1 # N*M-1
             flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False            
             self.allow_empty_victim_access = env_config["allow_empty_victim_access"] if "allow_empty_victim_access" in env_config else False
             
-            # assert(self.num_ways == 1) # currently only support direct-map cache
+            assert(self.num_ways == 1) # currently only support direct-map cache
             # assert(flush_inst == False) # do not allow flush instruction
-            assert((attacker_addr_e - attacker_addr_s) == 2 * (victim_addr_e - victim_addr_s )) # address space must be shared
+            assert(self.cache_size == 8) #assume that cache size is 8
+            assert((attacker_addr_e - attacker_addr_s) == (2 * (victim_addr_e - victim_addr_s ))+1) 
             #must be no shared address space
             assert( attacker_addr_s == victim_addr_s)
             # assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
