@@ -66,7 +66,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         
         episode_length += 1
         episode_return += timestep['attacker'].reward
-        if timestep["__all__"].done and actions['detector'].action.item()==1:
+        if timestep["__all__"].done and actions['detector'].action==1:
             detector_count += 1
         detector_accuracy = detector_count
 
@@ -106,37 +106,11 @@ def main(cfg):
     cfg.env_config['verbose'] = 1
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-    
-    # Load model
-    '''
-    cfg.model_config["output_dim"] = env.action_space.n
-    attacker_params = torch.load(cfg.attacker_checkpoint)
-    attacker_model = CachePPOTransformerModel(**cfg.model_config)
-    attacker_model.load_state_dict(attacker_params)
-    attacker_model.eval()
-    '''
-    cfg.model_config["output_dim"] = 2
-    cfg.model_config["step_dim"] += 2
-    detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
-    detector_model = CachePPOTransformerModel(**cfg.model_config)
-    detector_model.load_state_dict(detector_params)
-    detector_model.eval()
 
     # Create agent
-    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
-    #attacker_agent = EvictReloadAgent(cfg.env_config)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-    #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')#[:100000]
-    y = []
-    for line in spec_trace:
-        line = line.split()
-        y.append(line)
-    spec_trace = y
-    benign_agent = SpecAgent(cfg.env_config, spec_trace)
-    #benign_agent = BenignAgent(2)
+    attacker_agent = EvictReloadAgent(cfg.env_config)
+    detector_agent = BenignAgent(1)
+    benign_agent = BenignAgent(2)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     # Run loops
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
