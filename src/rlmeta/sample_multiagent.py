@@ -125,7 +125,6 @@ def main(cfg):
     # Create agent
     #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     attacker_agent = PrimeProbeAgent(cfg.env_config)
-    #attacker_agent = EvictReloadAgent(cfg.env_config)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
@@ -136,7 +135,6 @@ def main(cfg):
         y.append(line)
     spec_trace = y
     benign_agent = SpecAgent(cfg.env_config, spec_trace)
-    #benign_agent = BenignAgent(2)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     # Run loops
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
