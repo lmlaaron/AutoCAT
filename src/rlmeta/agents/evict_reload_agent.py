@@ -14,18 +14,19 @@ class EvictReloadAgent():
             # self.n_sets = self.cache_size / self.num_ways # Total number of sets (M) in the cache
         
             attacker_addr_s = env_config["attacker_addr_s"] if "attacker_addr_s" in env_config else 0 # 0 or N*M
-            attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 7
+            attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 15
             victim_addr_s = env_config["victim_addr_s"] if "victim_addr_s" in env_config else 0
-            victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 3
+            victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 7
             flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False            
             self.allow_empty_victim_access = env_config["allow_empty_victim_access"] if "allow_empty_victim_access" in env_config else False
             
-            # assert(self.num_ways == 1) # currently only support direct-map cache
-            # assert(flush_inst == False) # do not allow flush instruction
+            assert(self.num_ways == 1) # currently only support direct-map cache
+            assert(self.cache_size == 8) # assume the cache config is for 8 sets 
+            assert(flush_inst == False) # do not allow flush instruction
             #assert((attacker_addr_e - attacker_addr_s) == 2 * (victim_addr_e - victim_addr_s )) # address space must be shared
             #must be no shared address space
-            # assert( attacker_addr_s == victim_addr_s)
-            # assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
+            assert( attacker_addr_s == victim_addr_s)
+            assert( ( attacker_addr_e + 1 == victim_addr_s )) # or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
 
     # initialize the agent with an observation
@@ -48,6 +49,19 @@ class EvictReloadAgent():
             self.no_prime = False
 
         # do evict
+        '''
+        if self.flush_inst == False:
+            if action < len(self.attacker_address_space):
+                address = action
+            elif action == len(self.attacker_address_space):
+                is_victim = 1
+            elif action == len(self.attacker_address_space)+1:
+                is_victim_random = 1
+            else:
+                is_guess = 1
+                victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) 
+        '''
+        
         if self.local_step < self.cache_size - ( self.cache_size if self.no_prime else 0 ):#- 1:
             action = self.local_step + ( self.cache_size - (self.cache_size if self.no_prime else 0 )) # do evict
             self.local_step += 1
