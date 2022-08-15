@@ -174,14 +174,16 @@ class CacheAttackerDetectorEnv(gym.Env):
         obs['detector'] = self.get_detector_obs(opponent_obs, opponent_info) 
         done['detector'] = detector_done
         info['detector'] = {"guess_correct":updated_info["guess_correct"], "is_guess":bool(action['detector'])}
-        
+        info['detector'].update(opponent_info)
         # Change the criteria to determine wether the game is done
         if detector_done:
             done['__all__'] = True
         
         info['__all__'] = {'action_mask':self.action_mask}
+    
         for k,v in info.items():
             info[k].update({'action_mask':self.action_mask})
+
         return obs, reward, done, info
 
 if __name__ == '__main__':
