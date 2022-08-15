@@ -82,7 +82,7 @@ class EvictReloadAgent():
         elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
             action = 2 * self.cache_size # default assume that last is miss
             for addr in range(1, len(self.lat)):
-                if self.lat[addr].int() == 1: # miss
+                if self.lat[addr].int() == 0: # 0 for hit, 1 for miss
                     action = addr + self.cache_size 
                     break
             self.local_step = 0
