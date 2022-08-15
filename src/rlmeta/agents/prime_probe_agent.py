@@ -2,7 +2,7 @@
 # which can have high reward for the cache guessing game
 # used to generate the attack sequence that can be detected by cchunter
 # currently it only works for the direct-map cache (associativity=1)
-class PrimeProbeAgent():
+class PrimeProbeAgent:
 
     # the config is the same as the config cor cache_guessing_game_env_impl
     def __init__(self, env_config):

@@ -13,6 +13,7 @@ from agents.ppo_agent import PPOAgent
 from agents.spec_agent import SpecAgent
 from agents.prime_probe_agent import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
+from agents.cchunter_agent import CCHunterAgent
 from agents.benign_agent import BenignAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
@@ -66,7 +67,12 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         
         episode_length += 1
         episode_return += timestep['attacker'].reward
-        if timestep["__all__"].done and actions['detector'].action.item()==1:
+        
+        try:
+            detector_action = actions['detector'].action.item()
+        except:
+            detector_action = actions['detector'].action
+        if timestep["__all__"].done and detector_action ==1:
             detector_count += 1
         detector_accuracy = detector_count
 
@@ -108,13 +114,14 @@ def main(cfg):
     env = env_fac(index=0)
     
     # Load model
-    '''
+    # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
     attacker_params = torch.load(cfg.attacker_checkpoint)
     attacker_model = CachePPOTransformerModel(**cfg.model_config)
     attacker_model.load_state_dict(attacker_params)
     attacker_model.eval()
-    '''
+    
+    # Detector
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
     detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
@@ -123,9 +130,13 @@ def main(cfg):
     detector_model.eval()
 
     # Create agent
-    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
+    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
+    
+
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    #detector_agent = CCHunterAgent(cfg.env_config)
+
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')#[:100000]

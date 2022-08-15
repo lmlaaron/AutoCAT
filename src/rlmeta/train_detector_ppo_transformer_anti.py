@@ -22,7 +22,7 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model #CachePPOTransformerModel
+from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model, CachePPOTransformerModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 from metric_callbacks import MACallbacks
 
@@ -60,7 +60,7 @@ def main(cfg):
     env = env_fac(0)
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(
+    train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device)
     attacker_checkpoint = cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
@@ -76,12 +76,12 @@ def main(cfg):
     #### detector 
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
+    train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device_d)
     detector_checkpoint = cfg.detector_checkpoint
     if len(detector_checkpoint) > 0:
         detector_params = torch.load(cfg.detector_checkpoint, map_location=cfg.train_device_d)
-        train_model_d = torch.load_state_dict(detector_params)
+        train_model_d.load_state_dict(detector_params)
 
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
@@ -100,7 +100,10 @@ def main(cfg):
     m_server.add_service(infer_model)
     r_server.add_service(rb)
     c_server.add_service(ctrl)
-    servers = ServerList([m_server, r_server, c_server])
+    
+    md_server = Server(cfg.md_server_name, cfg.md_server_addr)
+    md_server.add_service(infer_model_d)
+    servers = ServerList([m_server, r_server, c_server, md_server])
     # =========================================================================
 
     #### Define remote model and control
@@ -160,14 +163,7 @@ def main(cfg):
     ea_model_d = remote_utils.make_remote(infer_model_d, md_server)
     ta_model_d = remote_utils.make_remote(infer_model_d, md_server)
 
-    agent_d = PPOAgent(a_model_d,
-                     replay_buffer=a_rb_d,
-                     controller=a_ctrl,
-                     optimizer=optimizer_d,
-                     batch_size=cfg.batch_size,
-                     learning_starts=cfg.get("learning_starts", None),
-                     entropy_coeff=cfg.get("entropy_coeff", 0.01),
-                     push_every_n_steps=cfg.push_every_n_steps)
+    agent_d = PPOAgent(a_model_d, deterministic_policy=True)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
     ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
 
