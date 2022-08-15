@@ -26,7 +26,7 @@ class EvictReloadAgent():
             #assert((attacker_addr_e - attacker_addr_s) == 2 * (victim_addr_e - victim_addr_s )) # address space must be shared
             #must be no shared address space
             assert( attacker_addr_s == victim_addr_s)
-            assert( ( attacker_addr_e + 1 == victim_addr_s )) # or ( victim_addr_e + 1 == attacker_addr_s ) )
+            #assert( ( attacker_addr_e + 1 == victim_addr_s )) # or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
 
     # initialize the agent with an observation
@@ -41,7 +41,7 @@ class EvictReloadAgent():
     # returns an action
     def act(self, timestep):
         info = {}
-        if timestep.observation[0][0][0] == -1:
+        if timestep[0][0] == -1:
             #reset the attacker
             #from IPython import embed; embed()
             self.local_step = 0

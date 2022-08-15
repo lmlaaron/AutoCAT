@@ -5,8 +5,8 @@
 
 import time
 
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
-
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union, NamedTuple, Any
+'''
 import torch
 import torch.nn as nn
 
@@ -24,22 +24,33 @@ from rlmeta.core.rescalers import Rescaler, RMSRescaler
 from rlmeta.core.types import Action, TimeStep
 from rlmeta.core.types import Tensor, NestedTensor
 from rlmeta.utils.stats_dict import StatsDict
-
+'''
 import random
 
-console = Console()
+#console = Console()
+class TimeStep(NamedTuple):
+    observation: Any
+    reward: Optional[float] = None
+    done: bool = False
+    info: Optional[Any] = None
+class Action(NamedTuple):
+    action: Any
+    info: Optional[Any] = None
 
-
-class RandomAgent(Agent):
+class RandomAgent:
 
     def __init__(self,
                 action_space):
-        super().__init__()
+        #super().__init__()
         self.action_space = action_space
 
     def act(self, timestep: TimeStep) -> Action:
         action = random.randint(0, self.action_space-1)
         return Action(action)
+    
+    def observe_init(self, timestep):
+        # initialization doing nothing
+        return
 
     async def async_act(self, timestep: TimeStep) -> Action:
         action = random.randint(0, self.action_space-1)
@@ -59,5 +70,8 @@ class RandomAgent(Agent):
     async def async_update(self) -> None:
         pass
 
-
-
+    def observe(self, action, timestep):
+        if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
+        ##    self.local_step += 1
+            self.lat.append(timestep.observation[0][0])
+        return
