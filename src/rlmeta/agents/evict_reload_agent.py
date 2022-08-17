@@ -23,11 +23,15 @@ class EvictReloadAgent():
             assert(self.num_ways == 1) # currently only support direct-map cache
             assert(self.cache_size == 8) # assume the cache config is for 8 sets 
             assert(flush_inst == False) # do not allow flush instruction
-            #assert((attacker_addr_e - attacker_addr_s) == 2 * (victim_addr_e - victim_addr_s )) # address space must be shared
-            #must be no shared address space
+            #assert((attacker_addr_e - attacker_addr_s ) == (2 * (victim_addr_e - victim_addr_s )+1)) # address space must be shared
+            
             assert( attacker_addr_s == victim_addr_s)
             #assert( ( attacker_addr_e + 1 == victim_addr_s )) # or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
+            #assert(attacker_addr_s == 0)
+            #assert(attacker_addr_e == 15)
+            #assert(victim_addr_s == 0)
+            #assert(victim_addr_e == 7)
 
     # initialize the agent with an observation
     def observe_init(self, timestep):
@@ -51,47 +55,53 @@ class EvictReloadAgent():
         # do evict
         '''
         if self.flush_inst == False:
-            if action < len(self.attacker_address_space):
-                address = action
-            elif action == len(self.attacker_address_space):
+            if action < len(self.attacker_address_space): ---> action = 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+                address = action ---> 
+            elif action == len(self.attacker_address_space): --> action = 16
                 is_victim = 1
-            elif action == len(self.attacker_address_space)+1:
+            elif action == len(self.attacker_address_space)+1: --> action = 17
                 is_victim_random = 1
-            else:
+            else: 
                 is_guess = 1
-                victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) 
+                victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) --> victim addr = action - 18
         '''
-        
-        if self.local_step < self.cache_size - ( self.cache_size if self.no_prime else 0 ):#- 1:
-            action = self.local_step + ( self.cache_size - (self.cache_size if self.no_prime else 0 )) # do evict
+        # evict phase
+        if self.local_step < self.cache_size - ( self.cache_size if self.no_prime else 0 ): # action = 8,9,10,11,12,13,14,15
+            action = self.local_step + self.cache_size - (self.cache_size if self.no_prime else 0 ) 
             self.local_step += 1
             return action, info
 
-        elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
-            action = self.cache_size # do victim access
+        # do victim trigger
+        elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ): # action = 16
+            action = 2 * self.cache_size # do victim access, because action==len(self.attacker_address_space) then is_victim = 1
             self.local_step += 1
             return action, info
 
-        elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):#- 1 - 1:# do reload
-            action = self.local_step - (self.cache_size if self.no_prime else 0 ) - 1  
+        # reload phase
+        elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ): # action = 0,1,2,3,4,5,6,7
+            action = self.local_step - self.cache_size - (self.cache_size if self.no_prime else 0 ) -1  
             self.local_step += 1
-            if action > self.cache_size:
+            
+            if action > self.cache_size: # why?
                 action += 1
+            
             return action, info
 
-        elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
-            action = 2 * self.cache_size # default assume that last is miss
+        # is_guess = 1
+        # victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) --> victim addr = action - 18
+        elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
+            #action = 2 * self.cache_size # default assume that last is hit
             for addr in range(1, len(self.lat)):
                 if self.lat[addr].int() == 0: # 0 for hit, 1 for miss
-                    action = addr + self.cache_size 
+                    action =  addr + self.cache_size 
                     break
-            self.local_step = 0
-            self.lat=[]
-            self.no_prime = True
+            self.local_step = 0 # reset the attacker 
+            self.lat=[] # reset the attacker
+            self.no_prime = True # reset the attacker
             if action > self.cache_size:
                 action+=1
             return action, info
-        else:        
+        else:            
             assert(False)
     
     def observe(self, action, timestep):
