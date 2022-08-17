@@ -71,7 +71,8 @@ class RandomAgent:
         pass
 
     def observe(self, action, timestep):
-        if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
-        ##    self.local_step += 1
-            self.lat.append(timestep.observation[0][0])
-        return
+        pass
+        ##if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
+        ####    self.local_step += 1
+        ##    self.lat.append(timestep.observation[0][0])
+        ##return

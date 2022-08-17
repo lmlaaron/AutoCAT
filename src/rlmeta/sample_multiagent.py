@@ -69,11 +69,11 @@ def run_loop(env, agents, victim_addr=-1) -> Dict[str, float]:
             if isinstance(action, Action):
                 action=action.action
             actions.update({agent_name:action})
-        #print(actions)
+        print(actions)
         obs, reward, done, info = env.step(actions)
 
-        #for agent_name, agent in agents.items():
-        #    agent.observe(actions[agent_name], obser[agent_name])
+        for agent_name, agent in agents.items():
+            agent.observe(actions[agent_name], obs[agent_name])
         
         episode_length += 1
         episode_return += reward['attacker']
