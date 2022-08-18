@@ -258,7 +258,7 @@ if __name__ == "__main__":
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
             'cq_config_path': '../../third_party/cachequery/tool/cachequery.ini', # default path
-            'cq_proc': 'i5-6500',
+            'cq_proc': 'i5-6500',  #TODO(Mulong): automatically recompile the cache query
             'cq_cacheset': "34",
             'cq_level': "L3",
             'cq_init_command': "@ @",
