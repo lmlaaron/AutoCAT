@@ -69,12 +69,16 @@ class EvictReloadAgent():
         if self.local_step < self.cache_size - ( self.cache_size if self.no_prime else 0 ): # action = 8,9,10,11,12,13,14,15
             action = self.local_step + self.cache_size - (self.cache_size if self.no_prime else 0 ) 
             self.local_step += 1
+            print('evict')
+            print(action)
             return action, info
 
         # do victim trigger
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ): # action = 16
             action = 2 * self.cache_size # do victim access, because action==len(self.attacker_address_space) then is_victim = 1
             self.local_step += 1
+            print('victim trigger')
+            print(action)
             return action, info
 
         # reload phase
@@ -84,21 +88,27 @@ class EvictReloadAgent():
             
             if action > self.cache_size: # why?
                 action += 1
-            
+
+            print('reload')
+            print(action)
             return action, info
 
         # is_guess = 1
         # victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) --> victim addr = action - 18
         elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
-            action = self.cache_size # default assume that last is hit
+            action = 2 * self.cache_size + len(self.lat) # default assume that last is hit
             for addr in range(1, len(self.lat)):
-                if self.lat[addr].int() == 0: # 0 for hit, 1 for miss
-                    action =  addr + self.cache_size 
+                if self.lat[addr] == 0: # 0 for hit, 1 for miss
+                    action =  addr + 2 * self.cache_size 
                     break
+            print(self.lat)
             self.local_step = 0 # reset the attacker 
             self.lat=[] # reset the attacker
             self.no_prime = True # reset the attacker
-            
+
+            print('guess')
+            print(action)
+
             if action > self.cache_size:
                 action+=1
             return action, info
@@ -108,5 +118,5 @@ class EvictReloadAgent():
     def observe(self, action, timestep):
         if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
         ##    self.local_step += 1
-            self.lat.append(timestep.observation[0][0])
+            self.lat.append(timestep[0][0])
         return
