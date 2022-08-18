@@ -23,9 +23,9 @@ class PrimeProbeAgent():
             
             assert(self.num_ways == 1) # currently only support direct-map cache
             assert(flush_inst == False) # do not allow flush instruction
-            assert(attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s ) # address space must be shared
+            #assert(attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s ) # address space must be shared
             #must be no shared address space
-            assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
+            #assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
 
     # initialize the agent with an observation
@@ -40,7 +40,7 @@ class PrimeProbeAgent():
     # returns an action
     def act(self, timestep):
         info = {}
-        if timestep.observation[0][0][0] == -1:
+        if timestep[0][0] == -1:
             #reset the attacker
             #from IPython import embed; embed()
             self.local_step = 0
@@ -51,11 +51,15 @@ class PrimeProbeAgent():
         if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):#- 1:
             action = self.local_step # do prime 
             self.local_step += 1
+            print('prime')
+            print(action)
             return action, info
 
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
             action = self.cache_size # do victim access
             self.local_step += 1
+            print('victim trigger')
+            print(action)
             return action, info
 
         elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):#- 1 - 1:# do probe
@@ -67,6 +71,8 @@ class PrimeProbeAgent():
             #print(timestep.observation)
             if action > self.cache_size:
                 action += 1
+            print('probe')
+            print(action)
             return action, info
 
         elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
@@ -74,12 +80,14 @@ class PrimeProbeAgent():
             # first timestep not useful
             action = 2 * self.cache_size # default assume that last is miss
             for addr in range(1, len(self.lat)):
-                if self.lat[addr].int() == 1: # miss
+                if self.lat[addr] == 1: # miss
                     action = addr + self.cache_size 
                     break
             self.local_step = 0
             self.lat=[]
             self.no_prime = True
+            print('guess')
+            print(action)
             if action > self.cache_size:
                 action+=1
             return action, info
@@ -89,5 +97,5 @@ class PrimeProbeAgent():
     def observe(self, action, timestep):
         if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
         ##    self.local_step += 1
-            self.lat.append(timestep.observation[0][0])
+            self.lat.append(timestep[0][0])
         return
