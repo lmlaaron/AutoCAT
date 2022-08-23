@@ -328,7 +328,8 @@ class CacheGuessingGameEnv(gym.Env):
                 t = t.time 
                 info['victim_address'] = victim_random
             elif self.victim_address <= self.victim_address_max:
-                self.vprint("victim access %d " % self.victim_address)
+                #self.vprint("victim access %d " % self.victim_address)
+                self.vprint("victim access " + hex(self.victim_address))
                 t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
                 t = t.time # do not need to lock again
             else:
