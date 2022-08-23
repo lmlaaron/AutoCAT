@@ -24,7 +24,6 @@ class EvictReloadAgent():
             #assert(self.cache_size == 8) # assume the cache config is for 8 sets 
             #assert(flush_inst == False) # do not allow flush instruction
             #assert((attacker_addr_e - attacker_addr_s ) == (2 * (victim_addr_e - victim_addr_s )+1)) # address space must be shared
-            
             #assert( attacker_addr_s == victim_addr_s)
             #assert( ( attacker_addr_e + 1 == victim_addr_s )) # or ( victim_addr_e + 1 == attacker_addr_s ) )
             #assert(self.allow_empty_victim_access == False)
@@ -41,7 +40,6 @@ class EvictReloadAgent():
         self.no_prime = False
         return
 
-
     # returns an action
     def act(self, timestep):
         info = {}
@@ -55,11 +53,11 @@ class EvictReloadAgent():
         # do evict
         '''
         if self.flush_inst == False:
-            if action < len(self.attacker_address_space): ---> action = 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+            if action < len(self.attacker_address_space): 
                 address = action ---> 
-            elif action == len(self.attacker_address_space): --> action = 16
+            elif action == len(self.attacker_address_space): 
                 is_victim = 1
-            elif action == len(self.attacker_address_space)+1: --> action = 17
+            elif action == len(self.attacker_address_space)+1: 
                 is_victim_random = 1
             else: 
                 is_guess = 1
@@ -68,6 +66,7 @@ class EvictReloadAgent():
         # evict phase
         if self.local_step < self.cache_size - ( self.cache_size if self.no_prime else 0 ): # action = 8,9,10,11,12,13,14,15
             action = self.local_step + self.cache_size - (self.cache_size if self.no_prime else 0 ) 
+            # action = self.local_step - (self.cache_size if self.no_prime else 0 ) 
             self.local_step += 1
             print('evict')
             print(action)
@@ -82,12 +81,12 @@ class EvictReloadAgent():
             return action, info
 
         # reload phase
-        elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ): # action = 0,1,2,3,4,5,6,7
+        elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ) +1: # action = 0,1,2,3,4,5,6,7
             action = self.local_step - self.cache_size - (self.cache_size if self.no_prime else 0 ) -1  
             self.local_step += 1
             
-            if action > self.cache_size: # why?
-                action += 1
+            #if action > self.cache_size: # why?
+            #    action += 1
 
             print('reload')
             print(action)
@@ -95,7 +94,7 @@ class EvictReloadAgent():
 
         # is_guess = 1
         # victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) --> victim addr = action - 18
-        elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
+        elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) + 1:# - 1 - 1: # do guess and terminate
             action = 2 * self.cache_size + len(self.lat) # default assume that last is hit
             for addr in range(1, len(self.lat)):
                 if self.lat[addr] == 0: # 0 for hit, 1 for miss

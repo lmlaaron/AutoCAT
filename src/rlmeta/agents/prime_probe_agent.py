@@ -49,43 +49,45 @@ class PrimeProbeAgent():
 
         # do prime
         if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):#- 1:
-            action = self.local_step # do prime 
+            action = self.local_step + self.cache_size - (self.cache_size if self.no_prime else 0 ) # do prime 
+            #action = self.local_step + self.cache_size - (self.cache_size if self.no_prime else 0 ) 
             self.local_step += 1
             print('prime')
             print(action)
+            print(self.local_step)
+            print(self.cache_size)
             return action, info
 
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
-            action = self.cache_size # do victim access
+            action = 2 * self.cache_size  # do victim access
             self.local_step += 1
             print('victim trigger')
             print(action)
             return action, info
 
-        elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):#- 1 - 1:# do probe
-            action = self.local_step - ( self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ) )#- 1 )  
+        elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ) + 1 :#- 1 - 1:# do probe
+            # action = self.local_step -1 + ( - (self.cache_size if self.no_prime else 0 ) )  
+            action = self.local_step - 1 + (self.cache_size if self.no_prime else 0 ) 
             self.local_step += 1
-            #timestep,state i state
-            # timestep.state[0] is [r victim_accessesd original_action self_count]
-            #self.lat.append(timestep.observation[0][0][0])
-            #print(timestep.observation)
-            if action > self.cache_size:
-                action += 1
+            #if action > self.cache_size:
+            #    action += 1
             print('probe')
+            print(self.local_step)
             print(action)
             return action, info
 
-        elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
+        elif self.local_step == 2 * self.cache_size  - (self.cache_size if self.no_prime else 0 ) +1 :# - 1 - 1: # do guess and terminate
             # timestep is the observation from last step
             # first timestep not useful
-            action = 2 * self.cache_size # default assume that last is miss
+            # action = 2 * self.cache_size + len(self.lat) # default assume that last is miss
+            action = 2 * self.cache_size + len(self.lat) # default assume that last is miss
             for addr in range(1, len(self.lat)):
                 if self.lat[addr] == 1: # miss
-                    action = addr + self.cache_size 
+                    action = addr + 2 * self.cache_size 
                     break
             self.local_step = 0
             self.lat=[]
-            self.no_prime = True
+            #self.no_prime = True
             print('guess')
             print(action)
             if action > self.cache_size:
@@ -93,6 +95,7 @@ class PrimeProbeAgent():
             return action, info
         else:        
             assert(False)
+            
     # is it useful for non-ML agent or not???
     def observe(self, action, timestep):
         if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
