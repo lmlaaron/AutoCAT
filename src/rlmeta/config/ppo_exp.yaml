@@ -71,3 +71,4 @@ defaults:
   # - env_config: config_exp_remap_baseline2
   # - env_config: config_exp_ceaser_distributed
   - model_config: experiments
+  # - model_config: resnet_lru_8way

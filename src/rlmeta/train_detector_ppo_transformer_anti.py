@@ -163,10 +163,14 @@ def main(cfg):
     ea_model_d = remote_utils.make_remote(infer_model_d, md_server)
     ta_model_d = remote_utils.make_remote(infer_model_d, md_server)
 
-    agent_d = PPOAgent(a_model_d, deterministic_policy=True)
-    ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
-    ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
-
+    if len(detector_checkpoint) > 0:
+        agent_d = PPOAgent(a_model_d, deterministic_policy=True)
+        ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
+        ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
+    else:
+        agent_d = RandomAgent(1)
+        ta_d_fac = AgentFactory(RandomAgent,1)
+        ea_d_fac = AgentFactory(RandomAgent,1)
     #### create agent list 
     ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
     ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
