@@ -25,17 +25,17 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
-            "enable_no_measure_access": 1,
+            "enable_no_measure_access": 1, #0, #1,
             'verbose': 1,
             "rerandomize_victim": False,
             "force_victim_hit": False,
             'flush_inst': False,
             "allow_victim_multi_access": True,#False,
-            "allow_empty_victim_access": True,
+            "allow_empty_victim_access": False, #True,
             "attacker_addr_s": 0,
-            "attacker_addr_e": 8,#4,#11,#15,
-            "victim_addr_s": 0,
-            "victim_addr_e": 0,#7,
+            "attacker_addr_e": 15,#4,#11,#15,
+            "victim_addr_s": 16,
+            "victim_addr_e": 17,#7,
             "reset_limit": 1,
             "cache_configs": {
                 # YAML config file for cache simulaton
@@ -45,8 +45,8 @@ if __name__ == "__main__":
                   "write_back": True
                 },
                 "cache_1": {#required
-                  "blocks": 4,#4, 
-                  "associativity": 4,  
+                  "blocks": 16,#4, 
+                  "associativity": 8,  
                   "hit_time": 1, #cycles
                   "prefetcher": "nextline"
                 },
