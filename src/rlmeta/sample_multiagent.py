@@ -1,5 +1,5 @@
 import logging
-
+import os
 from typing import Dict
 
 import hydra
@@ -15,6 +15,7 @@ from agents.prime_probe_agent import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
 from agents.cchunter_agent import CCHunterAgent
 from agents.benign_agent import BenignAgent
+from agents.cyclone_agent import CycloneAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
@@ -134,9 +135,9 @@ def main(cfg):
     #attacker_agent = PrimeProbeAgent(cfg.env_config)
     
 
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
-
+    detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')#[:100000]

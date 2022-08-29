@@ -10,29 +10,32 @@ import gym
 
 from sklearn import svm
 from sklearn.model_selection import cross_val_score
-from cache_guessing_game_env_impl import CacheGuessingGameEnv
 import pickle
 import os
 
 class CycloneAgent:
     def __init__(self,
                  env_config,
-                 svm_model_path="all.txt.svm.txt",
-                 keep_latency=True) -> None:
+                 svm_model_path=None,
+                 keep_latency=True,
+                 mode='data') -> None:
 
         self.step_count = 0
         self.episode_length = 64
         self.keep_latency = keep_latency
+        self.mode = mode # 'data' or 'active'
         self.env_config = env_config
-        self.svm_model_path = svm_model_path
-        self.clf = pickle.load(open(svm_model_path,'rb'))
+        if svm_model_path is not None:
+            print("loading cyclone agent from ", svm_model_path)
+            self.clf = pickle.load(open(svm_model_path,'rb'))
         
         self.cyclone_window_size = env_config.get("cyclone_window_size", 4)
         self.cyclone_interval_size = env_config.get("cyclone_interval_size", 40)
         self.cyclone_num_buckets = env_config.get("cyclone_num_buckets", 4)
-        self.cyclone_bucket_size = self.env_config.cache_configs.cache_1.blocks / self.cyclone_num_buckets
+        self.cyclone_bucket_size = env_config.cache_configs.cache_1.blocks / self.cyclone_num_buckets
         self.cyclone_collect_data = env_config.get("cyclone_collect_data", False)
         self.cyclone_malicious_trace = env_config.get("cyclone_malicious_trace", False)
+        self.cyclone_heatmap = [[], [], [], []]
         self.cyclone_counters = []
         for j in range(self.cyclone_num_buckets):
             temp =[]
@@ -71,7 +74,7 @@ class CycloneAgent:
         if timestep.observation[0][0][0] == -1:
             #reset the attacker
             self.local_step = 0
-             self.cyclone_counters = []
+            self.cyclone_counters = []
             for j in range(self.cyclone_num_buckets):
                 temp =[]
                 for i in range(self.cyclone_window_size):
@@ -86,7 +89,7 @@ class CycloneAgent:
             if self.local_step < self.episode_length:
                 self.cyclone_counters[int(set / self.cyclone_bucket_size) ][int(self.step_count / self.cyclone_interval_size) ] += 1    
 
-        if self.local_step >= self.episode_length: 
+        if self.local_step >= self.episode_length and self.mode=='active': 
             action = self.cyclone_attack(self.cyclone_counters)
         else:
             action = 0
@@ -94,5 +97,9 @@ class CycloneAgent:
         return action, info
 
 
-    def observe(self):
-        return 
+    def observe(self, action, timestep):
+        return
+
+
+if __name__ == "__main__":
+    CycloneAgent(env_config={})
