@@ -165,6 +165,7 @@ class CacheQueryEnv(gym.Env):
             is_victim = tmpaction[2]                                                 # check whether to invoke victim
             is_flush = tmpaction[3]                                                  # check whether to flush
             victim_addr = hex(tmpaction[4] + self.env.victim_address_min)[2:]        # victim address
+            no_measure = tmpaction[5]                                                # attacker access without measure latency
 
             # need to check if revealed first
             # if revealed, must make a guess
@@ -204,11 +205,15 @@ class CacheQueryEnv(gym.Env):
                         if self.env.victim_address <= self.env.victim_address_max: # check whether it is an empty access
                             self.cq_command += ' ' + str(int(self.env.victim_address / self.env.num_set)) + '_' +  str(int(self.env.victim_address % self.env.num_set)) #(' ' + chr(ord('A') + self.env.victim_address))
                         else:                                                  # empty access, doing nothing
-                           self.cq_command += '' 
+                           self.cq_command += ' ' 
                     elif is_flush == True:
-                        self.cq_command += ' ' + str(int(int(address,16) / self.env.num_set)) + '_' +  str(int(int(address,16) % self.env.num_set)) +'!'#(' ' + chr(ord('A') + int(address, 16)) + '!') 
+                        self.cq_command += ' ' + str(int(int(address,16) / self.env.num_set)) + '_' +  str(int(int(address,16) % self.env.num_set))+ '!'#(' ' + chr(ord('A') + int(address, 16)) + '!') 
                     else:
-                        self.cq_command += ' ' + str(int(int(address,16) / self.env.num_set)) + '_' +  str(int(int(address,16) % self.env.num_set)) + '?' #(' ' + chr(ord('A') + int(address, 16)) + '?')  
+                        self.cq_command += ' ' + str(int(int(address,16) / self.env.num_set)) + '_' +  str(int(int(address,16) % self.env.num_set))  #(' ' + chr(ord('A') + int(address, 16)) + '?')  
+                        if no_measure == 0:
+                            self.cq_command += '?'
+                        else:
+                            self.cq_command += ''
 
                     self.last_unmasked_tuple = ( state.copy(), reward, done, info )
                     # mask the state so that nothing is revealed
@@ -225,6 +230,7 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
+            "enable_no_measure_access": 1, #0, #1,
             'verbose': 1,
             "prefetcher": "nextline",
             "rerandomize_victim": False,

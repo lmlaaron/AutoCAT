@@ -374,7 +374,7 @@ class CacheGuessingGameEnv(gym.Env):
           '''
           if self.victim_accessed and victim_addr == hex(self.victim_address)[2:]:
               if victim_addr != hex(self.victim_address_max + 1)[2:]: 
-                self.vprint("correct guess " + victim_addr)
+                self.vprint("correct guess (hex) " + victim_addr)
               else:
                 self.vprint("correct guess empty access!")
               # update the guess buffer 
@@ -384,7 +384,7 @@ class CacheGuessingGameEnv(gym.Env):
               done = True
           else:
               if victim_addr != hex(self.victim_address_max + 1)[2:]:
-                self.vprint("wrong guess " + victim_addr )
+                self.vprint("wrong guess (hex) " + victim_addr )
               else:
                 self.vprint("wrong guess empty access!")
               # update the guess buffer 
@@ -397,20 +397,20 @@ class CacheGuessingGameEnv(gym.Env):
           lat = lat.time # measure the access latency
           if lat > 500:
             if no_measure == 0:
-              self.vprint("acceee " + address + " miss")
+              self.vprint("access (hex) " + address + " miss")
               r = 1 # cache miss
               reward = self.step_reward #-1 
             else:
-              self.vprint("acceee " + address + " (miss not observable)")
+              self.vprint("access (hex) " + address + " (miss not observable)")
               r = 2 # cache miss
               reward = 0.9 * self.step_reward #-1  
           else:
             if no_measure == 0:
-              self.vprint("access " + address + " hit"  )
+              self.vprint("access (hex) " + address + " hit"  )
               r = 0 # cache hit
               reward = self.step_reward #-1 
             else:
-              self.vprint("acceee " + address + " (hit not observable)")
+              self.vprint("access (hex) " + address + " (hit not observable)")
               r = 2 # cache miss 
               reward = 0.9 * self.step_reward #-1 
           self.current_step += 1
@@ -419,7 +419,7 @@ class CacheGuessingGameEnv(gym.Env):
         else:    # is_flush == True
           self.l1.cflush(address, self.current_step, domain_id='X')
           #cflush = 1
-          self.vprint("cflush " + address )
+          self.vprint("cflush (hex) " + address )
           r = 2
           self.current_step += 1
           reward = self.step_reward
