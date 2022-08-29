@@ -70,7 +70,7 @@ class CacheQueryEnv(gym.Env):
         cacheset = None
         level = None
         cacheset='34'
-        level = 'L2'      # for 4-way cache
+        level = 'L1'      # for 4-way cache
         # read config
         try:
             config = configparser.ConfigParser()

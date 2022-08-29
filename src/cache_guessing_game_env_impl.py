@@ -142,6 +142,7 @@ class CacheGuessingGameEnv(gym.Env):
     # cahce configuration
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
+    self.num_set = self.cache_size / self.num_ways
     self.flush_inst = flush_inst
     self.reset_time = 0
     if "rep_policy" not in self.configs['cache_1']:
