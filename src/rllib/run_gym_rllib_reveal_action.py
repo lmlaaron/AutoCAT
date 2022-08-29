@@ -109,7 +109,7 @@ if __name__ == "__main__":
             "allow_victim_multi_access": True,#False,
             "allow_empty_victim_access": True,
             "attacker_addr_s": 0,
-            "attacker_addr_e": 8,#4,#11,#15,
+            "attacker_addr_e": 4,#4,#11,#15,
             "victim_addr_s": 0,
             "victim_addr_e": 0,#7,
             "reset_limit": 1,
@@ -123,6 +123,7 @@ if __name__ == "__main__":
                 "cache_1": {#required
                   "blocks": 4,#4, 
                   "associativity": 4,  
+                  "rep_policy": "rrip",
                   "hit_time": 1, #cycles
                   "prefetcher": "nextline"
                 },

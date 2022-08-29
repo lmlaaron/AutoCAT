@@ -7,3 +7,6 @@
 [submodule "third_party/cachequery"]
 	path = third_party/cachequery
 	url = git@github.com:lmlaaron/cachequery.git
+[submodule "third_party/evsets"]
+	path = third_party/evsets
+	url = git@github.com:lmlaaron/evsets.git
