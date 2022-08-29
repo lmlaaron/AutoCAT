@@ -25,12 +25,13 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
+            "enable_no_measure_access": 1, #0, #1,
             'verbose': 1,
             "rerandomize_victim": False,
             "force_victim_hit": False,
             'flush_inst': False,
             "allow_victim_multi_access": True,#False,
-            "allow_empty_victim_access": False,#True,
+            "allow_empty_victim_access": False, #True,
             "attacker_addr_s": 0,
             "attacker_addr_e": 15,#4,#11,#15,
             "victim_addr_s": 16,

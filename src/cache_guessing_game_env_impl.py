@@ -97,7 +97,7 @@ class CacheGuessingGameEnv(gym.Env):
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
-
+    self.no_measure_factor = env_config["enable_no_measure_access"] if "enable_no_measure_access" in env_config else 0
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
@@ -198,24 +198,24 @@ class CacheGuessingGameEnv(gym.Env):
       if self.allow_empty_victim_access == True:
         # | attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | v | victim_guess_addr | 
         self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+          ( self.no_measure_factor + 1 )* len(self.attacker_address_space) + 1 + len(self.victim_address_space)
         )
     else:
       # one-hot encoding
       if self.allow_empty_victim_access == True:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          (( self.no_measure_factor + 1 )+ 1) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
+          (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
         )
     
     '''
@@ -311,7 +311,7 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = action[2]                                             # check whether to invoke victim
     is_flush = action[3]                                              # check whether to flush
     victim_addr = hex(action[4] + self.victim_address_min)[2:]        # victim address
-    
+    no_measure = action[5]                                            # whether the current attacker acces takes measurement or not 
     '''
     The actual stepping logic
 
@@ -344,7 +344,6 @@ class CacheGuessingGameEnv(gym.Env):
               t = 1 # empty access will be treated as HIT??? does that make sense???
               #t = self.l1.read(str(self.victim_address), self.current_step).time 
           if t > 500:   # for LRU attack, has to force victim access being hit
-            info['victim_latency'] = 2
             victim_latency = 1
             self.current_step += 1
             reward = self.victim_miss_reward #-5000
@@ -354,7 +353,6 @@ class CacheGuessingGameEnv(gym.Env):
             else:
               done = False
           else:
-            info['victim_latency'] =1 
             victim_latency = 0
             self.current_step += 1
             reward = self.victim_access_reward #-10
@@ -398,19 +396,25 @@ class CacheGuessingGameEnv(gym.Env):
           lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
-            if self.show_latency == True:
-              self.vprint("access " + address + " miss")
+            if no_measure == 0:
+              self.vprint("acceee " + address + " miss")
+              r = 1 # cache miss
+              reward = self.step_reward #-1 
             else:
-              self.vprint("access " + address ) 
-            r = 1 # cache miss
+              self.vprint("acceee " + address + " (miss not observable)")
+              r = 2 # cache miss
+              reward = 0.9 * self.step_reward #-1  
           else:
-            if self.show_latency == True:
+            if no_measure == 0:
               self.vprint("access " + address + " hit"  )
+              r = 0 # cache hit
+              reward = self.step_reward #-1 
             else:
-              self.vprint("access " + address )
-            r = 0 # cache hit
+              self.vprint("acceee " + address + " (hit not observable)")
+              r = 2 # cache miss 
+              reward = 0.9 * self.step_reward #-1 
           self.current_step += 1
-          reward = self.step_reward #-1 
+          #reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
           self.l1.cflush(address, self.current_step, domain_id='X')
@@ -677,26 +681,29 @@ class CacheGuessingGameEnv(gym.Env):
     is_guess = 0
     is_victim = 0
     is_flush = 0
-    victim_addr = 0 
+    victim_addr = 0
+    no_measure = 0 
     if self.flush_inst == False:
-      if action < len(self.attacker_address_space):
-        address = action
-      elif action == len(self.attacker_address_space):
+      if action < ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
+        address = action % len(self.attacker_address_space) 
+        no_measure  = int(action / len(self.attacker_address_space) )
+      elif action ==  ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
         is_victim = 1
       else:
         is_guess = 1
-        victim_addr = action - ( len(self.attacker_address_space) + 1 ) 
+        victim_addr = action - ( ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 ) 
     else:
-      if action < len(self.attacker_address_space):
-        address = action
-      elif action < 2 * len(self.attacker_address_space):
+      if action < ( self.no_measure_factor + 1 )  * len(self.attacker_address_space):
+        address = action % len(self.attacker_address_space) 
+        no_measure  = int( action / len(self.attacker_address_space) )
+      elif action < (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space):
         is_flush = 1
-        address = action - len(self.attacker_address_space) 
+        address = action -( self.no_measure_factor + 1 ) * len(self.attacker_address_space) 
         is_flush = 1
-      elif action == 2 * len(self.attacker_address_space):
+      elif action == ( self.no_measure_factor + 1 + 1 ) * len(self.attacker_address_space):
         is_victim = 1
       else:
         is_guess = 1
-        victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
-    return [ address, is_guess, is_victim, is_flush, victim_addr ] 
+        victim_addr = action - ( (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 ) 
+    return [ address, is_guess, is_victim, is_flush, victim_addr, no_measure ] 
  
