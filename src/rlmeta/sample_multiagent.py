@@ -61,6 +61,8 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
                 action = unbatch_action(action)
             actions.update({agent_name:action})
         #print(actions)
+        #if env.env.step_count <= 31:
+        #    actions['detector'] = Action(0, actions['detector'].info)
         timestep = env.step(actions)
 
         for agent_name, agent in agents.items():
@@ -78,7 +80,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         detector_accuracy = detector_count
 
     metrics = {
-        "episode_length": episode_length,
+        "episode_length": env.env.step_count,
         "episode_return": episode_return,
         "detector_accuracy": detector_accuracy,
     }
@@ -131,16 +133,17 @@ def main(cfg):
     detector_model.eval()
 
     # Create agent
-    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    #attacker_agent = PrimeProbeAgent(cfg.env_config)
+    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    attacker_agent = PrimeProbeAgent(cfg.env_config)
     
 
     #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-    #detector_agent = CCHunterAgent(cfg.env_config)
-    detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
+    detector_agent = CCHunterAgent(cfg.env_config)
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
+    
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')#[:100000]
+    spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
         line = line.split()

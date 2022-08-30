@@ -20,7 +20,7 @@ train_device: "cuda:0"
 infer_device: "cuda:1"
 train_device_d: "cuda:2" #"cuda:2"
 infer_device_d: "cuda:3" #"cuda:3"
-num_train_rollouts: 72 #72 #48 #24
+num_train_rollouts: 48 #72 #48 #24
 num_train_workers: 24  #24
 
 num_eval_rollouts: 12 #2

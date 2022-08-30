@@ -91,11 +91,11 @@ def collect(cfg):
     # return 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-    num_samples = 1000
+    num_samples = 20000
     attacker_agent = PrimeProbeAgent(cfg.env_config)
     detector_agent = CycloneAgent(cfg.env_config)
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')#[:100000]
+    spec_trace = spec_trace_f.read().split('\n')[:500000]
     trace = []
     for line in spec_trace:
         line = line.split()
