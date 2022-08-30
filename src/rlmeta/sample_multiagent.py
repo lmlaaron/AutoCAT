@@ -12,7 +12,7 @@ import hydra
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 #from agents.ppo_agent import PPOAgent
 #from agents.spec_agent import SpecAgent
-#from agents.prime_probe_agent import PrimeProbeAgent
+from agents.prime_probe_agent import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
 from agents.random_agent import RandomAgent
 #from agents.benign_agent import BenignAgent
@@ -82,7 +82,7 @@ def run_loop(env, agents, victim_addr=-1) -> Dict[str, float]:
         detector_accuracy = detector_count
 
     metrics = {
-        "episode_length": episode_length,
+        "episode_length": env.step_count,
         "episode_return": episode_return,
         "detector_accuracy": detector_accuracy,
     }
@@ -117,9 +117,11 @@ def main(cfg):
     cfg.env_config['verbose'] = 1
     env_fac = CacheAttackerDetectorEnv(cfg.env_config)
     env = env_fac
-
+    
     # Create agent
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
     attacker_agent = EvictReloadAgent(cfg.env_config)
+    
     detector_agent = RandomAgent(1)
     benign_agent = RandomAgent(2)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
