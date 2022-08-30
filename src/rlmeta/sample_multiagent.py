@@ -133,13 +133,13 @@ def main(cfg):
     detector_model.eval()
 
     # Create agent
-    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
+    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
     
 
     #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-    detector_agent = CCHunterAgent(cfg.env_config)
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
+    #detector_agent = CCHunterAgent(cfg.env_config)
+    detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
     
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
