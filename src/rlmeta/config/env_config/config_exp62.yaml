@@ -10,10 +10,10 @@ force_victim_hit: false
 flush_inst: false
 allow_victim_multi_access: true
 allow_empty_victim_access: false
-attacker_addr_s: 0
-attacker_addr_e: 15
-victim_addr_s: 0
-victim_addr_e: 7
+attacker_addr_s: 8
+attacker_addr_e: 23
+victim_addr_s: 8
+victim_addr_e: 15
 reset_limit: 1
 opponent_weights: [0.5, 0.5]
 
