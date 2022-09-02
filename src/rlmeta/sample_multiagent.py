@@ -83,7 +83,7 @@ def run_loop(env, agents, victim_addr=-1) -> Dict[str, float]:
         detector_accuracy = detector_count
 
     metrics = {
-        "episode_length": episode_length,
+        "episode_length": env.step_count,
         "episode_return": episode_return,
         "detector_accuracy": detector_accuracy,
     }
@@ -118,11 +118,10 @@ def main(cfg):
     cfg.env_config['verbose'] = 1
     env_fac = CacheAttackerDetectorEnv(cfg.env_config)
     env = env_fac
-
+    
     # Create agent
-    attacker_agent = EvictReloadAgent(cfg.env_config)
     #attacker_agent = PrimeProbeAgent(cfg.env_config)
-    #attacker_agent = FlushReloadAgent(cfg.env_config)
+    attacker_agent = EvictReloadAgent(cfg.env_config)
     
     detector_agent = RandomAgent(1)
     benign_agent = RandomAgent(2)

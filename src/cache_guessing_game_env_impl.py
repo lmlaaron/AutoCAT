@@ -217,12 +217,12 @@ class CacheGuessingGameEnv(gym.Env):
       if self.allow_empty_victim_access == True:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          2 * len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
+          2 * len(self.attacker_address_space) + 2 + len(self.victim_address_space) 
         )
     
     # let's book keep all obvious information in the observation space 
@@ -297,7 +297,6 @@ class CacheGuessingGameEnv(gym.Env):
 
     original_action = action
     action = self.parse_action(original_action) #, self.flush_inst)
-
     address = hex(action[0]+self.attacker_address_min)[2:]             # attacker address in attacker_address_space
     is_guess = action[1]                                              # check whether to guess or not
     is_victim = action[2]                                             # check whether to invoke victim
@@ -400,7 +399,7 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
-          self.l1.cflush(address, self.current_step, domain_id='X')
+          self.l1.cflush(address, self.current_step)#, domain_id='X')
           #cflush = 1
           self.vprint("cflush (hex) " + address )
           r = 2
@@ -663,7 +662,7 @@ class CacheGuessingGameEnv(gym.Env):
         victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) # becuase the one that assigned to the is_victim_random is at the attacker address space+1  
     else:
       if action < len(self.attacker_address_space):
-        address = action
+        address = action 
       elif action < 2 * len(self.attacker_address_space):
         is_flush = 1
         address = action - len(self.attacker_address_space) 
