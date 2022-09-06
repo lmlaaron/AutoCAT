@@ -27,8 +27,7 @@ from metric_callbacks import MetricCallbacks
 
 from utils.wandb_logger import WandbLogger
 
-#@hydra.main(config_path="./config", config_name="ppo_lru_8way")
-@hydra.main(config_path="./config", config_name="ppo_exp")
+@hydra.main(config_path="./config", config_name="ppo_resnet")
 def main(cfg):
     wandb_logger = WandbLogger(project="rl4cache", config=cfg)
     my_callbacks = MetricCallbacks()
@@ -39,6 +38,8 @@ def main(cfg):
     cfg.model_config["output_dim"] = env.action_space.n
 
     train_model = CachePPOModel(**cfg.model_config).to(cfg.train_device)
+    total_trainable_params = sum(p.numel() for p in train_model.parameters() if p.requires_grad)
+    print("total_num_parameters:",total_trainable_params)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)

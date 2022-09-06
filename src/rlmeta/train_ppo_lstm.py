@@ -22,19 +22,12 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
 from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
-# from cache_ppo_transformer_model_pe import CachePPOTransformerModel
+from cache_ppo_lstm import CachePPOLSTMModel
 from metric_callbacks import MetricCallbacks
 
 from utils.wandb_logger import WandbLogger
 
-# @hydra.main(config_path="./config", config_name="ppo_lru_8way")
-# @hydra.main(config_path="./config", config_name="ppo_2way_2set")
-# @hydra.main(config_path="./config", config_name="ppo_4way_4set")
-# @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-@hydra.main(config_path="./config", config_name="ppo_exp")
-# @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
-# @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
+@hydra.main(config_path="./config", config_name="ppo_lstm")
 def main(cfg):
     wandb_logger = WandbLogger(project="rl4cache", config=cfg)
     my_callbacks = MetricCallbacks()
@@ -44,7 +37,7 @@ def main(cfg):
     env = env_fac(0)
     cfg.model_config["output_dim"] = env.action_space.n
 
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device)
+    train_model = CachePPOLSTMModel(**cfg.model_config).to(cfg.train_device)
     total_trainable_params = sum(p.numel() for p in train_model.parameters() if p.requires_grad)
     print("total_num_parameters:",total_trainable_params)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
