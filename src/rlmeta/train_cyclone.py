@@ -1,12 +1,14 @@
 import hydra
 import os
 import sys
+import torch
 import pickle
 import numpy as np
 from typing import Dict
 
 from sklearn.svm import SVC
 
+from agents.ppo_agent import PPOAgent
 from agents.spec_agent import SpecAgent
 from agents.cyclone_agent import CycloneAgent
 from agents.prime_probe_agent import PrimeProbeAgent
@@ -20,6 +22,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from cache_attacker_detector import CacheAttackerDetectorEnv
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
+from cache_ppo_transformer_model import CachePPOTransformerModel
 
 LABEL={ 'attacker':1,
         'benign':0,
@@ -92,7 +95,17 @@ def collect(cfg):
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     num_samples = 20000
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
+
+    # Load model
+    # Attacker
+    cfg.model_config["output_dim"] = env.action_space.n
+    attacker_params = torch.load(cfg.attacker_checkpoint)
+    attacker_model = CachePPOTransformerModel(**cfg.model_config)
+    attacker_model.load_state_dict(attacker_params)
+    attacker_model.eval()
+    
+    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
     detector_agent = CycloneAgent(cfg.env_config)
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:500000]
@@ -126,9 +139,6 @@ def train(cfg):
     print("Train Accuracy:", clf.score(X_train,y_train))
     print("Test Accuracy:", clf.score(X_test, y_test))
     
-    #import joblib
-    #joblib.dump(clf, "cyclone.pkl")
-    # s = pkl.dumps(clf)
     print("saving the classfier")
     pickle.dump(clf,open('cyclone.pkl','wb'))
     return clf
