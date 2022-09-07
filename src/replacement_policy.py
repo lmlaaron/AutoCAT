@@ -29,6 +29,9 @@ class rep_policy:
         if self.verbose == 1:
             print( " "+" ".join(map(str,args))+" ")
 
+    def export_state(self):
+        pass
+
 # LRU policy
 class lru_policy(rep_policy):
     def __init__(self, associativity, block_size, verbose=False):
@@ -61,6 +64,8 @@ class lru_policy(rep_policy):
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
                 victim_tag = b
         return victim_tag 
+
+    #def export_state(self):
 
 # random replacement policy
 class rand_policy(rep_policy):

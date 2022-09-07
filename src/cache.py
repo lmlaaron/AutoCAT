@@ -1,7 +1,7 @@
 import math, block, response
 import pprint
 from replacement_policy import * 
-
+import numpy as np
 class Cache:
     def __init__(self, name, word_size, block_size, n_blocks, associativity, hit_time, write_time, write_back, logger, next_level=None, rep_policy='', prefetcher="none", verbose=False):
         #Parameters configured by the user
@@ -159,6 +159,38 @@ class Cache:
             # prefetchter not known
             assert(False)
 
+    '''
+    returns the cache state for value net
+    the cache state is encoded in a matrix
+    'X' = 0
+    'v' = 1
+    'a' = 2
+    '''
+    def get_cache_state(self, include_addr=False, include_rep_policy_state=False ):#, history_window_length = 1):
+        domain_id_tags_array = np.zeros([self.n_sets, self.associativity])
+        for i in range(self.n_sets):
+            index = str(bin(i))[2:].zfill(self.index_size)
+            for j in range(self.associativity):
+                # domain id encoding 
+                # 'X' = 0
+                # 'v' = 1
+                # 'a' = 2
+                domain_id_str = self.domain_id_tags[index][j][0] # first element
+                if domain_id_str == 'X':
+                    domain_id_tags_array[i][j] = 0
+                elif domain_id_str == 'v':
+                    domain_id_tags_array[i][j] = 1
+                elif domain_id_str == 'a':
+                    domain_id_tags_array[i][j] = 2
+                else:
+                    assert(-1) 
+
+        ####if include_addr == True:
+        ####    addr_array =
+        ####if include_rep_policy_state == True:
+        ####    rep_policy_array =
+        return domain_id_tags_array
+        
     # pl_opt: indicates the PL cache option
     # pl_opt = -1: normal read
     # pl_opt = PL_LOCK: lock the cache line

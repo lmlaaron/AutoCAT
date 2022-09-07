@@ -9,13 +9,14 @@ import torch.nn
 import rlmeta.utils.nested_utils as nested_utils
 
 from rlmeta.agents.ppo.ppo_agent import PPOAgent
-from rlmeta.core.types import Action
+from rlmeta.core.types import Action, TimeStep
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
 
-from cache_env_wrapper import CacheEnvWrapperFactory
+from cache_env_wrapper import CacheEnvWrapper, CacheEnvWrapperFactory
 from cache_ppo_model import CachePPOModel
 from cache_ppo_transformer_model import CachePPOTransformerModel
+from cache_mappo_transformer_model import CacheMAPPOTransformerModel
 
 
 def unbatch_action(action: Action) -> Action:
@@ -33,11 +34,17 @@ def run_loop(env: Env, agent: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         timestep = env.reset()
     else:
         timestep = env.reset(victim_address=victim_addr)
-    
+
     agent.observe_init(timestep)
     while not timestep.done:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
-        timestep.observation.unsqueeze_(0)
+        obs, reward, done, info = timestep
+
+        # timestep.observation.unsqueeze_(0)
+        timestep.observation[0].unsqueeze_(0)
+        timestep.observation[1].unsqueeze_(0)
+        timestep.observation[2].unsqueeze_(0)
+
         action = agent.act(timestep)
         # Unbatch the action.
         action = unbatch_action(action)
@@ -79,14 +86,17 @@ def run_loops(env: Env,
 def main(cfg):
     # Create env
     cfg.env_config['verbose'] = 1
-    env_fac = CacheEnvWrapperFactory(cfg.env_config)
+    env_fac = CacheEnvWrapperFactory(cfg.env_config, training=False)
     env = env_fac(index=0)
-    
+
     # Load model
+    cfg.model_config["cache_state_size"] = cfg.env_config["cache_configs"][
+        "cache_1"]["blocks"]
     cfg.model_config["output_dim"] = env.action_space.n
     params = torch.load(cfg.checkpoint)
-    #model = CachePPOModel(**cfg.model_config)
-    model = CachePPOTransformerModel(**cfg.model_config)
+    # model = CachePPOModel(**cfg.model_config)
+    # model = CachePPOTransformerModel(**cfg.model_config)
+    model = CacheMAPPOTransformerModel(**cfg.model_config)
     model.load_state_dict(params)
     model.eval()
 
