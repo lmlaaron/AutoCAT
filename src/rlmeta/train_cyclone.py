@@ -86,7 +86,10 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
         "detector_accuracy": detector_accuracy,
     }
 
+    #Cyclone
     return agents['detector'].cyclone_counters, env.env.opponent_agent
+    #Same observation   
+    #return timestep['detector'].observation.numpy(), env.env.opponent_agent
 
 def collect(cfg):
     # load agents and 
@@ -94,7 +97,7 @@ def collect(cfg):
     # return 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-    num_samples = 20000
+    num_samples = 50
 
     # Load model
     # Attacker
@@ -104,8 +107,8 @@ def collect(cfg):
     attacker_model.load_state_dict(attacker_params)
     attacker_model.eval()
     
-    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    #attacker_agent = PrimeProbeAgent(cfg.env_config)
+    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    attacker_agent = PrimeProbeAgent(cfg.env_config)
     detector_agent = CycloneAgent(cfg.env_config)
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:500000]
@@ -122,7 +125,7 @@ def collect(cfg):
         X.append(x)
         y.append(LABEL[label])
     X = np.array(X)
-    num_samples, m, n = X.shape
+    #num_samples, m, n = X.shape
     X = X.reshape(num_samples, -1)
     y = np.array(y)
     print('features:\n',X,'labels\n',y)

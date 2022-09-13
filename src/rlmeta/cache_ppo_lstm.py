@@ -59,7 +59,7 @@ class CachePPOLSTMModel(PPOModel):
         self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
         self.linear_v = nn.Linear(self.hidden_dim, 1)
         
-        self.lstm = nn.LSTM(self.input_dim // self.window_size, self.hidden_dim, num_layers=4, batch_first=True)
+        self.lstm = nn.LSTM(self.input_dim // self.window_size, self.hidden_dim, num_layers=4, batch_first=True, bias=True)
         self._device = None
 
     def make_one_hot(self, src: torch.Tensor,
@@ -77,6 +77,7 @@ class CachePPOLSTMModel(PPOModel):
         return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        obs = torch.flip(obs, (1,))
         obs = obs.to(torch.int64)
         assert obs.dim() == 3
 
