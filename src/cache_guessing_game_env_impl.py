@@ -203,26 +203,26 @@ class CacheGuessingGameEnv(gym.Env):
     if self.flush_inst == False:
       # one-hot encoding
       if self.allow_empty_victim_access == True:
-        # | attacker_addr | v | victim_guess_addr | guess victim not access |
+        # | attacker_addr | v | random v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
           len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
         )
       else:
-        # | attacker_addr | v | victim_guess_addr | 
+        # | attacker_addr | v | random v | victim_guess_addr | 
         self.action_space = spaces.Discrete(
           len(self.attacker_address_space) + 2 + len(self.victim_address_space)
         )
     else:
       # one-hot encoding
       if self.allow_empty_victim_access == True:
-        # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
+        # | attacker_addr | flush_attacker_addr | v | random v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          2 * len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
         )
       else:
-        # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
+        # | attacker_addr | flush_attacker_addr | v | random v | victim_guess_addr |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
+          2 * len(self.attacker_address_space) + 2 + len(self.victim_address_space) 
         )
     
     # let's book keep all obvious information in the observation space 
@@ -290,7 +290,7 @@ class CacheGuessingGameEnv(gym.Env):
     cyclic_set_index = -1
     cyclic_way_index = -1
 
-    self.vprint('Step...')
+    self.vprint('Step ', self.current_step)
     info = {}
     if isinstance(action, np.ndarray):
         action = action.item()
@@ -324,6 +324,7 @@ class CacheGuessingGameEnv(gym.Env):
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if is_victim_random == True:
                 victim_random = random.randint(self.victim_address_min, self.victim_address_max)
+                self.vprint("victim random access %d " % victim_random)
                 t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
                 t = t.time 
                 info['victim_address'] = victim_random
@@ -397,7 +398,7 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
-          self.l1.cflush(address, self.current_step, domain_id='X')
+          self.l1.cflush(address, self.current_step) #, domain_id='X')
           #cflush = 1
           self.vprint("cflush " + address )
           r = 2
@@ -667,9 +668,11 @@ class CacheGuessingGameEnv(gym.Env):
         is_flush = 1
       elif action == 2 * len(self.attacker_address_space):
         is_victim = 1
+      elif action == 2 * len(self.attacker_address_space)+1:
+        is_victim_random = 1
       else:
         is_guess = 1
-        victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
+        victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 + 1 ) 
         
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
