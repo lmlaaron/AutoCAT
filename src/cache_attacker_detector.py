@@ -91,7 +91,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             # detector flag the opponent as an attacker
             if self.opponent_agent == 'benign':
                 #detector_reward = - self.max_step + self.step_count - 1 #punish false positive
-                detector_reward = - 2 * self.max_step
+                detector_reward = - 5 * self.max_step
             elif self.opponent_agent == 'attacker':
                 detector_reward = max(self.max_step - self.step_count, 0)
                 detector_correct = True
