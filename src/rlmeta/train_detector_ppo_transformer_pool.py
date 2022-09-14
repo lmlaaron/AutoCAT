@@ -145,7 +145,7 @@ def main(cfg):
     
     '''
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:500000]#[:100000]
+    spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:100000]
     y = []
     for line in spec_trace:
         line = line.split()
