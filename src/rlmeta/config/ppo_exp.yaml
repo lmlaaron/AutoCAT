@@ -39,10 +39,11 @@ eval_seed: 456
 table_view: false
 
 defaults:
+  # - env_config: lru_8way
   # - env_config: config_exp2
   # - env_config: config_exp3
   # - env_config: config_exp4
-  # - env_config: config_exp5
+  - env_config: config_exp5
   # - env_config: config_exp6
   # - env_config: config_exp7
   # - env_config: config_exp8
@@ -55,8 +56,9 @@ defaults:
   # - env_config: config_exp_13
   # - env_config: config_exp_13_nextline
   # - env_config: config_exp_14
-  - env_config: config_exp_14_nextline
+  # - env_config: config_exp_14_nextline
   # - env_config: config_exp_remap_baseline
   # - env_config: config_exp_remap_baseline2
   # - env_config: config_exp_ceaser_distributed
+  # - env_config: config_exp_real
   - model_config: experiments

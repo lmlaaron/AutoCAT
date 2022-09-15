@@ -24,8 +24,7 @@ from rlmeta.samplers import UniformSampler
 from rlmeta.storage import TensorCircularBuffer
 
 from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
-# from cache_ppo_transformer_model_pe import CachePPOTransformerModel
+from cache_ppo_lstm_model import CachePPOLstmModel
 from metric_callbacks import MetricCallbacks
 
 
@@ -44,8 +43,7 @@ def main(cfg):
     env = env_fac(0)
     cfg.model_config["output_dim"] = env.action_space.n
 
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(
-        cfg.train_device)
+    train_model = CachePPOLstmModel(**cfg.model_config).to(cfg.train_device)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
