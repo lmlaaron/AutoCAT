@@ -46,7 +46,7 @@ class CachePPOLstmModel(PPOModel):
 
         self.action_embed = nn.Embedding(self.action_dim,
                                          self.action_embed_dim)
-        self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
+        # self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
 
         self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
 
