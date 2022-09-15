@@ -32,7 +32,7 @@ class CachePPOTransformerModel(PPOModel):
         self.victim_acc_dim = victim_acc_dim
         self.action_dim = action_dim
         self.step_dim = step_dim
-        self.window_size = window_size
+        # self.window_size = window_size
 
         self.action_embed_dim = action_embed_dim
         self.step_embed_dim = step_embed_dim
@@ -60,16 +60,16 @@ class CachePPOTransformerModel(PPOModel):
 
         self._device = None
 
-    def make_one_hot(self, src: torch.Tensor,
-                     num_classes: int) -> torch.Tensor:
-        mask = (src == -1)
+    def make_one_hot(self, src: torch.Tensor, num_classes: int,
+                     mask: torch.Tensor) -> torch.Tensor:
+        # mask = (src == -1)
         src = src.masked_fill(mask, 0)
         ret = F.one_hot(src, num_classes)
         return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
-    def make_embedding(self, src: torch.Tensor,
-                       embed: nn.Embedding) -> torch.Tensor:
-        mask = (src == -1)
+    def make_embedding(self, src: torch.Tensor, embed: nn.Embedding,
+                       mask: torch.Tensor) -> torch.Tensor:
+        # mask = (src == -1)
         src = src.masked_fill(mask, 0)
         ret = embed(src)
         return ret.masked_fill(mask.unsqueeze(-1), 0.0)
@@ -78,19 +78,34 @@ class CachePPOTransformerModel(PPOModel):
         obs = obs.to(torch.int64)
         assert obs.dim() == 3
 
-        # batch_size = obs.size(0)
+        batch_size = obs.size(0)
         l, v, act, stp = torch.unbind(obs, dim=-1)
-        l = self.make_one_hot(l, self.latency_dim)
-        v = self.make_one_hot(v, self.victim_acc_dim)
-        act = self.make_embedding(act, self.action_embed)
-        stp = self.make_embedding(stp, self.step_embed)
+        mask = (stp == -1)
+        l = self.make_one_hot(l, self.latency_dim, mask)
+        v = self.make_one_hot(v, self.victim_acc_dim, mask)
+        act = self.make_embedding(act, self.action_embed, mask)
+        stp = self.make_embedding(stp, self.step_embed, mask)
 
         x = torch.cat((l, v, act, stp), dim=-1)
         x = self.linear_i(x)
         x = x.transpose(0, 1).contiguous()
-        h = self.encoder(x)
-        # h = self.linear_o(h.view(batch_size, -1))
-        h = h.mean(dim=0)
+        x_eoc = torch.zeros(1, batch_size, self.hidden_dim, device=x.device)
+        x = torch.cat((x_eoc, x), dim=0)
+        mask_eoc = torch.zeros((batch_size, 1),
+                               dtype=mask.dtype,
+                               device=mask.device)
+        mask = torch.cat((mask_eoc, mask), dim=-1)
+
+        h = self.encoder(x, src_key_padding_mask=mask)
+        h = h[0]
+
+        # h = h.mean(dim=0)
+
+        # mask = torch.logical_not(mask)
+        # h = h.transpose(0, 1).contiguous()
+        # h.masked_fill_(mask.unsqueeze(-1), 0.0)
+        # seq_len = mask.sum(dim=-1, keepdim=True, dtype=torch.int64)
+        # h = h.sum(dim=1) / seq_len
 
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)
