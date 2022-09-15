@@ -90,7 +90,8 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
-
+    # enabling correct rate printing (has to be disabled ) 
+    self.enable_correct_rate_print = env_config["enable_correct_rate_print"] if "enable_correct_rate_print" in env_config else True
     # for blind training can disable the print
     self.show_latency = env_config["show_latency"] if "show_latency" in env_config else True
     # prefetcher
@@ -106,13 +107,13 @@ class CacheGuessingGameEnv(gym.Env):
     # enable HPC-based-detection escaping setalthystreamline
     self.force_victim_hit =env_config["force_victim_hit"] if "force_victim_hit" in env_config else False
     self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
-    self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
+    self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -1#-10
     self.victim_miss_reward = env_config["victim_miss_reward"] if "victim_miss_reward" in env_config else -10000 if self.force_victim_hit else self.victim_access_reward
     self.double_victim_access_reward = env_config["double_victim_access_reward"] if "double_victim_access_reward" in env_config else -10000
     self.allow_victim_multi_access = env_config["allow_victim_multi_access"] if "allow_victim_multi_access" in env_config else True
     self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
     self.wrong_reward = env_config["wrong_reward"] if "wrong_reward" in env_config else -9999
-    self.step_reward = env_config["step_reward"] if "step_reward" in env_config else 0
+    self.step_reward = env_config["step_reward"] if "step_reward" in env_config else -1#0
     self.reset_limit = env_config["reset_limit"] if "reset_limit" in env_config else 1
     self.cache_state_reset = env_config["cache_state_reset"] if "cache_state_reset" in env_config else True
     window_size = env_config["window_size"] if "window_size" in env_config else 0
@@ -155,8 +156,8 @@ class CacheGuessingGameEnv(gym.Env):
     check window size
     '''
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 
-      #self.window_size = self.cache_size * 4 + 8 #10 
+      self.window_size = self.cache_size * 10 + 8 #10 
+      #self.window_size = self.cache_size * 8 + 8 #10 
     else:
       self.window_size = window_size
     self.feature_size = 4
@@ -336,7 +337,7 @@ class CacheGuessingGameEnv(gym.Env):
 
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if self.victim_address <= self.victim_address_max:
-              self.vprint("victim access %d " % self.victim_address)
+              self.vprint("victim access (hex) %d " % self.victim_address)
               t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
               t = t.time # do not need to lock again
             else:
@@ -459,7 +460,8 @@ class CacheGuessingGameEnv(gym.Env):
       if self.reset_time == self.reset_limit:  # really need to end the simulation
         self.reset_time = 0
         done = True                            # reset will be called by the agent/framework
-        self.vprint('correct rate:' + str(self.calc_correct_rate()))
+        if self.enable_correct_rate_print:
+          self.vprint('correct rate:' + str(self.calc_correct_rate()))
       else:
         done = False                           # fake reset
         self._reset()                          # manually reset
@@ -599,9 +601,9 @@ class CacheGuessingGameEnv(gym.Env):
       
       self.victim_address = victim_address
     if self.victim_address <= self.victim_address_max:
-      self.vprint("victim address ", self.victim_address)
+      self.vprint("victim address (hex) ", self.victim_address)
     else:
-      self.vprint("victim has empty access")
+      self.vprint("victim addrsss [empty access]")
 
   '''
   use to render the result

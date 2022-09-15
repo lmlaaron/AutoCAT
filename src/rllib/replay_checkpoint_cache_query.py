@@ -14,7 +14,8 @@ import json
 from ray import serve
 from test_custom_policy_diversity_works import *
 from cache_simulator import print_cache
-from cache_query_env_8way import CacheQueryEnv
+#from cache_query_env_8way import CacheQueryEnv
+from cache_query_env_8way_hittime import CacheQueryEnv
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 
 #config["num_workers"] = 1

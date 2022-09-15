@@ -39,7 +39,9 @@ class CacheQueryEnv(gym.Env):
         self.env = CacheGuessingGameEnv(env_config)   
         self.action_space_size = self.env.action_space.n + 1 # increase the action space by one
         self.action_space = spaces.Discrete(self.action_space_size)
-        self.observation_space = self.env.observation_space
+        #self.observation_space = self.env.observation_space
+        self.observation_space = spaces.Box(low=-1, high=10000, shape=(self.env.window_size, self.env.feature_size))
+
         self.allow_empty_victim_access = self.env.allow_empty_victim_access
 
         self.attacker_address_min = self.env.attacker_address_min
@@ -95,13 +97,21 @@ class CacheQueryEnv(gym.Env):
             config.set('General', 'log_file', output)
 
         # instantiate cq
-        # use raw input format <id>_<set>
-        self.CQ = CacheQuery(config, raw=True)
-        
-        #self.cq_command = "A B C D E F G H I J K L M N O P A B"  #establish the address alphabet to number mapping
-        #self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
-        self.cq_command = ""
-
+        self.CQ = CacheQuery(config)
+        '''
+        A -> 0
+        B -> 1
+        C -> 2
+        D -> 3
+        E -> 4
+        F -> 5
+        G -> 6
+        H -> 7
+        I -> 8
+        '''
+        self.cq_command = "A B C D E F G H I J K L M N O P A B"  #establish the address alphabet to number mapping
+        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
+ 
         '''
         after this the 4-way cache should be
         [ A B H I] or [0 1 7 8]
@@ -118,9 +128,8 @@ class CacheQueryEnv(gym.Env):
         self.last_unmasked_tuple = (state, reward, done, info)
 
         #reset CacheQuery Command
-        #self.cq_command = "A B C D E F G H I J K L M N O P A B"
-        #self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
-        self.cq_command = ""
+        self.cq_command = "A B C D E F G H I J K L M N O P A B"
+        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
         return state
 
     def step(self, action):
@@ -150,11 +159,13 @@ class CacheQueryEnv(gym.Env):
                 lat_cq_cnt = len(lat_cq) - 1
                 for i in range(len(state)):
                     if state[i][0] != 2 and lat_cq_cnt >= 0:
-                        if int(lat_cq[lat_cq_cnt]) > 50: # hit
-                            state[i][0] = 0
-                        else:                            # miss
-                            state[i][0] = 1
+                        #if int(lat_cq[lat_cq_cnt]) > 50: # hit
+                        #    state[i][0] = int(lat_cq[lat_cq_cnt]) 
+                        #else:                            # miss
+                        state[i][0] = int(lat_cq[lat_cq_cnt])
                         lat_cq_cnt -= 1
+                    else:
+                        state[i][0] = -1
             print(state)
             return state, reward, done, info
 
@@ -165,7 +176,6 @@ class CacheQueryEnv(gym.Env):
             is_victim = tmpaction[2]                                                 # check whether to invoke victim
             is_flush = tmpaction[3]                                                  # check whether to flush
             victim_addr = hex(tmpaction[4] + self.env.victim_address_min)[2:]        # victim address
-            no_measure = tmpaction[5]                                                # attacker access without measure latency
 
             # need to check if revealed first
             # if revealed, must make a guess
@@ -203,17 +213,13 @@ class CacheQueryEnv(gym.Env):
                     # append to the cq_command
                     if is_victim == True: 
                         if self.env.victim_address <= self.env.victim_address_max: # check whether it is an empty access
-                            self.cq_command += ' ' + str(int(self.env.victim_address / self.env.num_set)) + '_' +  str(int(self.env.victim_address % self.env.num_set)) #(' ' + chr(ord('A') + self.env.victim_address))
+                            self.cq_command += (' ' + chr(ord('A') + self.env.victim_address))
                         else:                                                  # empty access, doing nothing
-                           self.cq_command += ' ' 
+                           self.cq_command += '' 
                     elif is_flush == True:
-                        self.cq_command += ' ' + str(int(int(address,16) / self.env.num_set)) + '_' +  str(int(int(address,16) % self.env.num_set))+ '!'#(' ' + chr(ord('A') + int(address, 16)) + '!') 
+                        self.cq_command += (' ' + chr(ord('A') + int(address, 16)) + '!') 
                     else:
-                        self.cq_command += ' ' + str(int(int(address,16) / self.env.num_set)) + '_' +  str(int(int(address,16) % self.env.num_set))  #(' ' + chr(ord('A') + int(address, 16)) + '?')  
-                        if no_measure == 0:
-                            self.cq_command += '?'
-                        else:
-                            self.cq_command += ''
+                        self.cq_command += (' ' + chr(ord('A') + int(address, 16)) + '?')  
 
                     self.last_unmasked_tuple = ( state.copy(), reward, done, info )
                     # mask the state so that nothing is revealed
@@ -230,15 +236,13 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
-            "enable_correct_rate_print": False,
-            "enable_no_measure_access": 1, #0, #1,
             'verbose': 1,
             "prefetcher": "nextline",
             "rerandomize_victim": False,
             "force_victim_hit": False,
             'flush_inst': False,
             "allow_victim_multi_access": True,#False,
-            "allow_empty_victim_access": False, #True,#False,
+            "allow_empty_victim_access": False,#False,
             "attacker_addr_s": 0,
             "attacker_addr_e": 15,#4,#11,#15,
             "victim_addr_s": 16,
@@ -254,7 +258,7 @@ if __name__ == "__main__":
                 # for L2 cache of Intel i7-6700 
                 # it is a 4-way cache, this should not be changed
                 "cache_1": {#required
-                  "blocks": 16,#4, 
+                  "blocks": 8,#4, 
                   "associativity": 8,  
                   "hit_time": 1 #cycles
                 },
@@ -271,7 +275,6 @@ if __name__ == "__main__":
         #'num_sgd_iter': 5, 
         #'vf_loss_coeff': 1e-05, 
         'model': {
-            "fcnet_hiddens": [512, 512, 512, 512],
             #'custom_model': 'test_model',#'rnn', 
             #'max_seq_len': 20, 
             #'custom_model_config': {
