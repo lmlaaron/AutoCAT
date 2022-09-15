@@ -290,7 +290,7 @@ class CacheGuessingGameEnv(gym.Env):
     cyclic_set_index = -1
     cyclic_way_index = -1
 
-    self.vprint('Step...')
+    self.vprint('Step ', self.step_count)
     info = {}
     if isinstance(action, np.ndarray):
         action = action.item()
@@ -324,6 +324,7 @@ class CacheGuessingGameEnv(gym.Env):
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if is_victim_random == True:
                 victim_random = random.randint(self.victim_address_min, self.victim_address_max)
+                self.vprint("victim random access %d " % victim_random)
                 t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
                 t = t.time 
                 info['victim_address'] = victim_random

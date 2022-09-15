@@ -13,20 +13,24 @@ exp_name: "/2022-07-26/14-03-38/wandb/run-20220726_140343-2wwnweyz/" # entangle-
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-10/08-54-44/detector-799.pth" #hard flag
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-07/15-34-36/detector-272.pth" #hard flag
 
-#episode
-#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-11/14-04-52/attacker-1949.pth" #hard flag 1949
+#fp-2x
+attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-11/14-04-52/attacker-1949.pth" #hard flag 1949
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-11/14-04-52/detector-1999.pth" #hard flag
 
-#cyclic
+#cyclic-fp-2x
 #attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-09/17-52-41/attacker-1949.pth" #hard flag; cyclic
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-09/17-52-41/detector-1999.pth" #hard flag; cyclic
 
 #fp-5x
 #attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/attacker-1949.pth" #hard flag 5*fp
-detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/detector-1999.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/detector-1999.pth" #hard flag
+
+#fp-3x
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-21-35/attacker-1849.pth" #hard flag 3*fp
+detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-21-35/detector-1899.pth" #hard flag
 
 #AutoCAT
-attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-06/08-22-47/ppo_agent-49.pth" # AutoCAT attacker
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-06/08-22-47/ppo_agent-450.pth" # AutoCAT attacker
 
 deterministic_policy: true
 

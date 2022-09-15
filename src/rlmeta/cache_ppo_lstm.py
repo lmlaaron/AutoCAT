@@ -44,22 +44,27 @@ class CachePPOLSTMModel(PPOModel):
         assert self.window_size == 64
         self.action_embed_dim = action_embed_dim
         self.step_embed_dim = step_embed_dim
+        #self.input_dim = (self.latency_dim + self.victim_acc_dim +
+        #                  self.action_embed_dim +
+        #                  self.step_embed_dim) * self.window_size
         self.input_dim = (self.latency_dim + self.victim_acc_dim +
-                          self.action_embed_dim +
-                          self.step_embed_dim) * self.window_size
+                          self.action_embed_dim)
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.num_blocks = num_blocks
 
         self.action_embed = nn.Embedding(self.action_dim,
                                          self.action_embed_dim)
-        self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
-        self.backbone = DNNEncoder(self.hidden_dim, self.hidden_dim,
-                                   self.hidden_dim, self.num_blocks)
-        self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
-        self.linear_v = nn.Linear(self.hidden_dim, 1)
-        
-        self.lstm = nn.LSTM(self.input_dim // self.window_size, self.hidden_dim, num_layers=4, batch_first=True, bias=True)
+        #self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
+        self.linear_a = nn.Linear(2*self.hidden_dim, self.output_dim)
+        self.linear_v = nn.Linear(2*self.hidden_dim, 1)
+        self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
+        self.encoder = nn.LSTM(
+                self.hidden_dim, 
+                self.hidden_dim, 
+                num_layers=1, 
+                bias=False,
+                bidirectional=False)
         self._device = None
 
     def make_one_hot(self, src: torch.Tensor,
@@ -87,13 +92,18 @@ class CachePPOLSTMModel(PPOModel):
         l = self.make_one_hot(l, self.latency_dim)
         v = self.make_one_hot(v, self.victim_acc_dim)
         act = self.make_embedding(act, self.action_embed)
-        step = self.make_embedding(step, self.step_embed)
+        #step = self.make_embedding(step, self.step_embed)
 
-        x = torch.cat((l, v, act, step), dim=-1)
-        #x = x.view(batch_size, -1)
-        #h = self.backbone(x)
-        _outputs, (h, cell) = self.lstm(x)
-        h = self.backbone(h[-1])
+        x = torch.cat((l, v, act), dim=-1)
+        x = self.linear_i(x)
+        x = x.transpose(0,1).contiguous()
+
+        _, (h, c) = self.encoder(x)
+        h = h.mean(dim=0)
+        c = c.mean(dim=0)
+        
+        h = torch.cat((h,c), dim=-1)
+        
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)
         v = self.linear_v(h)
