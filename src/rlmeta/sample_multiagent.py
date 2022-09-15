@@ -120,8 +120,9 @@ def main(cfg):
     env = env_fac
     
     # Create agent
-    #attacker_agent = PrimeProbeAgent(cfg.env_config)
-    attacker_agent = EvictReloadAgent(cfg.env_config)
+    attacker_agent = PrimeProbeAgent(cfg.env_config)
+    #attacker_agent = EvictReloadAgent(cfg.env_config)
+    #attacker_agent = FlushReloadAgent(cfg.env_config)
     
     detector_agent = RandomAgent(1)
     benign_agent = RandomAgent(2)
