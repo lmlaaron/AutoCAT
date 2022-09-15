@@ -89,23 +89,15 @@ class CachePPOTransformerModel(PPOModel):
         x = torch.cat((l, v, act, stp), dim=-1)
         x = self.linear_i(x)
         x = x.transpose(0, 1).contiguous()
-        x_eoc = torch.zeros(1, batch_size, self.hidden_dim, device=x.device)
-        x = torch.cat((x_eoc, x), dim=0)
-        mask_eoc = torch.zeros((batch_size, 1),
+        x_cls = torch.zeros(1, batch_size, self.hidden_dim, device=x.device)
+        x = torch.cat((x_cls, x), dim=0)
+        mask_cls = torch.zeros((batch_size, 1),
                                dtype=mask.dtype,
                                device=mask.device)
-        mask = torch.cat((mask_eoc, mask), dim=-1)
+        mask = torch.cat((mask_cls, mask), dim=-1)
 
         h = self.encoder(x, src_key_padding_mask=mask)
         h = h[0]
-
-        # h = h.mean(dim=0)
-
-        # mask = torch.logical_not(mask)
-        # h = h.transpose(0, 1).contiguous()
-        # h.masked_fill_(mask.unsqueeze(-1), 0.0)
-        # seq_len = mask.sum(dim=-1, keepdim=True, dtype=torch.int64)
-        # h = h.sum(dim=1) / seq_len
 
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)
