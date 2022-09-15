@@ -32,16 +32,13 @@ class CacheGuessingGameEnv(gym.Env):
       20,                 #current steps
       2,                  #whether the victim has accessed yet
       ]
-
   Actions:
     # action step contains four values
     # 1. access address
     # 2. whether to end and make a guess now?
     # 3. whether to invoke the victim access
     # 4. if make a guess, what is the victim's accessed address?
-
   Reward:
-
   Starting state:
     fresh cache with nolines
   
@@ -399,7 +396,7 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
-          self.l1.cflush(address, self.current_step)#, domain_id='X')
+          self.l1.cflush(address, self.current_step, domain_id='X')
           #cflush = 1
           self.vprint("cflush (hex) " + address )
           r = 2
