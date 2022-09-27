@@ -16,6 +16,9 @@ rd_server_addr: "127.0.0.1:4722"
 cd_server_name: "cd_server"
 cd_server_addr: "127.0.0.1:4733"
 
+detector_checkpoint: ""
+attacker_checkpoint: ""
+
 train_device: "cuda:0"
 infer_device: "cuda:1"
 train_device_d: "cuda:2" #"cuda:2"

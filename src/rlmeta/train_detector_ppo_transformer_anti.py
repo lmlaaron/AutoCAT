@@ -40,7 +40,7 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
-    wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="cache_anti", config=cfg)
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
@@ -208,7 +208,7 @@ def main(cfg):
         # Train Attacker
         agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
         a_stats = agent.train(cfg.steps_per_epoch)
-        wandb_logger.save(epoch, train_model, prefix="attacker-")
+        #wandb_logger.save(epoch, train_model, prefix="attacker-")
         torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         train_stats = {"attacker":a_stats}
         

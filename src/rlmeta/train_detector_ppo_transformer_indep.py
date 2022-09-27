@@ -234,19 +234,18 @@ def main(cfg):
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        # Train Detector
-        agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
-        d_stats = agent_d.train(cfg.steps_per_epoch)
-        wandb_logger.save(epoch, train_model_d, prefix="detector-")
-        torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
-        # Train Attacker
-        agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-        a_stats = agent.train(cfg.steps_per_epoch)
-        wandb_logger.save(epoch, train_model, prefix="attacker-")
-        torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
-        #stats = d_stats
+        for epoch_step in range(cfg.steps_per_epoch // 10):
+            # Train Detector
+            agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
+            d_stats = agent_d.train(10)#cfg.steps_per_epoch)
+
+            # Train Attacker
+            agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
+            a_stats = agent.train(10)#cfg.steps_per_epoch)
         stats = a_stats or d_stats
 
+        torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+        torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         cur_time = time.perf_counter() - start_time
         info = f"T Epoch {epoch}"
         if cfg.table_view:

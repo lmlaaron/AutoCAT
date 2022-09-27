@@ -16,7 +16,7 @@ class CCHunterAgent:
         self.local_step = 0
         self.cc_hunter_history = []
         self.cc_hunter_check_length = 8
-        self.threshold = 0.95
+        self.threshold = 0.9998
         if "cache_configs" in env_config:
             #self.logger.info('Load config from JSON')
             self.configs = env_config["cache_configs"]
@@ -82,7 +82,7 @@ class CCHunterAgent:
         rew = -np.square(corr).mean() if len(corr) > 0 else 0.0
 
         cnt = mask.sum()
-        if cnt >=1 and self.local_step>=65:
+        if cnt >=1 and cur_step_obs[-1]>=64:
             action = 1, info
         else:
             action = 0, info

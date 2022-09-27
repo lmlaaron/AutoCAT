@@ -41,7 +41,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     num_total_guess = 0.0
     num_total_correct_guess = 0.0
 
-    env.env.opponent_weights = [0,1]
+    env.env.opponent_weights = [1,0]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -142,14 +142,15 @@ def main(cfg):
     detector_model.eval()
 
     # Create agent
-    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    #attacker_agent = PrimeProbeAgent(cfg.env_config)
+    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    attacker_agent = PrimeProbeAgent(cfg.env_config)
 
     #detector_agent = RandomAgent(1)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone-entangle-pool.pkl", mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone1.pkl", mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone-anti2.pkl", mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')

@@ -48,14 +48,15 @@ class CachePPOLSTMModel(PPOModel):
         #                  self.action_embed_dim +
         #                  self.step_embed_dim) * self.window_size
         self.input_dim = (self.latency_dim + self.victim_acc_dim +
-                          self.action_embed_dim)
+                          self.action_embed_dim +
+                          self.step_embed_dim)
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.num_blocks = num_blocks
 
         self.action_embed = nn.Embedding(self.action_dim,
                                          self.action_embed_dim)
-        #self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
+        self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
         self.linear_a = nn.Linear(2*self.hidden_dim, self.output_dim)
         self.linear_v = nn.Linear(2*self.hidden_dim, 1)
         self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
@@ -92,9 +93,9 @@ class CachePPOLSTMModel(PPOModel):
         l = self.make_one_hot(l, self.latency_dim)
         v = self.make_one_hot(v, self.victim_acc_dim)
         act = self.make_embedding(act, self.action_embed)
-        #step = self.make_embedding(step, self.step_embed)
+        step = self.make_embedding(step, self.step_embed)
 
-        x = torch.cat((l, v, act), dim=-1)
+        x = torch.cat((l, v, act, step), dim=-1)
         x = self.linear_i(x)
         x = x.transpose(0,1).contiguous()
 

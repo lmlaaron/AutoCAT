@@ -63,6 +63,7 @@ class CacheAttackerDetectorEnv(gym.Env):
     def get_detector_obs(self, opponent_obs, opponent_info):
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
         if not np.any(cur_opponent_obs==-1):
+            # Make sure the observation does not leak information for detector
             # TODO should we include step number? - yes we should - the guess step should not be observed by the detector
             # attacker obs: r, victim_accessed, original action, current step
             # detector obs: r, domain_id, memory address, 0
@@ -178,7 +179,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         # Change the criteria to determine wether the game is done
         if detector_done:
             done['__all__'] = True
-        
+        #from IPython import embed; embed()
+
         info['__all__'] = {'action_mask':self.action_mask}
     
         for k,v in info.items():
@@ -197,10 +199,10 @@ if __name__ == '__main__':
         i += 1
         action = {'attacker':np.random.randint(low=3, high=6),
                   'benign':np.random.randint(low=2, high=5),
-                  'detector':np.random.randint(low=0, high=2)}
+                  'detector':np.random.randint(low=0, high=1)}
         obs, reward, done, info = env.step(action)
         print("step: ", i)
-        print("obs: ", obs['attacker'], obs['detector'])
+        print("obs: ", obs['detector'])
         print("action: ", action)
         print("victim: ", env.victim_address, env._env.victim_address)
 
