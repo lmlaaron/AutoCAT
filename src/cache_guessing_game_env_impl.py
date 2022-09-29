@@ -223,8 +223,8 @@ class CacheGuessingGameEnv(gym.Env):
     define the observation space
     '''
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
-    self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
-    self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+    self.observation_space = spaces.Box(low=-1, high=self.max_box_value, dtype=np.float32, shape=(self.window_size, self.feature_size))
+    self.state = deque([[-1.0, -1.0, -1.0, -1.0]] * self.window_size)
 
     '''
     initilizate the environment configurations

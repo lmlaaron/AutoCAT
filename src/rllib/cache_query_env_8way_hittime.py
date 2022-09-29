@@ -40,7 +40,7 @@ class CacheQueryEnv(gym.Env):
         self.action_space_size = self.env.action_space.n + 1 # increase the action space by one
         self.action_space = spaces.Discrete(self.action_space_size)
         #self.observation_space = self.env.observation_space
-        self.observation_space = spaces.Box(low=-1, high=10000, shape=(self.env.window_size, self.env.feature_size))
+        self.observation_space = spaces.Box(low=-1, high=10000, dtype=np.float32, shape=(self.env.window_size, self.env.feature_size))
 
         self.allow_empty_victim_access = self.env.allow_empty_victim_access
 
@@ -55,6 +55,7 @@ class CacheQueryEnv(gym.Env):
         reward = 0 
         info = {}
         state = self.env.reset()
+        state = state.astype(np.float32)
         self.last_unmasked_tuple = (state, reward, done, info)
 
         '''
@@ -124,13 +125,13 @@ class CacheQueryEnv(gym.Env):
         done = False
         reward = 0 
         info = {}
-        state = self.env.reset(victim_address=victim_address)
+        state = self.env.reset(victim_address=victim_address).astype(np.float32)
         self.last_unmasked_tuple = (state, reward, done, info)
 
         #reset CacheQuery Command
         self.cq_command = "A B C D E F G H I J K L M N O P A B"
         self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
-        return state
+        return state.astype(np.float32)
 
     def step(self, action):
         if action == self.action_space_size - 1:
@@ -139,7 +140,7 @@ class CacheQueryEnv(gym.Env):
                 state, reward, done, info = self.last_unmasked_tuple
                 reward = self.env.wrong_reward
                 done = True
-                return state, reward, done, info
+                return state.astype(np.float32), reward, done, info
 
             self.revealed = True
             # return the revealed obs, reward,# return the revealed obs, reward,  
@@ -159,14 +160,18 @@ class CacheQueryEnv(gym.Env):
                 lat_cq_cnt = len(lat_cq) - 1
                 for i in range(len(state)):
                     if state[i][0] != 2 and lat_cq_cnt >= 0:
-                        #if int(lat_cq[lat_cq_cnt]) > 50: # hit
-                        #    state[i][0] = int(lat_cq[lat_cq_cnt]) 
-                        #else:                            # miss
-                        state[i][0] = int(lat_cq[lat_cq_cnt])
+                        if int(lat_cq[lat_cq_cnt]) > 50: # hit
+                            state[i][0] = 0.0#int(lat_cq[lat_cq_cnt]) 
+                        else:                            # miss
+                            state[i][0] = 1.0
+                        #state[i][0] = int(lat_cq[lat_cq_cnt])
+                        state[i][0] = 1.0 - float(lat_cq[lat_cq_cnt]) * 1.0 / 100.0
+                        #state[i][0] = float(lat_cq[lat_cq_cnt]) / 100.0
                         lat_cq_cnt -= 1
                     else:
                         state[i][0] = -1
             print(state)
+            print(type(state[0][0]))
             return state, reward, done, info
 
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1
@@ -209,7 +214,7 @@ class CacheQueryEnv(gym.Env):
                     return state, reward, done, info   
                 else:
                     state, reward, done, info = self.env.step(action)
-
+                    state = state.astype(np.float)
                     # append to the cq_command
                     if is_victim == True: 
                         if self.env.victim_address <= self.env.victim_address_max: # check whether it is an empty access
