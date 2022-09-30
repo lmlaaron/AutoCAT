@@ -21,7 +21,7 @@ def main():
     if arguments['log_file']:
         log_filename = arguments['log_file']
 
-    result_file = ''
+    result_file = 'result.txt'
     if arguments['result_file']:
         result_file = arguments['result_file']
 
@@ -96,7 +96,7 @@ def print_cache(cache):
                     temp_way.append('')
                 sets.append(temp_way)
             
-            set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
+            ##set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
             temp_way = ['Set ' + str(len(set_indexes) - 1)]
             for w in range(0, cache.associativity):
                 temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w][1].address)
@@ -226,6 +226,10 @@ def build_hierarchy(configs, logger):
         cache_2 = build_cache(configs, 'cache_2', prev_level, logger)
         prev_level = cache_2
         hierarchy['cache_2'] = cache_2
+    if 'cache_1_core_2' in configs.keys():
+        cache_1_core_2 = build_cache(configs, 'cache_1_core_2', prev_level, logger)
+        prev_level = cache_2
+        hierarchy['cache_1_core_2'] = cache_1_core_2        
     #Cache_1 is required
     cache_1 = build_cache(configs, 'cache_1', prev_level, logger)
     hierarchy['cache_1'] = cache_1
