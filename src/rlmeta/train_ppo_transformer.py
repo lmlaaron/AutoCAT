@@ -22,6 +22,7 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 from rlmeta.samplers import UniformSampler
 from rlmeta.storage import TensorCircularBuffer
+from rlmeta.utils.optimizer_utils import make_optimizer
 
 from cache_env_wrapper import CacheEnvWrapperFactory
 from cache_ppo_transformer_model import CachePPOTransformerModel
@@ -46,7 +47,8 @@ def main(cfg):
 
     train_model = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device)
-    optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
+    optimizer = make_optimizer(cfg.optimizer.name, train_model.parameters(),
+                               cfg.optimizer.args)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
     infer_model.eval()
@@ -81,7 +83,7 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
-                     push_every_n_steps=cfg.push_every_n_steps)
+                     model_push_period=cfg.model_push_period)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
 
