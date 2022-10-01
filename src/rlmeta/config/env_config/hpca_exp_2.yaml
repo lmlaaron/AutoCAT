@@ -7,7 +7,7 @@ step_reward: -0.01
 
 verbose: 0
 force_victim_hit: false
-flush_inst: yes
+flush_inst: true
 allow_victim_multi_access: true
 allow_empty_victim_access: false
 attacker_addr_s: 0
@@ -26,6 +26,7 @@ cache_configs:
     associativity: 1
     hit_time: 1
     rep_policy: "lru"
+    prefetcher: "none"
   mem:
     hit_time: 1000
 

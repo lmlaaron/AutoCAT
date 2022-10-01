@@ -11,10 +11,10 @@ train_device: "cuda:0"
 infer_device: "cuda:1"
 
 num_train_rollouts: 24
-num_train_workers: 24
+num_train_workers: 48
 
 num_eval_rollouts: 2
-num_eval_workers: 2
+num_eval_workers: 4
 
 # replay_buffer_size: 262144
 replay_buffer_size: 131072
@@ -44,7 +44,7 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: lru_8way
+  # - env_config: lru_8way
   # - env_config: config_exp2
   # - env_config: config_exp3
   # - env_config: config_exp4
@@ -66,4 +66,11 @@ defaults:
   # - env_config: config_exp_remap_baseline2
   # - env_config: config_exp_ceaser_distributed
   # - env_config: config_exp_real
+  - env_config: hpca_exp_1.yaml
+  # - env_config: hpca_exp_2.yaml
+  # - env_config: hpca_exp_3.yaml
+  # - env_config: hpca_exp_4.yaml
+  # - env_config: hpca_exp_5.yaml
+  # - env_config: hpca_exp_6.yaml
+  # - env_config: hpca_exp_7.yaml
   - model_config: experiments
