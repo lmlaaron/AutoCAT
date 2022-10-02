@@ -182,9 +182,9 @@ class Cache:
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
-            print(block_offset)
-            print(index)
-            print(tag)
+            #print(block_offset)
+            #print(index)
+            #print(tag)
             #Get the tags in this set
             in_cache = []
             for i in range( 0, len(self.data[index]) ):
@@ -216,17 +216,17 @@ class Cache:
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
                 if evict_addr != -1:
-                    print('evict_addr '+ evict_addr)
+                    #print('evict_addr '+ evict_addr)
                     #print(evict_addr)
                     #assert(False)
                     evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
-                    print(evict_block_offset)
-                    print(evict_index)
-                    print(evict_tag)
+                    #print(evict_block_offset)
+                    #print(evict_index)
+                    #print(evict_tag)
                     for i in range(0,len(self.data[evict_index])):
                         if self.data[evict_index][i][0] == evict_tag:
                             
-                            print('\tEvict addr ' + evict_addr + ' for inclusive cache')
+                            #print('\tEvict addr ' + evict_addr + ' for inclusive cache')
                             self.data[evict_index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
                             self.set_rep_policy[evict_index].invalidate(evict_tag)
                             self.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
@@ -238,7 +238,7 @@ class Cache:
                         for i in range(0,len(slc.data[evict_index])):
                             if slc.data[evict_index][i][0] == evict_tag:
                                 #slc.logger.info
-                                print('\tcoherent Evict addr ' + evict_addr + ' for inclusive cache')
+                                #print('\tcoherent Evict addr ' + evict_addr + ' for inclusive cache')
                                 slc.data[evict_index][i] = (INVALID_TAG, block.Block(slc.block_size, current_step, False, 'x'))
                                 slc.set_rep_policy[evict_index].invalidate(evict_tag)
                                 slc.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
@@ -267,7 +267,7 @@ class Cache:
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
                 else:
-                    print(len(in_cache))
+                    #print(len(in_cache))
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
                     # pl cache may find the victim that is partition locked
