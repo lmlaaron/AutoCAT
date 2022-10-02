@@ -15,6 +15,7 @@ class Cache:
         self.write_time = write_time
         self.write_back = write_back
         self.logger = logger
+        self.same_level_caches = []
         self.logger.disabled = False#True
         self.set_rep_policy = {}
         self.verbose = verbose
@@ -113,6 +114,10 @@ class Cache:
 
         return r, cyclic_set_index, cyclic_way_index
 
+    # for multicore caches, if two same levels are connected to the shared caches then add
+    def add_same_level_cache(self, cache):
+        self.same_level_caches.append(cache)
+
     # read with prefetcher
     def read(self, address, current_step, pl_opt= -1, domain_id = 'X'):
         if self.prefetcher == "none":
@@ -173,10 +178,13 @@ class Cache:
         #Main memory is always a hit
         if not self.next_level:
             r = response.Response({self.name:True}, self.hit_time)
+            evict_addr = -1
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
-
+            print(block_offset)
+            print(index)
+            print(tag)
             #Get the tags in this set
             in_cache = []
             for i in range( 0, len(self.data[index]) ):
@@ -200,9 +208,42 @@ class Cache:
                 if pl_opt != -1: 
                     self.set_rep_policy[index].setlock(tag, pl_opt)
                 r = response.Response({self.name:True}, self.hit_time)
+                evict_addr = -1 #no evition needed
             else:
                 #Read from the next level of memory
-                r, cyclic_set_index, cyclic_way_index = self.next_level.read(address, current_step, pl_opt)
+                r, cyclic_set_index, cyclic_way_index, evict_addr = self.next_level.read(address, current_step, pl_opt)
+                
+                # coherent eviction
+                # inclusive eviction (evicting in L1 if evicted by the higher level)
+                if evict_addr != -1:
+                    print('evict_addr '+ evict_addr)
+                    #print(evict_addr)
+                    #assert(False)
+                    evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
+                    print(evict_block_offset)
+                    print(evict_index)
+                    print(evict_tag)
+                    for i in range(0,len(self.data[evict_index])):
+                        if self.data[evict_index][i][0] == evict_tag:
+                            
+                            print('\tEvict addr ' + evict_addr + ' for inclusive cache')
+                            self.data[evict_index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
+                            self.set_rep_policy[evict_index].invalidate(evict_tag)
+                            self.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
+                            break
+                
+                    # cohenrent eviction for otehr cache lines
+                    for slc in self.same_level_caches:
+                        evict_block_offset, evict_index, evict_tag = slc.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
+                        for i in range(0,len(slc.data[evict_index])):
+                            if slc.data[evict_index][i][0] == evict_tag:
+                                #slc.logger.info
+                                print('\tcoherent Evict addr ' + evict_addr + ' for inclusive cache')
+                                slc.data[evict_index][i] = (INVALID_TAG, block.Block(slc.block_size, current_step, False, 'x'))
+                                slc.set_rep_policy[evict_index].invalidate(evict_tag)
+                                slc.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
+                                break
+
                 r.deepen(self.write_time, self.name)
 
                 #If there's space in this set, add this block to it
@@ -226,6 +267,7 @@ class Cache:
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
                 else:
+                    print(len(in_cache))
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
                     # pl cache may find the victim that is partition locked
@@ -236,7 +278,7 @@ class Cache:
                                 if self.data[index][i][0] == victim_tag:
                                     if self.data[index][i][1].is_dirty():  
                                         self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
-                                        temp = self.next_level.write(self.data[index][i][1].address, True, current_step)
+                                        temp, _, _ = self.next_level.write(self.data[index][i][1].address, True, current_step)
                                         r.time += temp.time
                                         break
                         # Delete the old block and write the new one
@@ -248,12 +290,20 @@ class Cache:
                                         cyclic_way_index = i
                                     self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                                 self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
-                                break
+                                break    
+                        evict_addr = victim_tag  #+ '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
                         self.set_rep_policy[index].invalidate(victim_tag)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
                         if pl_opt != -1:
                             self.set_rep_policy[index].setlock(tag, pl_opt)
-        return r, cyclic_set_index, cyclic_way_index
+                    else:
+                        evict_addr = -1
+                
+        #if evict_addr != -1:
+            #print(evict_addr)
+            #evict_addr = hex(int(evict_addr))[2:].zfill(8 - len(hex(int(evict_addr))[2:]))
+            #print('evict_addr ' + evict_addr)
+        return r, cyclic_set_index, cyclic_way_index, evict_addr
 
     # pl_opt: indicates the PL cache option
     # pl_opt = -1: normal read
@@ -324,7 +374,7 @@ class Cache:
             elif len(in_cache) == self.associativity:
                 
                 #If this set is full, find the oldest block, write it back if it's dirty, and replace it
-                victim_tag = self.set_rep_policy[index].find_victim(timestamp) 
+                victim_tag = self.set_rep_policy[index].find_victim(current_step) 
                     
                 # pl cache may find the victim that is partition locked
                 # the Pl cache condition for write is not tested
@@ -335,7 +385,7 @@ class Cache:
                                 if self.data[index][i][1].is_dirty():  
                         #if self.data[index][victim_tag].is_dirty():
                                     self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
-                                    r = self.next_level.write(self.data[index][i][1].address, from_cpu, current_step)
+                                    r, _, _ = self.next_level.write(self.data[index][i][1].address, from_cpu, current_step)
                                     r.deepen(self.write_time, self.name)
                                     break
                     else:
