@@ -63,37 +63,18 @@ class CacheQueryEnv(gym.Env):
         verbose = False
         interactive = False
         # options
-        if "cq_config_path" in env_config:
-            cq_config_path = env_config["cq_config_path"]
-        else: # default path
-            cq_config_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+ '/third_party/cachequery/tool/cachequery.ini' # default path
-        
-        if "cq_proc" in env_config:
-            cq_proc = env_config["cq_proc"]
-        else:
-            cq_proc = 'i5-6500'
-
+        config_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))+ '/third_party/cachequery/tool/cachequery.ini' # default path
         batch = None
 
         # config overwrite
         cacheset = None
         level = None
-
-        if  "cq_cacheset" in env_config:
-            cacheset = env_config["cq_cacheset"]
-        else:
-            cacheset='34'
-        
-        if "cq_level" in env_config:
-            level = env_config["cq_level"]
-        else:
-            level = 'L1'      # for 4-way cache
-        
-        
-        # read cq_config
+        cacheset='34'
+        level = 'L1'      # for 4-way cache
+        # read config
         try:
             config = configparser.ConfigParser()
-            config.read(cq_config_path)
+            config.read(config_path)
             # add method for dynamic cache check
             def cache(self, prop):
                 return self.get(self.get('General', 'level'), prop)
@@ -113,8 +94,6 @@ class CacheQueryEnv(gym.Env):
         if output:
             config.set('General', 'log_file', output)
 
-        config.set('General', 'ways', str(env_config["cache_configs"]["cache_1"]["associativity"]))
-
         # instantiate cq
         self.CQ = CacheQuery(config)
         '''
@@ -128,14 +107,9 @@ class CacheQueryEnv(gym.Env):
         H -> 7
         I -> 8
         '''
-        
-        if 'cq_init_command' in config:
-            self.cq_init_command = config["cq_init_command"]
-        else:
-            self.cq_init_command = "A B C D E F G H I A B"  #establish the address alphabet to number mapping
-        
-        self.cq_command= self.cq_init_command
-        
+        self.cq_command = "A B C D E F G H I J K L M N O P A B"  #establish the address alphabet to number mapping
+        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
+ 
         '''
         after this the 4-way cache should be
         [ A B H I] or [0 1 7 8]
@@ -152,7 +126,8 @@ class CacheQueryEnv(gym.Env):
         self.last_unmasked_tuple = (state, reward, done, info)
 
         #reset CacheQuery Command
-        self.cq_command = self.cq_init_command
+        self.cq_command = "A B C D E F G H I J K L M N O P A B"
+        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
         return state
 
     def step(self, action):
@@ -176,7 +151,7 @@ class CacheQueryEnv(gym.Env):
             while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
                 answer = self.CQ.run(self.cq_command)[0]            
                 answer_index = answer.split().index('->')+1
-
+            
             if answer != None:
                 lat_cq = answer.split()[answer.split().index('->')+1:]
                 lat_cq_cnt = len(lat_cq) - 1
@@ -257,11 +232,6 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
-            'cq_config_path': '../../third_party/cachequery/tool/cachequery.ini', # default path
-            'cq_proc': 'i5-6500',  #TODO(Mulong): automatically recompile the cache query
-            'cq_cacheset': "34",
-            'cq_level': "L3",
-            'cq_init_command': "@ @",
             'verbose': 1,
             "prefetcher": "nextline",
             "rerandomize_victim": False,
@@ -284,8 +254,8 @@ if __name__ == "__main__":
                 # for L2 cache of Intel i7-6700 
                 # it is a 4-way cache, this should not be changed
                 "cache_1": {#required
-                  "blocks": 4,#4, 
-                  "associativity": 4,  
+                  "blocks": 8,#4, 
+                  "associativity": 8,  
                   "hit_time": 1 #cycles
                 },
                 "mem": {#required
