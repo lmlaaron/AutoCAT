@@ -66,11 +66,12 @@ defaults:
   # - env_config: config_exp_remap_baseline2
   # - env_config: config_exp_ceaser_distributed
   # - env_config: config_exp_real
-  - env_config: hpca_exp_1.yaml
+  # - env_config: hpca_exp_1.yaml
   # - env_config: hpca_exp_2.yaml
   # - env_config: hpca_exp_3.yaml
   # - env_config: hpca_exp_4.yaml
   # - env_config: hpca_exp_5.yaml
   # - env_config: hpca_exp_6.yaml
   # - env_config: hpca_exp_7.yaml
+  - env_config: hpca_exp_multicore_1.yaml
   - model_config: experiments
