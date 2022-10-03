@@ -216,7 +216,7 @@ class Cache:
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
                 if evict_addr != -1:
-                    print('evict_addr '+ evict_addr)
+                    #print('evict_addr '+ evict_addr)
                     #print(evict_addr)
                     #assert(False)
                     evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
