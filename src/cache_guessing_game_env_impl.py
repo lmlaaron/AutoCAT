@@ -109,7 +109,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.allow_victim_multi_access = env_config["allow_victim_multi_access"] if "allow_victim_multi_access" in env_config else True
     self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
     self.wrong_reward = env_config["wrong_reward"] if "wrong_reward" in env_config else -9999
-    self.step_reward = env_config["step_reward"] if "step_reward" in env_config else 0
+    self.step_reward = env_config["step_reward"] if "step_reward" in env_config else -10
     self.reset_limit = env_config["reset_limit"] if "reset_limit" in env_config else 1
     self.cache_state_reset = env_config["cache_state_reset"] if "cache_state_reset" in env_config else True
     window_size = env_config["window_size"] if "window_size" in env_config else 0
@@ -399,7 +399,7 @@ class CacheGuessingGameEnv(gym.Env):
             else:
               self.vprint("acceee " + address + " (miss not observable)")
               r = 2 # cache miss
-              reward = 0.9 * self.step_reward #-1  
+              reward = 1 * self.step_reward #-1  
           else:
             if no_measure == 0:
               self.vprint("access " + address + " hit"  )
@@ -408,7 +408,7 @@ class CacheGuessingGameEnv(gym.Env):
             else:
               self.vprint("acceee " + address + " (hit not observable)")
               r = 2 # cache miss 
-              reward = 0.9 * self.step_reward #-1 
+              reward = 1 * self.step_reward #-1 
           self.current_step += 1
           #reward = self.step_reward #-1 
           done = False
