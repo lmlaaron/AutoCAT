@@ -182,9 +182,9 @@ class Cache:
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
-            #print(block_offset)
-            #print(index)
-            #print(tag)
+            ##print(block_offset)
+            ##print(index)
+            ##print(tag)
             #Get the tags in this set
             in_cache = []
             for i in range( 0, len(self.data[index]) ):
@@ -216,7 +216,7 @@ class Cache:
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
                 if evict_addr != -1:
-                    #print('evict_addr '+ evict_addr)
+                    print('evict_addr '+ evict_addr)
                     #print(evict_addr)
                     #assert(False)
                     evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
@@ -270,6 +270,7 @@ class Cache:
                     #print(len(in_cache))
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
+                    #print('index ' + index )
                     # pl cache may find the victim that is partition locked
                     if victim_tag != INVALID_TAG: 
                         # Write the block back down if it's dirty and we're using write back
@@ -291,7 +292,9 @@ class Cache:
                                     self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                                 self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                                 break    
-                        evict_addr = victim_tag  #+ '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
+                        evict_addr = victim_tag  + index + '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
+                        #print('index ' + index)
+                        #print('victim tag ' + victim_tag)
                         self.set_rep_policy[index].invalidate(victim_tag)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
                         if pl_opt != -1:

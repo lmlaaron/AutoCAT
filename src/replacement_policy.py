@@ -60,7 +60,7 @@ class lru_policy(rep_policy):
 
     def find_victim(self, timestamp):
         in_cache = list(self.blocks.keys())
-        print(len(in_cache))
+        #print(len(in_cache))
         victim_tag = in_cache[0] 
         for b in in_cache:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
