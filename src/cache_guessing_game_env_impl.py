@@ -1,6 +1,7 @@
 # Author: Mulong Luo
 # date 2021.12.3
 # description: environment for study RL for side channel attack
+from calendar import c
 from collections import deque
 
 import numpy as np
@@ -226,6 +227,13 @@ class CacheGuessingGameEnv(gym.Env):
     ''' 
     self.vprint('Initializing...')
     self.l1 = self.hierarchy['cache_1']
+    
+    # check multicore
+    if 'cache_1_core_2' in self.hierarchy:
+      self.lv = self.hierarchy['cache_1_core_2']
+    else:
+      self.lv = self.l1
+
     self.current_step = 0
     self.victim_accessed = False
     if self.allow_empty_victim_access == True:
@@ -333,7 +341,7 @@ class CacheGuessingGameEnv(gym.Env):
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if self.victim_address <= self.victim_address_max:
               self.vprint("victim access (hex) %x " % self.victim_address)
-              t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
+              t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
               t = t.time # do not need to lock again
             else:
               self.vprint("victim make a empty access!") # do not need to actually do something
@@ -389,7 +397,7 @@ class CacheGuessingGameEnv(gym.Env):
               reward = self.wrong_reward #-9999
               done = True
         elif is_flush == False or self.flush_inst == False:
-          lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
+          lat, cyclic_set_index, cyclic_way_index, _ = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
             self.vprint("access (hex) " + address + " miss")
@@ -517,7 +525,7 @@ class CacheGuessingGameEnv(gym.Env):
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
       self.vprint("[reset] victim access %d locked cache line" % self.victim_address_max)
-      lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
+      lat, cyclic_set_index, cyclic_way_index, _ = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
 
     self.last_state = None
 
@@ -537,9 +545,9 @@ class CacheGuessingGameEnv(gym.Env):
   def calc_correct_seq(self, action_buffer):
     last_action, _ = action_buffer[-1]
     last_action = self.parse_action(last_action)
-    print(last_action)
+    #print(last_action)
     guess_addr = last_action[4]
-    print(guess_addr)
+    #print(guess_addr)
     self.reset(victim_addr = guess_addr)
     self.total_guess = 0
     self.correct_guess = 0

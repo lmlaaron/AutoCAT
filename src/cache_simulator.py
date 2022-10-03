@@ -122,36 +122,50 @@ def simulate(hierarchy, trace, logger, result_file=''):
     #We only interface directly with L1. Reads and writes will automatically
     #interact with lower levels of the hierarchy
     l1 = hierarchy['cache_1']
+    if 'cache_1_core_2' in hierarchy:
+        l1_c2 = hierarchy['cache_1_core_2']
     for current_step in range(len(trace)):
         instruction = trace[current_step]
         address, op = instruction.split()
         #Call read for this address on our memory hierarchy
-        if op == 'R':
-            logger.info(str(current_step) + ':\tReading ' + address)
-            r, _, _ = l1.read(address, current_step)
+        if op == 'R' or op == 'R2':
+            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
+            if op == 'R2':
+                l = l1_c2
+            else:
+                l = l1
+            r, _, _, _ = l.read(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RL':      # pl cache lock cacheline
+        elif op == 'RL' or op == 'RL2':      # pl cache lock cacheline
             assert(l1.rep_policy == plru_pl_policy) # must be pl cache 
-            logger.info(str(current_step) + ':\tReading ' + address)
-            r, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            # multilcore not implemented
+            assert(op == 'RL')
+            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
+            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RU':      # pl cache unlock cacheline
+        elif op == 'RU' or op == 'RU2':      # pl cache unlock cacheline
             assert(l1.rep_policy == plru_pl_policy)
-            logger.info(str(current_step) + ':\tReading ' + address)
-            r, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            # multilcore not implemented
+            assert(op == 'RU')
+            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
+            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         #Call write
-        elif op == 'W':
-            logger.info(str(current_step) + ':\tWriting ' + address)
-            r, _, _ = l1.write(address, True, current_step)
+        elif op == 'W' or op == 'W2':
+            # multilcore not implemented
+            #assert(op == 'W')
+            logger.info(str(current_step) + ':\tWriting ' + address + ' ' + op)
+            r, _, _= l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         #Call cflush
-        elif op == 'F':
-            logger.info(str(current_step) + ':\tFlushing ' + address)
+        elif op == 'F' or op == 'F2':
+            ## multilcore not implemented
+            #assert(op == 'F')
+            logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
             r, _, _ = l1.cflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
         else:
@@ -232,6 +246,10 @@ def build_hierarchy(configs, logger):
         hierarchy['cache_1_core_2'] = cache_1_core_2        
     #Cache_1 is required
     cache_1 = build_cache(configs, 'cache_1', prev_level, logger)
+    if 'cache_1_core_2' in configs.keys(): 
+        cache_1.add_same_level_cache(cache_1_core_2)
+        cache_1_core_2.add_same_level_cache(cache_1)
+    #print(len(cache_1.same_level_caches))
     hierarchy['cache_1'] = cache_1
     return hierarchy
 

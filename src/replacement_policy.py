@@ -45,7 +45,7 @@ class lru_policy(rep_policy):
         return self.touch(tag, timestamp)
 
     def instantiate_entry(self, tag, timestamp):
-        assert(tag not in self.blocks)
+        assert(tag == INVALID_TAG or tag not in self.blocks)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
 
     #def reset(self, tag):
@@ -53,8 +53,14 @@ class lru_policy(rep_policy):
         assert(tag in self.blocks)
         del self.blocks[tag]
 
+    #def reset(self, tag):
+    def invalidate_unsafe(self, tag):
+        if tag in self.blocks:
+            del self.blocks[tag]
+
     def find_victim(self, timestamp):
         in_cache = list(self.blocks.keys())
+        print(len(in_cache))
         victim_tag = in_cache[0] 
         for b in in_cache:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
