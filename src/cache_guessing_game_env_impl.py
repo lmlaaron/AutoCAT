@@ -120,6 +120,7 @@ class CacheGuessingGameEnv(gym.Env):
     victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 3
     flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False
     self.verbose = env_config["verbose"] if "verbose" in env_config else 0
+    self.super_verbose = env_config["super_verbose"] if "super_verbose" in env_config else 0
     self.logger = logging.getLogger()
     self.fh = logging.FileHandler('log')
     self.sh = logging.StreamHandler()
@@ -145,8 +146,14 @@ class CacheGuessingGameEnv(gym.Env):
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
     
+    if 'cache_1_core_2' in self.configs:
+      if "rep_policy" not in self.configs['cache_1_core_2']:
+        self.configs['cache_1_core_2']['rep_policy'] = 'lru'
+      self.configs['cache_1_core_2']['prefetcher'] = self.prefetcher
+
     #with open_dict(self.configs):
     self.configs['cache_1']['prefetcher'] = self.prefetcher
+
 
     '''
     check window size
@@ -227,12 +234,12 @@ class CacheGuessingGameEnv(gym.Env):
     ''' 
     self.vprint('Initializing...')
     self.l1 = self.hierarchy['cache_1']
-    
+    #self.lv = self.hierarchy['cache_1'] 
     # check multicore
     if 'cache_1_core_2' in self.hierarchy:
       self.lv = self.hierarchy['cache_1_core_2']
     else:
-      self.lv = self.l1
+      self.lv = self.hierarchy['cache_1']
 
     self.current_step = 0
     self.victim_accessed = False
@@ -486,6 +493,11 @@ class CacheGuessingGameEnv(gym.Env):
     info["cyclic_way_index"] = cyclic_way_index
     info["cyclic_set_index"] = cyclic_set_index
 
+    if self.super_verbose == True:
+      for cache in self.hierarchy:
+        if self.hierarchy[cache].next_level:
+          print_cache(self.hierarchy[cache])
+
     return np.array(list(reversed(self.state))), reward, done, info
 
   '''
@@ -504,6 +516,12 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint('Reset...(also the cache state)')
       self.hierarchy = build_hierarchy(self.configs, self.logger)
       self.l1 = self.hierarchy['cache_1']
+      # check multicore
+      if 'cache_1_core_2' in self.hierarchy:
+        self.lv = self.hierarchy['cache_1_core_2']
+      else:
+        self.lv = self.hierarchy['cache_1']
+
       if seed == -1:
         self._randomize_cache()
       else:
@@ -525,9 +543,14 @@ class CacheGuessingGameEnv(gym.Env):
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
       self.vprint("[reset] victim access %d locked cache line" % self.victim_address_max)
-      lat, cyclic_set_index, cyclic_way_index, _ = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
+      lat, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
 
     self.last_state = None
+
+    if self.super_verbose == True:
+      for cache in self.hierarchy:
+        if self.hierarchy[cache].next_level:
+          print_cache(self.hierarchy[cache])
 
     return np.array(list(reversed(self.state)))
 
