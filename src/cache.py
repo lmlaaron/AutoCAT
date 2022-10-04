@@ -120,6 +120,7 @@ class Cache:
 
     # read with prefetcher
     def read(self, address, current_step, pl_opt= -1, domain_id = 'X'):
+        address = address.zfill(8) 
         if self.prefetcher == "none":
             return self.read_no_prefetch(address, current_step, pl_opt, domain_id)
         elif self.prefetcher == "nextline":
@@ -182,9 +183,9 @@ class Cache:
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
-            ##print(block_offset)
-            ##print(index)
-            ##print(tag)
+            ####print(block_offset)
+            ####print(index)
+            ####print(tag)
             #Get the tags in this set
             in_cache = []
             for i in range( 0, len(self.data[index]) ):
@@ -216,38 +217,45 @@ class Cache:
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
                 if evict_addr != -1:
-                    #print('evict_addr '+ evict_addr)
-                    #print(evict_addr)
+                    ###print('evict_addr '+ evict_addr)
+                    ###print(evict_addr)
                     #assert(False)
-                    evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
-                    #print(evict_block_offset)
-                    #print(evict_index)
-                    #print(evict_tag)
+                    evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(8))#9 - len(hex(int(evict_addr,2))[2:])))
+                    ####print(evict_block_offset)
+                    ####print(evict_index)
+                    ####print(evict_tag)
                     for i in range(0,len(self.data[evict_index])):
                         if self.data[evict_index][i][0] == evict_tag:
                             
                             #print('\tEvict addr ' + evict_addr + ' for inclusive cache')
                             self.data[evict_index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
                             self.set_rep_policy[evict_index].invalidate(evict_tag)
-                            self.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
+                            #self.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
                             break
                 
                     # cohenrent eviction for otehr cache lines
                     for slc in self.same_level_caches:
-                        evict_block_offset, evict_index, evict_tag = slc.parse_address(hex(int(evict_addr,2))[2:].zfill(9 - len(hex(int(evict_addr,2))[2:])))
+                        evict_block_offset, evict_index, evict_tag = slc.parse_address(hex(int(evict_addr,2))[2:].zfill(8))#9 - len(hex(int(evict_addr,2))[2:])))
                         for i in range(0,len(slc.data[evict_index])):
                             if slc.data[evict_index][i][0] == evict_tag:
                                 #slc.logger.info
                                 #print('\tcoherent Evict addr ' + evict_addr + ' for inclusive cache')
                                 slc.data[evict_index][i] = (INVALID_TAG, block.Block(slc.block_size, current_step, False, 'x'))
                                 slc.set_rep_policy[evict_index].invalidate(evict_tag)
-                                slc.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
+                                #slc.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
                                 break
 
                 r.deepen(self.write_time, self.name)
 
+                # refresh in_cache afeter coherent eviction
+                in_cache = []
+                for i in range( 0, len(self.data[index]) ):
+                    if self.data[index][i][0] != INVALID_TAG:#'x':
+                        in_cache.append(self.data[index][i][0])
+                
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity:
+                    #print('a')
                     for i in range( 0, len(self.data[index])):
                         if self.data[index][i][0] == INVALID_TAG:#'x':
                             if domain_id != 'X':
@@ -257,7 +265,7 @@ class Cache:
                                 self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                             break
-                
+
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
                     
                     ###if inst_victim_tag != INVALID_TAG: #instantiated entry sometimes does not replace an empty tag
@@ -267,9 +275,11 @@ class Cache:
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
                 else:
+                    #print('B')
                     #print(len(in_cache))
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
+                    ##print('victim tag '+ victim_tag)
                     #print('index ' + index )
                     # pl cache may find the victim that is partition locked
                     if victim_tag != INVALID_TAG: 
@@ -292,7 +302,11 @@ class Cache:
                                     self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                                 self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                                 break    
-                        evict_addr = victim_tag  + index + '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
+                        if int(self.n_blocks/ self.associativity) == 1:
+                            indexi = ''
+                        else:
+                            indexi = index
+                        evict_addr = victim_tag  + indexi  + '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
                         #print('index ' + index)
                         #print('victim tag ' + victim_tag)
                         self.set_rep_policy[index].invalidate(victim_tag)
@@ -313,6 +327,8 @@ class Cache:
     # pl_opt = 1: lock the cache line
     # pl_opt = 2: unlock the cache line
     def write(self, address, from_cpu, current_step, pl_opt = -1, domain_id = 'X'):
+
+        address = address.zfill(8) 
         # cyclcone
         cyclic_set_index = -1
         cyclic_way_index = -1
