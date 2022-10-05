@@ -15,5 +15,10 @@ defaults:
   # - env_config: config_exp_14
   # - env_config: config_exp_14_nextline
   # - env_config: hpca_exp_7
-  - env_config: hpca_exp_multicore_1
+  # - env_config: hpca_exp_multicore_1
+  # - env_config: hpca_v_1
+  # - env_config: hpca_v_2
+  - env_config: hpca_v_3
+  # - env_config: hpca_v_4
+  # - env_config: hpca_v_4_base
   - model_config: experiments
