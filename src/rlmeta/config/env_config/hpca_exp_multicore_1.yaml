@@ -9,11 +9,11 @@ verbose: 0
 force_victim_hit: false
 flush_inst: false
 allow_victim_multi_access: true
-allow_empty_victim_access: true
-attacker_addr_s: 0
-attacker_addr_e: 4
+allow_empty_victim_access: false
+attacker_addr_s: 4
+attacker_addr_e: 7
 victim_addr_s: 0
-victim_addr_e: 0
+victim_addr_e: 3
 reset_limit: 1
 
 cache_configs:
@@ -23,8 +23,20 @@ cache_configs:
     write_back: true
   cache_1:
     blocks: 4
-    associativity: 4
+    associativity: 1
     hit_time: 1
+    rep_policy: "lru"
+    prefetcher: "none"
+  cache_1_core_2:
+    blocks: 4
+    associativity: 1
+    hit_time: 1
+    rep_policy: "lru"
+    prefetcher: "none"
+  cache_2:
+    blocks: 4
+    associativity: 1
+    hit_time: 16
     rep_policy: "lru"
     prefetcher: "none"
   mem:

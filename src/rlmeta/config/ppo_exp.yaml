@@ -11,10 +11,10 @@ train_device: "cuda:0"
 infer_device: "cuda:1"
 
 num_train_rollouts: 24
-num_train_workers: 48
+num_train_workers: 24
 
-num_eval_rollouts: 2
-num_eval_workers: 4
+num_eval_rollouts: 4
+num_eval_workers: 2
 
 # replay_buffer_size: 262144
 replay_buffer_size: 131072
@@ -74,11 +74,14 @@ defaults:
   # - env_config: hpca_exp_6.yaml
   # - env_config: hpca_exp_7.yaml
   # - env_config: hpca_exp_multicore_1.yaml
-  # - env_config: hpca_v_1
+  - env_config: hpca_v_1
   # - env_config: hpca_v_2
-  - env_config: hpca_v_3
+  # - env_config: hpca_v_3
   # - env_config: hpca_v_4
   # - env_config: hpca_v_4_base
   # - env_config: hpca_v_5
+  # - env_config: hpca_alb_easy
+  # - env_config: hpca_alb_hard
+  # - env_config: hpca_2way4set
   - model_config: experiments
   # - model_config: hpca_v_5

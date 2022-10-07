@@ -78,7 +78,7 @@ class CachePPOTransformerModel(PPOModel):
         obs = obs.to(torch.int64)
         assert obs.dim() == 3
 
-        batch_size = obs.size(0)
+        # batch_size = obs.size(0)
         l, v, act, stp = torch.unbind(obs, dim=-1)
         mask = (stp == -1)
         l = self.make_one_hot(l, self.latency_dim, mask)
@@ -89,15 +89,8 @@ class CachePPOTransformerModel(PPOModel):
         x = torch.cat((l, v, act, stp), dim=-1)
         x = self.linear_i(x)
         x = x.transpose(0, 1).contiguous()
-        x_cls = torch.zeros(1, batch_size, self.hidden_dim, device=x.device)
-        x = torch.cat((x_cls, x), dim=0)
-        mask_cls = torch.zeros((batch_size, 1),
-                               dtype=mask.dtype,
-                               device=mask.device)
-        mask = torch.cat((mask_cls, mask), dim=-1)
-
-        h = self.encoder(x, src_key_padding_mask=mask)
-        h = h[0]
+        h = self.encoder(x)
+        h = h.mean(dim=0)
 
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)

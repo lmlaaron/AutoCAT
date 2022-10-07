@@ -22,13 +22,14 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 from rlmeta.samplers import UniformSampler
 from rlmeta.storage import TensorCircularBuffer
+from rlmeta.utils.optimizer_utils import make_optimizer
 
 from cache_env_wrapper import CacheEnvWrapperFactory
 from cache_ppo_model import CachePPOModel
 from metric_callbacks import MetricCallbacks
 
 
-@hydra.main(config_path="./config", config_name="ppo_exp")
+@hydra.main(config_path="./config", config_name="ppo_exp_mlp")
 def main(cfg):
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
@@ -40,9 +41,11 @@ def main(cfg):
     cfg.model_config["output_dim"] = env.action_space.n
 
     train_model = CachePPOModel(**cfg.model_config).to(cfg.train_device)
-    optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
+    optimizer = make_optimizer(cfg.optimizer.name, train_model.parameters(),
+                               cfg.optimizer.args)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
+    infer_model.eval()
 
     ctrl = Controller()
     rb = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
@@ -73,7 +76,7 @@ def main(cfg):
                      optimizer=optimizer,
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
-                     push_every_n_steps=cfg.push_every_n_steps)
+                     model_push_period=cfg.model_push_period)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
 
