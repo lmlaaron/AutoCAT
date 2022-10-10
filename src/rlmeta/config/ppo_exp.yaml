@@ -48,7 +48,7 @@ defaults:
   # - env_config: config_exp2
   # - env_config: config_exp3
   # - env_config: config_exp4
-  # - env_config: config_exp5
+  - env_config: config_exp5
   # - env_config: config_exp6
   # - env_config: config_exp7
   # - env_config: config_exp8
@@ -74,7 +74,8 @@ defaults:
   # - env_config: hpca_exp_6.yaml
   # - env_config: hpca_exp_7.yaml
   # - env_config: hpca_exp_multicore_1.yaml
-  - env_config: hpca_v_1
+  # - env_config: hpca_exp_multicore_2.yaml
+  # - env_config: hpca_v_1
   # - env_config: hpca_v_2
   # - env_config: hpca_v_3
   # - env_config: hpca_v_4
