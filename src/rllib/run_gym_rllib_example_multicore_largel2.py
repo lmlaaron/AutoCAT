@@ -32,10 +32,10 @@ if __name__ == "__main__":
             'flush_inst': False,
             "allow_victim_multi_access": True,#False,
             "allow_empty_victim_access": False,
-            "attacker_addr_s": 4,
-            "attacker_addr_e": 11,#4,#11,#15,
+            "attacker_addr_s": 8,
+            "attacker_addr_e": 23,#4,#11,#15,
             "victim_addr_s": 0,
-            "victim_addr_e": 3,#7,
+            "victim_addr_e": 7,#7,
             "reset_limit": 1,
             "cache_configs": {
                 # YAML config file for cache simulaton
@@ -57,7 +57,7 @@ if __name__ == "__main__":
                   "prefetcher": "nextline"
                 },   
                 "cache_2": {
-                    "blocks": 8,
+                    "blocks": 16,
                     "associativity": 2,
                     "hit_time": 16,
                 },            
