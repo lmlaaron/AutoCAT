@@ -32,7 +32,7 @@ class CacheQueryEnv(gym.Env):
     def __init__(self, env_config):
 
         #sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from cache_guessing_game_env_wrapper import CacheGuessingGameEnvWrapper as CacheGuessingGameEnv
+        from rllib.cache_guessing_game_env_wrapper import CacheGuessingGameEnvWrapper as CacheGuessingGameEnv
         
         env_config["show_latency"] = False                  # for blind training with cachequery, the env is just used as an interface
         # the observation especially the latency should not be printed out 
