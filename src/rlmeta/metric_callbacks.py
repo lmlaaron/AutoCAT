@@ -9,7 +9,7 @@ class MetricCallbacks(EpisodeCallbacks):
     def on_episode_step(self, index: int, step: int, action: Action,
                         timestep: TimeStep) -> None:
         info = timestep.info
-        if info["is_guess"]:
+        if "is_guess" in info and info["is_guess"]:
             self._custom_metrics["correct_rate"] = float(info["guess_correct"])
 
 

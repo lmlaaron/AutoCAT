@@ -87,7 +87,7 @@ class CacheQueryEnv(gym.Env):
         if "cq_level" in env_config:
             level = env_config["cq_level"]
         else:
-            level = 'L1'      # for 4-way cache
+            level = 'L2'      # for 4-way cache
         
         
         # read cq_config
@@ -187,7 +187,7 @@ class CacheQueryEnv(gym.Env):
                         else:                            # miss
                             state[i][0] = 1
                         lat_cq_cnt -= 1
-            print(state)
+            #print(state)
             return state, reward, done, info
 
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1
