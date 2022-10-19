@@ -52,7 +52,7 @@ def run_loop(env, agents, victim_addr=-1) -> Dict[str, float]:
         obs = env.reset()
     else:
         obs = env.reset(victim_address=victim_addr)
-    print("victim address: ", env.victim_address ) 
+    #print("victim address: ", env.victim_address ) 
     
     while not done["__all__"]:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
@@ -70,7 +70,8 @@ def run_loop(env, agents, victim_addr=-1) -> Dict[str, float]:
             if isinstance(action, Action):
                 action=action.action
             actions.update({agent_name:action})
-        print(actions)
+        #print(actions)
+        
         obs, reward, done, info = env.step(actions)
 
         for agent_name, agent in agents.items():
@@ -85,8 +86,7 @@ def run_loop(env, agents, victim_addr=-1) -> Dict[str, float]:
     metrics = {
         "episode_length": env.step_count,
         "episode_return": episode_return,
-        "detector_accuracy": detector_accuracy,
-    }
+        "detector_accuracy": detector_accuracy,}
 
     return metrics
 
@@ -129,7 +129,7 @@ def main(cfg):
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     # Run loops
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
-    logging.info("\n\n" + metrics.table(info="sample") + "\n")
+    #logging.info("\n\n" + metrics.table(info="sample") + "\n")
 
 
 import json
@@ -236,7 +236,7 @@ class StatsDict:
             data["info"] = info
         data.update(kwargs)
         return json.dumps(data)
-
+    '''
     def table(self, info: Optional[str] = None, **kwargs) -> str:
         if info is None:
             head = ["key", "mean", "std", "min", "max", "count"]
@@ -262,6 +262,6 @@ class StatsDict:
                         numalign="right",
                         stralign="right",
                         floatfmt=".8f")
-
+    '''
 if __name__ == "__main__":
     main()
