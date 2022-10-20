@@ -11,6 +11,7 @@ import yaml, logging
 import sys
 import replacement_policy
 from itertools import permutations
+from cache_simulator import print_cache
 
 import gym
 from gym import spaces
@@ -297,6 +298,7 @@ class CacheGuessingGameEnv(gym.Env):
   this is the function that implements most of the logic
   '''
   def step(self, action):
+    #print_cache(self.l1)
     '''
     For cyclone, default value of the cyclic set and way index
     '''
@@ -416,9 +418,10 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
-          self.l1.cflush(address, self.current_step, domain_id='X')
+          self.l1.cflush(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='X')
           #cflush = 1
           self.vprint("cflush (hex) " + address )
+          #self.vprint("mapped (hex) " + hex(self.ceaser_mapping(int('0x' + address, 16)))[2:])
           r = 2
           self.current_step += 1
           reward = self.step_reward

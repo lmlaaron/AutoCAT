@@ -102,9 +102,11 @@ class Cache:
 
         #If this tag exists in the set, this is a hit
         if tag in in_cache:
+            #print(tag + ' in cache')
             for i in range( 0, len(self.data[index])):
                 if self.data[index][i][0] == tag: 
-                    self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, address))
+                    #print(self.data[index][i][1].address)
+                    self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
                     break
             self.set_rep_policy[index].invalidate(tag)
 
@@ -183,9 +185,9 @@ class Cache:
         else:
             #Parse our address to look through this cache
             block_offset, index, tag = self.parse_address(address)
-            ####print(block_offset)
-            ####print(index)
-            ####print(tag)
+            #print(block_offset)
+            #print(index)
+            #print(tag)
             #Get the tags in this set
             in_cache = []
             for i in range( 0, len(self.data[index]) ):
@@ -194,6 +196,7 @@ class Cache:
 
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
+                #print(tag + 'in cache')
                 for i in range( 0, len(self.data[index])):
                     if self.data[index][i][0] == tag: 
                         self.data[index][i][1].read(current_step)
@@ -421,6 +424,8 @@ class Cache:
                                 self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                             break
+
+                    print('victim_tag '+ victim_tag)
                     self.set_rep_policy[index].invalidate(victim_tag)
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
                     # pl cache

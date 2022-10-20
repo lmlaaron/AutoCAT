@@ -29,13 +29,13 @@ if __name__ == "__main__":
             #'super_verbose': 1,
             "rerandomize_victim": False,
             "force_victim_hit": False,
-            'flush_inst': False,
+            'flush_inst': True,
             "allow_victim_multi_access": True,#False,
             "allow_empty_victim_access": False,
-            "attacker_addr_s": 8,
-            "attacker_addr_e": 23,#4,#11,#15,
+            "attacker_addr_s": 0,
+            "attacker_addr_e": 3,#4,#11,#15,
             "victim_addr_s": 0,
-            "victim_addr_e": 7,#7,
+            "victim_addr_e": 3,#7,
             "reset_limit": 1,
             "cache_configs": {
                 # YAML config file for cache simulaton
@@ -46,21 +46,22 @@ if __name__ == "__main__":
                 },
                 "cache_1": {#required
                   "blocks": 4,#4, 
-                  "associativity": 1,  
+                  "associativity": 4,  
                   "hit_time": 1, #cycles
-                  "prefetcher": "nextline"
+                  "rep_policy": "lru"
+                  #"prefetcher": "nextline"
                 },
-                "cache_1_core_2": {#required
-                  "blocks": 4,#4, 
-                  "associativity": 1,  
-                  "hit_time": 1, #cycles
-                  "prefetcher": "nextline"
-                },   
-                "cache_2": {
-                    "blocks": 16,
-                    "associativity": 2,
-                    "hit_time": 16,
-                },            
+                ##"cache_1_core_2": {#required
+                ##  "blocks": 4,#4, 
+                ##  "associativity": 1,  
+                ##  "hit_time": 1, #cycles
+                ##  "prefetcher": "nextline"
+                ##},   
+                ##"cache_2": {
+                ##    "blocks": 4,
+                ##    "associativity": 1,
+                ##    "hit_time": 16,
+                ##},            
                 "mem": {#required
                   "hit_time": 1000 #cycles
                 }
