@@ -88,6 +88,8 @@ class Cache:
     # flush the cache line that contains the address from all cache hierachy
     # since flush is does not affect memory domain_id
     def cflush(self, address, current_step, domain_id = 'X'):
+        address = address.zfill(8) 
+ 
         # cyclone
         cyclic_set_index = -1
         cyclic_way_index = -1
