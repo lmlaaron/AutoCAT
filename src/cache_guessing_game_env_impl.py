@@ -81,8 +81,8 @@ class CacheGuessingGameEnv(gym.Env):
         "write_back": True
       },
       "cache_1": {#required
-        "blocks": 4, 
-        "associativity": 1,  
+        "blocks": 1, 
+        "associativity": 4,  
         "hit_time": 1 #cycles
       },
       "mem": {#required
