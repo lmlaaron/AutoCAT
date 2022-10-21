@@ -1,4 +1,4 @@
-num_episodes: 10000
+num_episodes: 10
 seed: 123 #123 1234 12345
 
 exp_name: "/2022-07-26/14-03-38/wandb/run-20220726_140343-2wwnweyz/" # entangle-pool
@@ -79,7 +79,7 @@ defaults:
   # - env_config: config_exp_13
   # - env_config: config_exp_13_nextline
   # - env_config: config_exp_14
-  - env_config: config_exp61
-  # - env_config: config_exp62
+  # - env_config: config_exp61
+  - env_config: config_exp62
   # - env_config: config_exp_14_nextline
   - model_config: experiments
