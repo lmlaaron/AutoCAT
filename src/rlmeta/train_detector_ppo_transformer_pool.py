@@ -145,7 +145,7 @@ def main(cfg):
     
     '''
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:500000]#[:100000]
+    spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:100000]
     y = []
     for line in spec_trace:
         line = line.split()
@@ -241,7 +241,7 @@ def main(cfg):
             agent.set_use_history(True)
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
-            wandb_logger.save(epoch, train_model_d, prefix="detector-")
+            #wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
             if epoch % 10 == 9:
@@ -253,7 +253,7 @@ def main(cfg):
             agent.set_use_history(False)
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
             a_stats = agent.train(cfg.steps_per_epoch)
-            wandb_logger.save(epoch, train_model, prefix="attacker-")
+            #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:

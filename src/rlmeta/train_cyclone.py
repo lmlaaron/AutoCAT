@@ -91,13 +91,13 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
     #Same observation   
     #return timestep['detector'].observation.numpy(), env.env.opponent_agent
 
-def collect(cfg):
+def collect(cfg, num_samples):
     # load agents and 
     # run environment loop to collect data
     # return 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-    num_samples = 50
+    #num_samples = 50
 
     # Load model
     # Attacker
@@ -111,7 +111,7 @@ def collect(cfg):
     attacker_agent = PrimeProbeAgent(cfg.env_config)
     detector_agent = CycloneAgent(cfg.env_config)
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:500000]
+    spec_trace = spec_trace_f.read().split('\n')[:1000000]
     trace = []
     for line in spec_trace:
         line = line.split()
@@ -128,15 +128,15 @@ def collect(cfg):
     #num_samples, m, n = X.shape
     X = X.reshape(num_samples, -1)
     y = np.array(y)
-    print('features:\n',X,'labels\n',y)
+    #print('features:\n',X,'labels\n',y)
     return X, y
 
 def train(cfg):
     # run data collection and 
     # train the svm classifier
     # report accuracy
-    X_train, y_train = collect(cfg)
-    X_test, y_test = collect(cfg)
+    X_train, y_train = collect(cfg, num_samples=20000)
+    X_test, y_test = collect(cfg, num_samples=1000)
     clf = SVC(kernel='rbf', gamma='auto')
     clf.fit(X_train,y_train)
     print("Train Accuracy:", clf.score(X_train,y_train))

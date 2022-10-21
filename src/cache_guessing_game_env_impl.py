@@ -290,7 +290,7 @@ class CacheGuessingGameEnv(gym.Env):
     cyclic_set_index = -1
     cyclic_way_index = -1
 
-    self.vprint('Step ', self.current_step)
+    self.vprint('Step ', self.step_count)
     info = {}
     if isinstance(action, np.ndarray):
         action = action.item()

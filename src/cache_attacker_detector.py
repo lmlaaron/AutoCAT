@@ -41,6 +41,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.step_count = 0
         self.max_step = 64
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
+        self.random_domain = random.choice([0,1])
 
     def reset(self, victim_address=-1):
         """
@@ -53,7 +54,7 @@ class CacheAttackerDetectorEnv(gym.Env):
                                        reset_cache_state=True)
         self.victim_address = self._env.victim_address
         detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
-
+        self.random_domain = random.choice([0,1])
         obs = {}
         obs['detector'] = np.array(list(reversed(detector_obs)))
         obs['attacker'] = opponent_obs
@@ -63,14 +64,15 @@ class CacheAttackerDetectorEnv(gym.Env):
     def get_detector_obs(self, opponent_obs, opponent_info):
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
         if not np.any(cur_opponent_obs==-1):
+            # Make sure the observation does not leak information for detector
             # TODO should we include step number? - yes we should - the guess step should not be observed by the detector
             # attacker obs: r, victim_accessed, original action, current step
             # detector obs: r, domain_id, memory address, 0
             if opponent_info.get('invoke_victim'):
-                cur_opponent_obs[1] = 1
+                cur_opponent_obs[1] = self.random_domain #1
                 cur_opponent_obs[2] = opponent_info['victim_address']
             else:
-                cur_opponent_obs[1] = 0
+                cur_opponent_obs[1] = 1-self.random_domain#0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
             cur_opponent_obs[3] = self.step_count #0#self.step_count
             self.detector_obs.append(cur_opponent_obs)
@@ -91,7 +93,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             # detector flag the opponent as an attacker
             if self.opponent_agent == 'benign':
                 #detector_reward = - self.max_step + self.step_count - 1 #punish false positive
-                detector_reward = - 2 * self.max_step
+                detector_reward = - 3 * self.max_step
             elif self.opponent_agent == 'attacker':
                 detector_reward = max(self.max_step - self.step_count, 0)
                 detector_correct = True
@@ -178,7 +180,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         # Change the criteria to determine wether the game is done
         if detector_done:
             done['__all__'] = True
-        
+        #from IPython import embed; embed()
+
         info['__all__'] = {'action_mask':self.action_mask}
     
         for k,v in info.items():
@@ -197,10 +200,10 @@ if __name__ == '__main__':
         i += 1
         action = {'attacker':np.random.randint(low=3, high=6),
                   'benign':np.random.randint(low=2, high=5),
-                  'detector':np.random.randint(low=0, high=2)}
+                  'detector':np.random.randint(low=0, high=1)}
         obs, reward, done, info = env.step(action)
         print("step: ", i)
-        print("obs: ", obs['attacker'], obs['detector'])
+        print("obs: ", obs['detector'])
         print("action: ", action)
         print("victim: ", env.victim_address, env._env.victim_address)
 

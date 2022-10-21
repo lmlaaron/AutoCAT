@@ -81,15 +81,16 @@ class CycloneAgent:
                     temp.append(0)
                 self.cyclone_counters.append(temp)
 
-        self.local_step += 1
+        #self.local_step += 1
         cur_step_obs = timestep.observation[0][0]
+        self.local_step = max(cur_step_obs[-1],0)
         info = timestep.info
         if "cyclic_set_index" in info.keys() and info["cyclic_set_index"] != -1: 
             set = int(info["cyclic_set_index"])
-            if self.local_step < self.episode_length:
+            if self.local_step <= self.episode_length: #"<= or <"?
                 self.cyclone_counters[int(set / self.cyclone_bucket_size) ][int(self.step_count / self.cyclone_interval_size) ] += 1    
 
-        if self.local_step >= self.episode_length and self.mode=='active': 
+        if timestep.observation[0][0][-1] >= self.episode_length and self.mode=='active': 
             action = self.cyclone_attack(self.cyclone_counters)
         else:
             action = 0

@@ -15,6 +15,7 @@ from agents.prime_probe_agent import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
 from agents.cchunter_agent import CCHunterAgent
 from agents.benign_agent import BenignAgent
+from agents.random_agent import RandomAgent
 from agents.cyclone_agent import CycloneAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
@@ -37,8 +38,10 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     episode_return = 0.0
     detector_count = 0.0
     detector_acc = 0.0
-    
-    env.env.opponent_weights = [0,1]
+    num_total_guess = 0.0
+    num_total_correct_guess = 0.0
+
+    env.env.opponent_weights = [1,0]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -70,7 +73,11 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         
         episode_length += 1
         episode_return += timestep['attacker'].reward
-        
+        is_guess = timestep['attacker'].info.get("is_guess",0)
+        correct_guess = timestep['attacker'].info.get("guess_correct",0)
+        num_total_guess += is_guess
+        num_total_correct_guess += correct_guess
+
         try:
             detector_action = actions['detector'].action.item()
         except:
@@ -82,6 +89,8 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     metrics = {
         "episode_length": env.env.step_count,
         "episode_return": episode_return,
+        "num_total_guess": num_total_guess,
+        "num_total_correct_guess": num_total_correct_guess,
         "detector_accuracy": detector_accuracy,
     }
 
@@ -133,14 +142,15 @@ def main(cfg):
     detector_model.eval()
 
     # Create agent
-    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    #attacker_agent = PrimeProbeAgent(cfg.env_config)
-    
+    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    attacker_agent = PrimeProbeAgent(cfg.env_config)
 
+    #detector_agent = RandomAgent(1)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone.pkl", mode='active')
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone-entangle-pool.pkl", mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone1.pkl", mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone-anti2.pkl", mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
