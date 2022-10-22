@@ -30,7 +30,7 @@ if __name__ == "__main__":
             "rerandomize_victim": False,
             "force_victim_hit": False,
             'flush_inst': True,
-            "allow_victim_multi_access": True,#False,
+            "allow_victim_multi_access": False,
             "allow_empty_victim_access": False,
             "attacker_addr_s": 0,
             "attacker_addr_e": 3,#4,#11,#15,
@@ -46,7 +46,7 @@ if __name__ == "__main__":
                 },
                 "cache_1": {#required
                   "blocks": 4,#4, 
-                  "associativity": 4,  
+                  "associativity": 1,  
                   "hit_time": 1, #cycles
                   "rep_policy": "lru"
                   #"prefetcher": "nextline"

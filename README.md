@@ -1,64 +1,37 @@
-RL environment and training script for CacheSimulator
+AutoCAT
 ==============
-This repo contains wrapper for the CacheSimulator environment based on 
-https://github.com/auxiliary/CacheSimulator
+This repo contains artifacts of the paper:
 
-For detailed description of CacheSimulator, see the original repo.
+* "AutoCAT: Reinforcement Learning for Automated Exploration of cache-Timing Attacks" (HPCA'23).
 
-The environment is based on openai [gym](https://github.com/openai/gym). The details of the environment has been described in our [paper](docs/paper_micro.pdf)
+You can find the paper at the [HPCA website](https://hpca-conf.org/2023/).
 
-```
-$ pip install gym
-```
+## Artifact contents
 
-The trainer is based on [RLlib](https://www.ray.io/rllib) or [RLMeta](https://github.com/facebookresearch/rlmeta). The environment can be trained on both RLLib and RLMeta, and we have provided some scripts in ```src/rllib``` and ```src/rlmeta``` correspondingly.
+The artifact contains two parts
 
-## RLLib Setup and Experiments
+* CacheSimulator and PPO trainer
 
-Here we show how to launch an experiments in RLlib
+* StealthyStreamline Attack code
 
-First, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```. 
+## Test steup
+
+We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```. 
 
 ```
 $ cd ${GIT_ROOT}/src/rllib
 $ bash deploy_conda_rllib.sh
 ```
 
-
-To run the training
-
-```
-$ cd ${GIT_ROOT}/src/rllib
-$ python run_gym_rllib.py
-```
-
-To stop the training, just do ```Ctrl+C```, a checkpoint will be saved at default location in
+The environment is based on openai [gym](https://github.com/openai/gym). To install it, use the following.
 
 ```
-~/ray_results
+$ pip install gym
 ```
 
-To view the training processes in realtime, RLLib provides [tensorboard](https://tensorboard.dev) support. To launch tensorboard
+The RL trainer is based on [RLMeta](https://github.com/facebookresearch/rlmeta). Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta. 
 
-```
-$ tensorboard --logdir=~/ray_results/
-```
-
-and open the browser, by default, the url is ```localhost:6006```.
-
-
-To replay the checkpoint, do
-
-```
-$ cd ${GIT_ROOT}/src/rllib
-$ python replay_checkpoint.py <path_to_the_checkpoint>
-```
-
-More documentation can be found at [docs](docs).
-
-## RLMeta Setup and experiments
-
-Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta. 
+## General flow for Training and evaluating RL agent
 
 After install rlmeta, you can launch the experiment to train the RL agent
 
@@ -66,6 +39,26 @@ After install rlmeta, you can launch the experiment to train the RL agent
 $ cd ${GIT_ROOT}/src/rlmeta
 $ python train_ppo_transformer.py
 ```
+Use ```Ctrl+C``` to stop the training, which will save the checkpoint of the RL agent. To extract the pattern of the RL agent, use the following script
+
+```
+$ cd ${GIT_ROOT}/src/rlmeta
+$ python sample.py
+```
+For several scenarios, training may take long time, to save the time of reviewers, we provide pretrained checkpoints and reviewers can sample it directly.
+
+
+## Experiments
+
+We provide scripts to reproduce the following appeared in the original paper.
+
+* Table IV
+* Table V
+* Table VI
+* Table VII
+* Table VIII
+* Table IX
+
 
 ## Repo Structure 
 
@@ -93,3 +86,17 @@ $ python train_ppo_transformer.py
 ## Contact
 
 Please direct any questions to Mulong Luo ```ml2558@cornell.edu```.
+
+## Research Paper
+
+The paper is available in the procceedings the 29th Sympisum on High Performance Computer Architecture [(HPCA)](https://hpca-conf.org/2023/). Yo can cite our work with the bibtex entry
+
+```
+@inproceedings{luo2023autocat
+year={2023},
+title={{AutoCAT: Reinforcement Learning for Automated Explorations Cache-Timing Vulnerabilities}},
+booktitle={29th Sympisum on High Performance Computer Architecture (HPCA)},
+author={Mulong Luo and Wenjie Xiong and Geunbae Lee and Yueying Li and Xiaomeng Yang and Amy Zhang and Yuandong Tian and Hsien Hsin S. Lee and G. Edward Suh}
+}
+```
+

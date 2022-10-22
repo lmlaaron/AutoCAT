@@ -160,8 +160,8 @@ class CacheGuessingGameEnv(gym.Env):
     check window size
     '''
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 
-      #self.window_size = self.cache_size * 4 + 8 #10 
+      #self.window_size = self.cache_size * 8 + 8 #10 
+      self.window_size = self.cache_size * 4 + 8 #10 
     else:
       self.window_size = window_size
     self.feature_size = 4
@@ -298,7 +298,7 @@ class CacheGuessingGameEnv(gym.Env):
   this is the function that implements most of the logic
   '''
   def step(self, action):
-    #print_cache(self.l1)
+    print_cache(self.l1)
     '''
     For cyclone, default value of the cyclic set and way index
     '''
