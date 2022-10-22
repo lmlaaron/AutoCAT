@@ -12,6 +12,9 @@ The artifact contains two parts
 
 * CacheSimulator and PPO trainer
 
+- CacheSimulator is based on an [open source implementation](https://github.com/auxiliary/CacheSimulator) from [auxiliary](https://github.com/auxiliary).
+- PPO trainer is using [rlmeta](https://github.com/facebookresearch/rlmeta) from [Meta AI](https://ai.facebook.com).
+
 * StealthyStreamline Attack code
 
 ## Test steup
