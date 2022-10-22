@@ -59,8 +59,6 @@ class EvictReloadAgent():
         elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ) + 1: 
             action = self.local_step - self.cache_size - (self.cache_size if self.no_prime else 0 ) -1
             self.local_step += 1
-            #if action > self.cache_size: 
-            #    action += 1
             return action, info
 
         # to guess: victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ), in 8 to 15
@@ -73,8 +71,7 @@ class EvictReloadAgent():
             self.local_step = 0 # reset the attacker 
             self.lat=[] # reset the attacker
             self.no_prime = True # reset the attacker
-            #if action > self.cache_size:
-            #    action+=1
+            if action > self.cache_size: action+=1 # random_victim bit
             return action, info
         else:            
             assert(False)

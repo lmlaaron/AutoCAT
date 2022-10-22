@@ -59,8 +59,6 @@ class PrimeProbeAgent():
         elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ) + 1 :
             action = self.local_step + (self.cache_size if self.no_prime else 0 ) -1
             self.local_step += 1
-            #if action > self.cache_size:
-            #    action += 1
             return action, info
 
         # do guess and terminate
@@ -73,13 +71,11 @@ class PrimeProbeAgent():
             self.local_step = 0
             self.lat=[]
             #self.no_prime = True
-            
-            if action > self.cache_size:
-                action+=1
+            if action > self.cache_size: action+=2 # random_victim bit
             return action, info
-        else:        
+        else:
             assert(False)
-            
+    
     # is it useful for non-ML agent or not???
     def observe(self, action, timestep):
         if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:

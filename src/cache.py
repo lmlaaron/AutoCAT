@@ -89,7 +89,7 @@ class Cache:
             print( " "+" ".join(map(str,args))+" ")
 
     # flush the cache line that contains the address from all cache hierachy
-    def cflush(self, address, current_step):
+    def cflush(self, address, current_step, domain_id):
         # cyclone
         cyclic_set_index = -1
         cyclic_way_index = -1

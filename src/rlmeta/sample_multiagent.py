@@ -13,6 +13,7 @@ from agents.ppo_agent import PPOAgent
 from agents.spec_agent import SpecAgent
 from agents.prime_probe_agent import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
+from agents.flush_reload_agent import FlushReloadAgent
 from agents.cchunter_agent import CCHunterAgent
 from agents.benign_agent import BenignAgent
 from agents.random_agent import RandomAgent
@@ -145,7 +146,9 @@ def main(cfg):
     # Create agent
     #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     #attacker_agent = PrimeProbeAgent(cfg.env_config)
-    attacker_agent = EvictReloadAgent(cfg.env_config)
+    #attacker_agent = EvictReloadAgent(cfg.env_config)
+    attacker_agent = FlushReloadAgent(cfg.env_config)
+
     detector_agent = RandomAgent(1)
     #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)

@@ -59,8 +59,6 @@ class FlushReloadAgent():
         elif self.local_step < 2 * self.cache_size -(self.cache_size if self.no_prime else 0 ) +1: 
             action = self.local_step - self.cache_size - (self.cache_size if self.no_prime else 0 ) -1  
             self.local_step += 1
-            #if action > self.cache_size: # why?
-            #    action += 1
             return action, info
 
         # is_guess = 1
@@ -77,7 +75,7 @@ class FlushReloadAgent():
             if action > self.cache_size:
                 action+=1
             return action, info
-        else:            
+        else: 
             assert(False)
     
     def observe(self, action, timestep):
