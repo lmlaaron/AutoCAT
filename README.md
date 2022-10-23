@@ -129,12 +129,12 @@ For several scenarios, training may take long time, to save the time of reviewer
 
 We provide scripts to reproduce the following appeared in the original paper.
 
-* Table IV: attacks found on CacheSimulator
-* Table V: RL training with different replacement policies
-* Table VI: random replacement policies 
-* Table VII: comparison of PLRU with and without PLCache
-* Table VIII: bit rate, autocorrection and accuracy for attacks bypassing CChunter
-* Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector
+* [Table IV: attacks found on CacheSimulator](docs/hpca_ae/table4.md)
+* [Table V: RL training with different replacement policies](docs/hpca_ae/table5.md)
+* [Table VI: random replacement policies](docs/hpca_ae/table6.md)
+* [Table VII: comparison of PLRU with and without PLCache](docs/hpca_ae/table7.md)
+* [Table VIII: bit rate, autocorrection and accuracy for attacks bypassing CChunter](docs/hpca_ae/table8.md)
+* [Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector](docs/hpca_ae/table9.md)
 
 
 ## Repo Structure 
