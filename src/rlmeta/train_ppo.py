@@ -20,19 +20,20 @@ from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
+from rlmeta.samplers import UniformSampler
+from rlmeta.storage import TensorCircularBuffer
 
 from cache_env_wrapper import CacheEnvWrapperFactory
 from cache_ppo_model import CachePPOModel
 from metric_callbacks import MetricCallbacks
 
 
-
-@hydra.main(config_path="./config", config_name="ppo_lru_8way")
+@hydra.main(config_path="./config", config_name="ppo_exp")
 def main(cfg):
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
-    metric_callbacks = MetricCallbacks()
+    my_callbacks = MetricCallbacks()
     env_fac = CacheEnvWrapperFactory(cfg.env_config)
     env = env_fac(0)
     cfg.model_config["window_size"] = cfg.env_config.window_size
@@ -44,7 +45,8 @@ def main(cfg):
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
 
     ctrl = Controller()
-    rb = ReplayBuffer(cfg.replay_buffer_size)
+    rb = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
+                      UniformSampler())
 
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
     r_server = Server(cfg.r_server_name, cfg.r_server_addr)
@@ -113,7 +115,7 @@ def main(cfg):
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         time.sleep(1)
 
-        stats = agent.eval(cfg.num_eval_episodes)
+        stats = agent.eval(cfg.num_eval_episodes, keep_training_loops=True)
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
         if cfg.table_view:

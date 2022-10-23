@@ -27,6 +27,7 @@ cache_configs:
     associativity: 8
     hit_time: 1
     rep_policy: "lru"
+    prefetcher: "none"
   mem:
     hit_time: 1000 
 

@@ -29,14 +29,14 @@ class CachePPOModel(PPOModel):
                  step_embed_dim: int,
                  hidden_dim: int,
                  output_dim: int,
-                 num_blocks: int = 1) -> None:
+                 num_layers: int = 1) -> None:
         super().__init__()
 
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.backbone = CacheBackbone(latency_dim, victim_acc_dim, action_dim,
                                       step_dim, window_size, action_embed_dim,
-                                      step_embed_dim, hidden_dim, num_blocks)
+                                      step_embed_dim, hidden_dim, num_layers)
 
         self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
         self.linear_v = nn.Linear(self.hidden_dim, 1)
