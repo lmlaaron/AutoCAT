@@ -21,18 +21,33 @@ The artifact contains two parts
 
 We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```. 
 
+Creating a conda environment:
+
 ```
-$ cd ${GIT_ROOT}/src/rllib
-$ bash deploy_conda_rllib.sh
+$ conda create py38 python=3.8
+```
+
+Activate the conda environment
+
+```
+$ conda activate py38
+```
+Undet the py38 environment
+
+```
+(py38) $ pip install sklearn seaborn pyymal hydra-core terminaltables torch pep517
+(py38) $ pip install moolib
 ```
 
 The environment is based on openai [gym](https://github.com/openai/gym). To install it, use the following.
 
 ```
-$ pip install gym
+(py38) $ pip install gym
 ```
 
-The RL trainer is based on [RLMeta](https://github.com/facebookresearch/rlmeta). Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta. 
+The RL trainer is based on [RLMeta](https://github.com/facebookresearch/rlmeta). 
+
+Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta. 
 
 ## General flow for Training and evaluating RL agent
 
