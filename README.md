@@ -135,6 +135,7 @@ We provide scripts to reproduce the following appeared in the original paper.
 * [Table VII: comparison of PLRU with and without PLCache](docs/hpca_ae/table7.md)
 * [Table VIII: bit rate, autocorrection and accuracy for attacks bypassing CChunter](docs/hpca_ae/table8.md)
 * [Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector](docs/hpca_ae/table9.md)
+* [Figure 6: measuring SteathyStreamline attack bit rate and error rate](docs/hpca_ae/figure6.md)
 
 
 ## Repo Structure 
