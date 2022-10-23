@@ -72,8 +72,7 @@ class FlushReloadAgent():
             self.local_step = 0 # reset the attacker 
             self.lat=[] # reset the attacker
             self.no_prime = True # reset the attacker
-            if action > self.cache_size:
-                action+=1
+            if action > self.cache_size:action+=2
             return action, info
         else: 
             assert(False)
