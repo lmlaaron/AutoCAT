@@ -17,9 +17,36 @@ The artifact contains two parts
 
 * StealthyStreamline Attack code
 
+## System requirement
+
+The reinforcement learning is performed on Nvidia GPU. We require proper CUDA support on the machine. To check the GPU and Cuda version, use ```nvidia-smi``` command, and the output should look like this.
+
+```
+Sun Oct 23 20:43:01 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 510.47.03    Driver Version: 510.47.03    CUDA Version: 11.6     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla M60           On   | 00000000:00:1E.0 Off |                    0 |
+| N/A   27C    P8    14W / 150W |      0MiB /  7680MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+```
+
 ## Test steup
 
-We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```. 
+We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```.
 
 Creating a conda environment:
 
@@ -36,6 +63,8 @@ Undet the py38 environment
 
 ```
 (py38) $ pip install sklearn seaborn pyymal hydra-core terminaltables torch pep517
+```
+```
 (py38) $ pip install moolib
 ```
 
@@ -47,7 +76,14 @@ The environment is based on openai [gym](https://github.com/openai/gym). To inst
 
 The RL trainer is based on [RLMeta](https://github.com/facebookresearch/rlmeta). 
 
-Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta. 
+Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta.
+
+```
+(py38) $ git clone https://github.com/facebookresearch/rlmeta
+(py38) $ cd rlmeta
+(py38) $ git submodule sync && git submodule update --init --recursive
+(py38) $ pip install -e .
+```
 
 ## General flow for Training and evaluating RL agent
 
@@ -57,7 +93,30 @@ After install rlmeta, you can launch the experiment to train the RL agent
 $ cd ${GIT_ROOT}/src/rlmeta
 $ python train_ppo_transformer.py
 ```
-Use ```Ctrl+C``` to stop the training, which will save the checkpoint of the RL agent. To extract the pattern of the RL agent, use the following script
+
+At the beginning the replay buffer will be filled and the print out will look like.
+```
+...
+[20:53:45] Warming up replay buffer: [   1478 / 131072 ]                                         replay_buffer.py:208
+[20:53:46] Warming up replay buffer: [   1709 / 131072 ]                                         replay_buffer.py:208
+[20:53:47] Warming up replay buffer: [   1937 / 131072 ]                                         replay_buffer.py:208
+[20:53:48] Warming up replay buffer: [   2179 / 131072 ]                                         replay_buffer.py:208
+[20:53:54] Warming up replay buffer: [   3596 / 131072 ]                                         replay_buffer.py:208
+...
+```
+
+After the replay buffer is filled, the training logs will be like
+
+```
+[20:58:31] Training for num_steps = 3000                                                             ppo_agent.py:144
+Training... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
+[2022-10-23 21:04:06,939][root][INFO] - {"return": {"mean": -7.837982208490361, "std": 11.00719994082304, "min": -70.12750244140625, "max": -1.0114586353302002, "count": 3000, "key": "return"}, "policy_ratio": {"mean": 0.9995904984275495, "std": 0.01008690819091325, "min": 0.9565219879150391, "max": 1.0483020544052124, "count": 3000, "key": "policy_ratio"}, "policy_loss": {"mean": -0.015300600946259997, "std": 0.013428813022190391, "min": -0.051137540489435196, "max": 0.050006382167339325, "count": 3000, "key": "policy_loss"}, "value_loss": {"mean": 64041.523216316404, "std": 105816.17287373912, "min": 1.1493895053863525, "max": 609683.625, "count": 3000, "key": "value_loss"}, "entropy": {"mean": 2.07833841276169, "std": 0.012247777578129993, "min": 2.0188612937927246, "max": 2.113884449005127, "count": 3000, "key": "entropy"}, "loss": {"mean": 32020.725061843725, "std": 52908.095275196785, "min": 0.5378807187080383, "max": 304841.78125, "count": 3000, "key": "loss"}, "grad_norm": {"mean": 80.6914478134663, "std": 560.7136433109384, "min": 0.14680133759975433, "max": 16948.568359375, "count": 3000, "key": "grad_norm"}, "sample_data_time/ms": {"mean": 0.33627491199513326, "std": 0.8351939263832907, "min": 0.0283070003206376, "max": 10.895442000219191, "count": 3000, "key": "sample_data_time/ms"}, "batch_learn_time/ms": {"mean": 110.58090069833055, "std": 6.249485072195114, "min": 105.28848000012658, "max": 426.97272399982467, "count": 3000, "key": "batch_learn_time/ms"}, "episode_length": {"mean": 2.4042961170589154, "std": 1.8968691140142928, "min": 1.0, "max": 26.0, "count": 43807, "key": "episode_length"}, "episode_return": {"mean": -0.8572643641427186, "std": 0.5330088683162034, "min": -1.25, "max": 0.99, "count": 43807, "key": "episode_return"}, "episode_time/s": {"mean": 0.013489203685554783, "std": 0.015033721112400809, "min": 0.004837646999476419, "max": 2.085678069000096, "count": 43807, "key": "episode_time/s"}, "steps_per_second": {"mean": 189.22392526112355, "std": 61.580304516542384, "min": 1.4383811406897724, "max": 326.53334890685426, "count": 43807, "key": "steps_per_second"}, "correct_rate": {"mean": 0.07838929851393629, "std": 0.26878321449158576, "min": 0.0, "max": 1.0, "count": 43807, "key": "correct_rate"}, "info": "T Epoch 0", "phase": "Train", "epoch": 0, "time": 641.0643177460006}
+```
+
+If the there are no errors reported 
+Use ```Ctrl+C``` to stop the training, which will save the checkpoint of the RL agent to the following path ```${GIT_ROOT}/src/rlmeta/outputs/${DATE}/${TIME}```
+
+To extract the pattern of the RL agent, use the following script
 
 ```
 $ cd ${GIT_ROOT}/src/rlmeta
@@ -70,12 +129,12 @@ For several scenarios, training may take long time, to save the time of reviewer
 
 We provide scripts to reproduce the following appeared in the original paper.
 
-* Table IV
-* Table V
-* Table VI
-* Table VII
-* Table VIII
-* Table IX
+* Table IV: attacks found on CacheSimulator
+* Table V: RL training with different replacement policies
+* Table VI: random replacement policies 
+* Table VII: comparison of PLRU with and without PLCache
+* Table VIII: bit rate, autocorrection and accuracy for attacks bypassing CChunter
+* Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector
 
 
 ## Repo Structure 
