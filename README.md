@@ -71,7 +71,7 @@ Undet the py38 environment
 The environment is based on openai [gym](https://github.com/openai/gym). To install it, use the following.
 
 ```
-(py38) $ pip install gym
+(py38) $ pip install gym==0.25
 ```
 
 The RL trainer is based on [RLMeta](https://github.com/facebookresearch/rlmeta). 
