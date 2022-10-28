@@ -20,7 +20,6 @@ class CachePPOTransformerModel(PPOModel):
                  victim_acc_dim: int,
                  action_dim: int,
                  step_dim: int,
-                 window_size: int,
                  action_embed_dim: int,
                  step_embed_dim: int,
                  hidden_dim: int,
@@ -78,7 +77,7 @@ class CachePPOTransformerModel(PPOModel):
         obs = obs.to(torch.int64)
         assert obs.dim() == 3
 
-        batch_size = obs.size(0)
+        # batch_size = obs.size(0)
         l, v, act, stp = torch.unbind(obs, dim=-1)
         mask = (stp == -1)
         l = self.make_one_hot(l, self.latency_dim, mask)
@@ -89,15 +88,8 @@ class CachePPOTransformerModel(PPOModel):
         x = torch.cat((l, v, act, stp), dim=-1)
         x = self.linear_i(x)
         x = x.transpose(0, 1).contiguous()
-        x_cls = torch.zeros(1, batch_size, self.hidden_dim, device=x.device)
-        x = torch.cat((x_cls, x), dim=0)
-        mask_cls = torch.zeros((batch_size, 1),
-                               dtype=mask.dtype,
-                               device=mask.device)
-        mask = torch.cat((mask_cls, mask), dim=-1)
-
-        h = self.encoder(x, src_key_padding_mask=mask)
-        h = h[0]
+        h = self.encoder(x)
+        h = h.mean(dim=0)
 
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)
@@ -109,17 +101,12 @@ class CachePPOTransformerModel(PPOModel):
     def act(
         self, obs: torch.Tensor, deterministic_policy: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if self._device is None:
-            self._device = next(self.parameters()).device
-
         with torch.no_grad():
-            x = obs.to(self._device)
-            d = deterministic_policy.to(self._device)
-            logpi, v = self.forward(x)
-
+            logpi, v = self.forward(obs)
             greedy_action = logpi.argmax(-1, keepdim=True)
             sample_action = logpi.exp().multinomial(1, replacement=True)
-            action = torch.where(d, greedy_action, sample_action)
+            action = torch.where(deterministic_policy, greedy_action,
+                                 sample_action)
             logpi = logpi.gather(dim=-1, index=action)
 
-            return action.cpu(), logpi.cpu(), v.cpu()
+        return action, logpi, v
