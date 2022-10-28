@@ -62,7 +62,7 @@ $ conda activate py38
 Undet the py38 environment
 
 ```
-(py38) $ pip install sklearn seaborn pyymal hydra-core terminaltables torch pep517
+(py38) $ pip install sklearn seaborn pyyaml hydra-core terminaltables torch pep517
 ```
 ```
 (py38) $ pip install moolib
