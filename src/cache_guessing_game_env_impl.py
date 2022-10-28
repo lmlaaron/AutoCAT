@@ -144,6 +144,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.cache_size = self.configs['cache_1']['blocks']
     self.flush_inst = flush_inst
     self.reset_time = 0
+    self.my_seed = -1
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
     
@@ -160,11 +161,12 @@ class CacheGuessingGameEnv(gym.Env):
     check window size
     '''
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 
-      #self.window_size = self.cache_size * 4 + 8 #10 
+      #self.window_size = self.cache_size * 8 + 8 #10 
+      self.window_size = self.cache_size * 4 + 8 #10 
     else:
       self.window_size = window_size
     self.feature_size = 4
+
 
     '''
     instantiate the cache
@@ -273,6 +275,12 @@ class CacheGuessingGameEnv(gym.Env):
     self.guess_buffer = [False] * self.guess_buffer_size
 
   '''
+  set the seed for randomization
+  '''
+  def seed(self, seed):
+      self.my_seed = seed
+
+  '''
   remap the victim address range
   '''
   def remap(self):
@@ -298,7 +306,7 @@ class CacheGuessingGameEnv(gym.Env):
   this is the function that implements most of the logic
   '''
   def step(self, action):
-    #print_cache(self.l1)
+    print_cache(self.l1)
     '''
     For cyclone, default value of the cyclic set and way index
     '''
