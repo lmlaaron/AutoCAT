@@ -20,7 +20,6 @@ class CachePPOLstmModel(PPOModel):
                  victim_acc_dim: int,
                  action_dim: int,
                  step_dim: int,
-                 window_size: int,
                  action_embed_dim: int,
                  step_embed_dim: int,
                  hidden_dim: int,
@@ -32,7 +31,7 @@ class CachePPOLstmModel(PPOModel):
         self.victim_acc_dim = victim_acc_dim
         self.action_dim = action_dim
         self.step_dim = step_dim
-        self.window_size = window_size
+        # self.window_size = window_size
 
         self.action_embed_dim = action_embed_dim
         # self.step_embed_dim = step_embed_dim
@@ -108,17 +107,12 @@ class CachePPOLstmModel(PPOModel):
     def act(
         self, obs: torch.Tensor, deterministic_policy: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if self._device is None:
-            self._device = next(self.parameters()).device
-
         with torch.no_grad():
-            x = obs.to(self._device)
-            d = deterministic_policy.to(self._device)
-            logpi, v = self.forward(x)
-
+            logpi, v = self.forward(obs)
             greedy_action = logpi.argmax(-1, keepdim=True)
             sample_action = logpi.exp().multinomial(1, replacement=True)
-            action = torch.where(d, greedy_action, sample_action)
+            action = torch.where(deterministic_policy, greedy_action,
+                                 sample_action)
             logpi = logpi.gather(dim=-1, index=action)
 
-            return action.cpu(), logpi.cpu(), v.cpu()
+        return action, logpi, v

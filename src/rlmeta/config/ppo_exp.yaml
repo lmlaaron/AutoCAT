@@ -10,15 +10,13 @@ c_server_addr: "127.0.0.1:4413"
 train_device: "cuda:0"
 infer_device: "cuda:0"
 
-num_train_rollouts: 24
+num_train_rollouts: 48
 num_train_workers: 24
 
 num_eval_rollouts: 4
 num_eval_workers: 2
 
-# replay_buffer_size: 262144
 replay_buffer_size: 131072
-# replay_buffer_size: 65536
 prefetch: 2
 
 batch_size: 512
@@ -33,7 +31,7 @@ model_push_period: 10
 
 entropy_coeff: 0.02
 
-num_epochs: 3000
+num_epochs: 1000
 steps_per_epoch: 3000
 
 num_eval_episodes: 100
@@ -44,45 +42,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  # - env_config: lru_8way
-  # - env_config: config_exp2
-  # - env_config: config_exp3
-  # - env_config: config_exp4
-  - env_config: config_exp5
-  # - env_config: config_exp6
-  # - env_config: config_exp7
-  # - env_config: config_exp8
-  # - env_config: config_exp9
-  # - env_config: config_exp9_nextline
-  # - env_config: config_exp9_stream
-  # - env_config: config_exp10
-  # - env_config: config_exp11
-  # - env_config: config_exp12
-  # - env_config: config_exp_13
-  # - env_config: config_exp_13_nextline
-  # - env_config: config_exp_14
-  # - env_config: config_exp_14_nextline
-  # - env_config: config_exp_remap_baseline
-  # - env_config: config_exp_remap_baseline2
-  # - env_config: config_exp_ceaser_distributed
-  # - env_config: config_exp_real
-  # - env_config: hpca_exp_1.yaml
-  # - env_config: hpca_exp_2.yaml
-  # - env_config: hpca_exp_3.yaml
-  # - env_config: hpca_exp_4.yaml
-  # - env_config: hpca_exp_5.yaml
-  # - env_config: hpca_exp_6.yaml
-  # - env_config: hpca_exp_7.yaml
-  # - env_config: hpca_exp_multicore_1.yaml
-  # - env_config: hpca_exp_multicore_2.yaml
-  # - env_config: hpca_v_1
-  # - env_config: hpca_v_2
-  # - env_config: hpca_v_3
-  # - env_config: hpca_v_4
-  # - env_config: hpca_v_4_base
-  # - env_config: hpca_v_5
-  # - env_config: hpca_alb_easy
-  # - env_config: hpca_alb_hard
-  # - env_config: hpca_2way4set
-  - model_config: experiments
-  # - model_config: hpca_v_5
+  - exp_config: hpca_ae_exp_4_1
+  - model_config: transformer
