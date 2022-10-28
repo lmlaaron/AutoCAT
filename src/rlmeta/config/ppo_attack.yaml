@@ -42,5 +42,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - exp_config: hpca_ae_exp_4_1
+  - env_config: hpca_ae_exp_4_1
   - model_config: transformer

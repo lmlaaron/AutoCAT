@@ -32,18 +32,17 @@ from cache_env_wrapper import CacheEnvWrapperFactory
 from metric_callbacks import MetricCallbacks
 
 
-@hydra.main(config_path="./config", config_name="ppo_exp")
+@hydra.main(config_path="./config", config_name="ppo_attack")
 def main(cfg):
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
-    exp_config = OmegaConf.to_container(cfg.exp_config)
-    env_fac = CacheEnvWrapperFactory(exp_config)
-    env = env_fac(0)
-    cfg.model_config["output_dim"] = env.action_space.n
+    env_fac = CacheEnvWrapperFactory(OmegaConf.to_container(cfg.env_config))
+    env = env_fac(index=0)
 
-    model_config = OmegaConf.to_container(cfg.model_config)
-    train_model = model_utils.get_model(model_config).to(cfg.train_device)
+    train_model = model_utils.get_model(
+        cfg.model_config, cfg.env_config.window_size,
+        env.action_space.n).to(cfg.train_device)
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
     infer_model.eval()
     optimizer = get_optimizer(cfg.optimizer.name, train_model.parameters(),

@@ -306,7 +306,7 @@ class CacheGuessingGameEnv(gym.Env):
   this is the function that implements most of the logic
   '''
   def step(self, action):
-    print_cache(self.l1)
+    # print_cache(self.l1)
     '''
     For cyclone, default value of the cyclic set and way index
     '''
