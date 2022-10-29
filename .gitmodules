@@ -1,9 +1,6 @@
-[submodule "rlmeta"]
-	path = rlmeta
-	url = https://github.com/facebookresearch/rlmeta
 [submodule "third_party/rlmeta"]
 	path = third_party/rlmeta
-	url = git@github.com:lmlaaron/rlmeta.git
+	url = git@github.com:facebookresearch/rlmeta.git
 [submodule "third_party/cachequery"]
 	path = third_party/cachequery
 	url = git@github.com:lmlaaron/cachequery.git
