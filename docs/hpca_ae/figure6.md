@@ -5,13 +5,13 @@
 $ cd ${GIT_ROOT}/src/stealthy_streamline
 ```
 
-# use the script to build all the code
+## use the script to build all the code
 
 ```
 $ build.sh
 ```
 
-# measure the LRU attack bandwidth and error rate
+## measure the LRU attack bandwidth and error rate
 
 ```
 $ cd ${GIT_ROOT}/src/stealthy_streamline
@@ -25,7 +25,7 @@ This step will generate ```Error_rate_s_i.txt``` files. The last line of the fil
 Currently, the threshold in process_error_rate_1thread is set for the fukushima machine. If we want to test on more machines, the threshold should be modified.
 
 
-# measure the StealthyStreamline attack bandwidth and error rate
+## measure the StealthyStreamline attack bandwidth and error rate
 
 ```
 $ cd ${GIT_ROOT}/src/stealthy_streamline
@@ -35,7 +35,7 @@ $ cd test
 $ ../../process_error_rate_1thread/Error_rate_HW_LRU 
 ```
 
-# plot the figure
+## plot the figure
 
 ```
 $ cd ${GIT_ROOT}/src/stealthy_streamline/plot
@@ -43,7 +43,7 @@ $ python plot_error_rate.py
 ```
 which will generate ```stealthy_streamline_error.png``` in the current directory.  
 
-# running Spectre attack with StreathyStreamline
+## running Spectre attack with StreathyStreamline
 
 ```
 $ cd ${GIT_ROOT}/src/stealthy_streamline
