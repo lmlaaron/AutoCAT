@@ -1,9 +1,8 @@
 /*
 
-Spectre V1 attack using LRU channel
+Spectre V1 attack using StealthyStreamline channel
 
-Usage: see README (step 2.3) in the top level 
-Authors: Wenjie Xiong (wenjie.xiong@yale.edu) and Jakub Szefer (jakub.szefer@yale.edu)
+Authors: Wenjie Xiong (wenjiex@vt.edu) 
 
 The code is based on the code in the following paper:
 Kocher, Paul, et al. "Spectre attacks: Exploiting speculative execution." arXiv preprint arXiv:1801.01203 (2018).

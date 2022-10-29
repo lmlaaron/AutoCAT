@@ -2,8 +2,7 @@
 
 Covert channel using Algorithm 1 under Hyper-threaded sharing
 
-Usage: see README (step 2.1) in the top level 
-Authors: Wenjie Xiong (wenjie.xiong@yale.edu) and Jakub Szefer (jakub.szefer@yale.edu)
+Authors: Wenjie Xiong (wenjiex@vt.edu) 
 
 */
 #define _GNU_SOURCE
