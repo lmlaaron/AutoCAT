@@ -18,9 +18,6 @@ from rlmeta.utils.stats_dict import StatsDict
 import model_utils
 
 from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_model import CachePPOModel
-from cache_ppo_lstm_model import CachePPOLstmModel
-from cache_ppo_transformer_model import CachePPOTransformerModel
 
 
 def batch_obs(timestep: TimeStep) -> TimeStep:
