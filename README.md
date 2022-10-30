@@ -51,8 +51,9 @@ We use conda to manage all the python dependencies, we assume the ```conda``` is
 Creating a conda environment:
 
 ```
-$ conda create py38 python=3.8
+$ conda create --name py38 python=3.8
 ```
+Then press enter when prompt.
 
 Activate the conda environment
 
