@@ -76,7 +76,8 @@ def run_loops(env: Env,
               num_episodes: int = -1,
               seed: int = 0,
               reset_cache_state: bool = False) -> StatsDict:
-    env.seed(seed)
+    # env.seed(seed)
+    env.reset(seed=seed)
     metrics = StatsDict()
 
     if num_episodes == -1:
