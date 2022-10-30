@@ -1,5 +1,6 @@
 import copy
 import logging
+import os
 import time
 
 import hydra
@@ -34,6 +35,7 @@ from metric_callbacks import MetricCallbacks
 
 @hydra.main(config_path="./config", config_name="ppo_attack")
 def main(cfg):
+    print(f"workding_dir = {os.getcwd()}")
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 

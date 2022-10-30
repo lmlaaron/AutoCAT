@@ -10,10 +10,10 @@ force_victim_hit: false
 flush_inst: false
 allow_victim_multi_access: true
 allow_empty_victim_access: false
-attacker_addr_s: 4 
-attacker_addr_e: 11
+attacker_addr_s: 8 
+attacker_addr_e: 23
 victim_addr_s: 0
-victim_addr_e: 3 
+victim_addr_e: 7
 reset_limit: 1
 
 cache_configs:
