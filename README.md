@@ -44,7 +44,7 @@ Sun Oct 23 20:43:01 2022
 +-----------------------------------------------------------------------------+
 ```
 
-## Test steup
+## Test setup
 
 We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```.
 
