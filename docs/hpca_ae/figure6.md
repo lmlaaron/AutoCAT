@@ -41,7 +41,11 @@ $ ../../process_error_rate_1thread/Error_rate_HW_LRU
 $ cd ${GIT_ROOT}/src/stealthy_streamline/plot
 $ python plot_error_rate.py
 ```
-which will generate ```stealthy_streamline_error.png``` in the current directory.  
+which will generate ```stealthy_streamline_error.png``` in the current directory. 
+
+Which looks like
+
+![](../../fig/stealhy_streamline_error.png)
 
 ## running Spectre attack with StreathyStreamline
 
