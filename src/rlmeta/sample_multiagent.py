@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Dict
 
+import tqdm
 import hydra
 import torch
 import torch.nn
@@ -41,12 +42,13 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     num_total_guess = 0.0
     num_total_correct_guess = 0.0
 
-    env.env.opponent_weights = [1,0]
+    env.env.opponent_weights = [0,1]
     if victim_addr == -1:
         timestep = env.reset()
     else:
         timestep = env.reset(victim_address=victim_addr)
-    print("victim address: ", env.env.victim_address ) 
+    #print("victim address: ", env.env.victim_address )
+    #print("Victim domain id: ", env.env.random_domain)
     for agent_name, agent in agents.items():
         agent.observe_init(timestep[agent_name])
     while not timestep["__all__"].done:
@@ -112,7 +114,7 @@ def run_loops(env: Env,
         cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
         metrics.extend(cur_metrics)
     '''
-    for i in range(num_episodes):
+    for i in tqdm.tqdm(range(num_episodes)):
         cur_metrics = run_loop(env, agent, victim_addr=-1)
         metrics.extend(cur_metrics)
     return metrics
@@ -121,7 +123,7 @@ def run_loops(env: Env,
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 1
+    cfg.env_config['verbose'] = 0
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     

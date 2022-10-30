@@ -41,6 +41,8 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.step_count = 0
         self.max_step = 64
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
+        self.random_domain = random.choice([0,1])
+        self.detector_reward_scale = 0.1 #1.0
 
     def reset(self, victim_address=-1):
         """
@@ -52,10 +54,10 @@ class CacheAttackerDetectorEnv(gym.Env):
         opponent_obs = self._env.reset(victim_address=victim_address,
                                        reset_cache_state=True)
         self.victim_address = self._env.victim_address
-        detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
-
+        self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
+        self.random_domain = random.choice([0,1])
         obs = {}
-        obs['detector'] = np.array(list(reversed(detector_obs)))
+        obs['detector'] = np.array(list(reversed(self.detector_obs)))
         obs['attacker'] = opponent_obs
         obs['benign'] = opponent_obs
         return obs
@@ -68,10 +70,10 @@ class CacheAttackerDetectorEnv(gym.Env):
             # attacker obs: r, victim_accessed, original action, current step
             # detector obs: r, domain_id, memory address, 0
             if opponent_info.get('invoke_victim'):
-                cur_opponent_obs[1] = 1
+                cur_opponent_obs[1] = self.random_domain #1
                 cur_opponent_obs[2] = opponent_info['victim_address']
             else:
-                cur_opponent_obs[1] = 0
+                cur_opponent_obs[1] = 1-self.random_domain#0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
             cur_opponent_obs[3] = self.step_count #0#self.step_count
             self.detector_obs.append(cur_opponent_obs)
@@ -122,7 +124,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         #    attacker_reward += 0.1
         
         rew = {}
-        rew['detector'] = detector_reward
+        rew['detector'] = detector_reward * self.detector_reward_scale
         rew['attacker'] = attacker_reward
 
         info = {}
@@ -131,6 +133,7 @@ class CacheAttackerDetectorEnv(gym.Env):
 
     def step(self, action):
         self.step_count += 1
+        #if self.step_count <=8: action['detector']=0
         obs = {}
         reward = {}
         done = {'__all__':False}
@@ -149,7 +152,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
             self.step_count -= 1 # The reset/guess step should not be counted
-        if self.step_count > self.max_step:
+        if self.step_count >= self.max_step:
             detector_done = True
         else:
             detector_done = False
@@ -185,7 +188,7 @@ class CacheAttackerDetectorEnv(gym.Env):
     
         for k,v in info.items():
             info[k].update({'action_mask':self.action_mask})
-
+        #print(obs["detector"])
         return obs, reward, done, info
 
 if __name__ == '__main__':
@@ -195,7 +198,8 @@ if __name__ == '__main__':
     obs = env.reset()
     done = {'__all__':False}
     i = 0
-    while not done['__all__']:
+    for k in range(2):
+      while not done['__all__']:
         i += 1
         action = {'attacker':np.random.randint(low=3, high=6),
                   'benign':np.random.randint(low=2, high=5),
@@ -212,3 +216,5 @@ if __name__ == '__main__':
         #print("info:", info )
         if info['attacker'].get('invoke_victim'):
             print(info['attacker'])
+      obs = env.reset()
+      done = {'__all__':False}

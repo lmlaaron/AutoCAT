@@ -1,4 +1,4 @@
-num_episodes: 10000
+num_episodes: 100
 seed: 123 #123 1234 12345
 
 exp_name: "/2022-07-26/14-03-38/wandb/run-20220726_140343-2wwnweyz/" # entangle-pool
@@ -50,11 +50,38 @@ cyclone_path: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-21/
 
 #fp-3x
 #attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-21-35/attacker-1849.pth" #hard flag 3*fp
-detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-21-35/detector-1899.pth" #hard flag
-attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-27/18-19-05/attacker-1949.pth" #hard flag 3*fp
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-21-35/detector-1899.pth" #hard flag
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-27/18-19-05/attacker-1949.pth" #hard flag 3*fp
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-27/18-19-05/detector-2499.pth" #hard flag
 #attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-27/18-19-12/attacker-1949.pth" #hard flag 3*fp
 #detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-27/18-19-12/detector-2499.pth" #hard flag
+
+#fp-3x-random-domain
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-20/12-45-55/attacker-1949.pth" #hard flag 3*fp
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-20/12-45-55/detector-1999.pth" #hard flag
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-20/22-24-44/attacker-1949.pth" #hard flag 3*fp
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-20/22-24-44/detector-1999.pth" #hard flag
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-20/22-24-51/attacker-1949.pth" #hard flag 3*fp
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-20/22-24-51/detector-1999.pth" #hard flag
+#fp-5x-random-domain
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-27/09-02-34/attacker-1549.pth" #hard flag 3*fp
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-27/09-02-34/detector-1499.pth" #hard flag 3*fp
+detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-27/18-56-31/detector-2099.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-27/18-59-45/detector-1999.pth" #hard flag
+#fp-10x-random-domain
+attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/17-56-13/attacker-749.pth" #hard flag 3*fp
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/16-01-12/detector-1599.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/17-56-13/detector-2499.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/17-57-01/detector-2499.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-26/15-40-18/detector-999.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-26/17-28-47/detector-599.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-26/17-28-54/detector-2299.pth" #hard flag
+
+#ibr-10x-random-domain
+#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/18-00-24/attacker-2049.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/17-59-26/detector-799.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/18-00-24/detector-799.pth" #hard flag
+#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-10-25/18-01-07/detector-799.pth" #hard flag
 
 #AutoCAT###########################################
 #AutoCAT-1

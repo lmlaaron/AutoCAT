@@ -153,5 +153,3 @@ def main(cfg):
 
 if __name__=='__main__':
     clf = main()
-    #with open('cyclone.pkl', 'wb') as f:
-    #    pkl.dump(clf,f)

@@ -108,6 +108,7 @@ class CachePPOTransformerModel(PPOModel):
             self._device = next(self.parameters()).device
 
         with torch.no_grad():
+            #print(obs)
             x = obs.to(self._device)
             d = deterministic_policy.to(self._device)
             logpi, v = self.forward(x)
