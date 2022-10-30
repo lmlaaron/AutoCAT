@@ -469,7 +469,7 @@ class CacheGuessingGameEnv(gym.Env):
       if self.reset_time == self.reset_limit:  # really need to end the simulation
         self.reset_time = 0
         done = True                            # reset will be called by the agent/framework
-        self.vprint('correct rate:' + str(self.calc_correct_rate()))
+        #self.vprint('correct rate:' + str(self.calc_correct_rate()))
       else:
         done = False                           # fake reset
         self._reset()                          # manually reset
