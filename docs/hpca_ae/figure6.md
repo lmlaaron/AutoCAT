@@ -45,7 +45,7 @@ which will generate ```stealthy_streamline_error.png``` in the current directory
 
 Which looks like
 
-![](../../fig/stealhy_streamline_error.png)
+![](../../fig/stealthy_streamline_error.png)
 
 ## running Spectre attack with StreathyStreamline
 
