@@ -4,7 +4,7 @@ This repo contains artifacts of the paper:
 
 * "AutoCAT: Reinforcement Learning for Automated Exploration of cache-Timing Attacks" (HPCA'23).
 
-You can find the paper at the [HPCA website](https://hpca-conf.org/2023/).
+The paper will be available at the [HPCA website](https://hpca-conf.org/2023/).
 
 ## Artifact contents
 
@@ -104,7 +104,7 @@ Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlme
 
 ## General flow for Training and evaluating RL agent
 
-After install rlmeta, you can launch the experiment to train the RL agent
+Once the system is set up (either uisng the provided ssh host or using your own machine), you can launch the experiment to train the RL agent
 
 ```
 $ cd ${GIT_ROOT}/src/rlmeta
