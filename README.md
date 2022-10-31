@@ -10,16 +10,16 @@ You can find the paper at the [HPCA website](https://hpca-conf.org/2023/).
 
 The artifact contains two parts
 
-* CacheSimulator and PPO trainer
+* [Cache Gym Environment](src/cache_guessing_game_env_impl.py) and PPO trainer
 
-    * CacheSimulator is based on an [open source implementation](https://github.com/auxiliary/CacheSimulator) from [auxiliary](https://github.com/auxiliary).
+    * Cache Gym Environment is based on an [open source CacheSimulator](https://github.com/auxiliary/CacheSimulator) from [auxiliary](https://github.com/auxiliary).
     * PPO trainer is using [rlmeta](https://github.com/facebookresearch/rlmeta) from [Meta AI](https://ai.facebook.com).
 
-* StealthyStreamline Attack code
+* [StealthyStreamline Attack code](src/stealthy_streamline)
 
 ## System requirement
 
-The reinforcement learning is performed on Nvidia GPU. We require proper CUDA support on the machine. To check the GPU and Cuda version, use ```nvidia-smi``` command, and the output should look like this.
+The reinforcement learning is performed on Nvidia GPU. We require proper CUDA support (version>10.2) on the machine. To check the GPU and Cuda version, use ```nvidia-smi``` command, and the output should look like this.
 
 ```
 Sun Oct 23 20:43:01 2022       
