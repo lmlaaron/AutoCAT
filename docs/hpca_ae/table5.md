@@ -18,6 +18,16 @@ To train a config in Table V, use the following script:
 $ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG> 
 ```
 
+which will print out the following:
+
+```
+/home/ml2558/miniconda3/envs/rllib/lib/python3.9/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'ppo_attack': Defaults list is missing `_self_`. See https://hydra.cc/docs/upgrades/1.0_to_1.1/default_composition_order for more information
+ warnings.warn(msg, UserWarning)
+workding_dir = /home/ml2558/Downloads/AutoCAT/src/rlmeta/outputs/2022-10-31/19-06-02
+...
+```
+Please take notes of the ```working_dir```, which is the place where all the checkpoint and logs corresponding to this training is saved.
+
 There are 17 configs in Table V, and we have ```hpca_ae_exp_5_lru```, ```hpca_ae_exp_5_plru```, ..., ```hpca_ae_exp_5_rrip``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
 
 Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path ```src/rlmeta/output/<DATE>/<TIME>/ppo_agent-<X>.pth``` and corresponding training logs in ```src/rlmeta/output/<DATE>/<TIME>/train_ppo_attack.log```. 
@@ -82,5 +92,5 @@ which will print out the mean/max/min of ```episode_length```, ```correct_rate``
 {"episode_length":{"mean":7.0,"std":0.0,"min":7.0,"max":7.0,"count":100,"key":"episode_length"},"correct_rate":{"mean":1.0,"std":0.0,"min":1.0,"max":1.0,"count":100,"key":"correct_rate"},"info":"EEpoch19",
 ```
 
-You can see that at epoch 13 the ```correct_rate``` jump to 1.0 in this case, whose corresponding ```episode_length``` is 13.
+You can see that at epoch **13** the ```correct_rate``` jump to 1.0 in this case, whose corresponding ```episode_length``` is 7.0. 
 For LRU, PLRU, and RRIP, we calculate the average of ```episode_length``` and epochs to converge among three experiments.

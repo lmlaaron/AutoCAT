@@ -16,6 +16,15 @@ To train a config in Table IV, use the following script:
 $ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG>
 ```
 
+which will print out the following:
+
+```
+/home/ml2558/miniconda3/envs/rllib/lib/python3.9/site-packages/hydra/_internal/defaults_list.py:251: UserWarning: In 'ppo_attack': Defaults list is missing `_self_`. See https://hydra.cc/docs/upgrades/1.0_to_1.1/default_composition_order for more information
+ warnings.warn(msg, UserWarning)
+workding_dir = /home/ml2558/Downloads/AutoCAT/src/rlmeta/outputs/2022-10-31/19-06-02
+...
+```
+Please take notes of the ```working_dir```, which is the place where all the checkpoint and logs corresponding to this training is saved.
 
 There are 17 configs in Table 4, and we have ```hpca_ae_exp_4_1```, ```hpca_ae_exp_4_2```, ..., ```hpca_ae_exp_4_17``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
 
@@ -151,3 +160,4 @@ Reset...(also the cache state)
 i.e., the attacker will have the  attack pattern  is ```7 --> 4 --> 5 --> v --> 7 --> 5 --> 4 --> g``` as shown in Table 4 in the paper. For the case when the secret is ```1,2,3```, the corresponding attack pattern is ```7-->4-->5-->v --> 7-->5-->g```, ```7-->4-->5-->v --> 7-->5-->4-->g```  and ```7-->4-->5-->v-->7-->g```. Some of the patterns make a guess earlier, this is because they can infer the secret based on the previous accesses. Among these patterns correpsonding to the secret values, we select the longest patterns to put in Table 4 in the paper.
 
 Using the given checkpoints, you can reporduce the attack sequence found in Table IV.
+
