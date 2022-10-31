@@ -2,7 +2,7 @@
 
 We reproduce the attack patterns found in Table IV, as shown below.
 
-[Table4](../../fig/table4.png)
+![](../../fig/table4.png)
 
 First, go to the directory.
 
