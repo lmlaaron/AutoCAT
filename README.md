@@ -162,7 +162,17 @@ We provide scripts to run the following experiments appeared in the original pap
 * [Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector](docs/hpca_ae/table9.md)
 * [Figure 6: measuring SteathyStreamline attack bit rate and error rate](docs/hpca_ae/figure6.md)
 
-Please go to ```${GIT_ROOT}/docs/hpca_ae/table4.md```, ```${GIT_ROOT}/docs/hpca_ae/table5.md```,..., ```${GIT_ROOT}/docs/hpca_ae/table9.md``` and ```${GIT_ROOT}/docs/hpca_ae/figure6.md``` for the corresponding instructions on how to run each experiments.
+Please go to 
+
+* [```${GIT_ROOT}/docs/hpca_ae/table4.md```](docs/hpca_ae/table4.md)
+* [```${GIT_ROOT}/docs/hpca_ae/table5.md```](docs/hpca_ae/table5.md)
+* [```${GIT_ROOT}/docs/hpca_ae/table6.md```](docs/hpca_ae/table6.md)
+* [```${GIT_ROOT}/docs/hpca_ae/table7.md```](docs/hpca_ae/table7.md)
+* [```${GIT_ROOT}/docs/hpca_ae/table8.md```](docs/hpca_ae/table8.md)
+* [```${GIT_ROOT}/docs/hpca_ae/table9.md```](docs/hpca_ae/table9.md)
+* [```${GIT_ROOT}/docs/hpca_ae/figure6.md```](docs/hpca_ae/figure6.md) 
+ 
+for the corresponding instructions on how to run each experiments.
 
 ## Repo Structure 
 
