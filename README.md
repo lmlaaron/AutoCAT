@@ -46,6 +46,12 @@ Sun Oct 23 20:43:01 2022
 
 ## Test steup
 
+First, set the path to the current repo.
+
+```
+$ export GIT_ROOT=<path_to_the_autocat_repo>
+```
+
 We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```.
 
 Creating a conda environment:
@@ -84,6 +90,9 @@ Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlme
 (py38) $ git submodule sync && git submodule update --init --recursive
 (py38) $ pip install -e .
 ```
+
+Alternatively, we provide server host with these dependencies already installed. Please follow [server.md](docs/hpca_ae/server.md) for instructions on how to access these machines.
+
 
 ## General flow for Training and evaluating RL agent
 
