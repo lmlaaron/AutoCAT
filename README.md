@@ -145,7 +145,7 @@ To extract the pattern of the RL agent, use the following script
 
 ```
 $ cd ${GIT_ROOT}/src/rlmeta
-$ python sample.py
+$ python sample_attack.py env_config=hpca_ae_exp_4_1 checkpoint=${GIT_ROOT}/src/rlmeta/data/table4/hpca_ae_exp_4_1/ppoagent.pth
 ```
 For several scenarios, training may take long time, to save the time of reviewers, we provide pretrained checkpoints and reviewers can sample it directly.
 
