@@ -10,23 +10,28 @@ c_server_addr: "127.0.0.1:4413"
 train_device: "cuda:0"
 infer_device: "cuda:1"
 
-num_train_rollouts: 24
+num_train_rollouts: 48
 num_train_workers: 24
 
-num_eval_rollouts: 2
+num_eval_rollouts: 4
 num_eval_workers: 2
 
-# replay_buffer_size: 262144
 replay_buffer_size: 131072
-# replay_buffer_size: 65536
 prefetch: 2
 
 batch_size: 512
-lr: 3e-4
-learning_starts: 65536
-push_every_n_steps: 10
 
-num_epochs: 3000
+optimizer:
+  name: "Adam"
+  args:
+    lr: 1e-4
+
+learning_starts: 65536
+model_push_period: 10
+
+entropy_coeff: 0.02
+
+num_epochs: 1000
 steps_per_epoch: 3000
 
 num_eval_episodes: 100
@@ -37,5 +42,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: cyclone
-  - model_config: transformer_cchunter
+  - env_config: hpca_ae_exp_9_svm
+  - model_config: transformer

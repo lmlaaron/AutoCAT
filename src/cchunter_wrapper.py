@@ -42,12 +42,16 @@ class CCHunterWrapper(gym.Env):
         self.step_count = 0
         self.cc_hunter_history = []
 
+        self.no_guess = True
+        self.no_guess_reward = env_config["no_guess_reward"]
+
     def reset(self, victim_address=-1):
         self.step_count = 0
         self.cc_hunter_history = []
         obs = self._env.reset(victim_address=victim_address,
                               reset_cache_state=True)
         self.victim_address = self._env.victim_address
+        self.no_guess = True
         return obs
 
     def autocorr(self, x: np.ndarray, p: int) -> float:
@@ -58,13 +62,8 @@ class CCHunterWrapper(gym.Env):
         return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var
 
     def cc_hunter_attack(self, data: Sequence[int]) -> Tuple[float, int]:
-        n = min(len(data), self._env.cache_size * self.cc_hunter_check_length
-                )  # Mulong: only calculate 4 * size_cache size lag
-        # data = pd.Series(data)
-        # corr = [data.autocorr(i) for i in range(n)]
-        # corr = np.asarray(corr)
-        # corr = np.nan_to_num(corr, nan=1.0)
-        # mask = corr > self.threshold
+        # Mulong: only calculate 4 * size_cache size lag
+        n = min(len(data), self._env.cache_size * self.cc_hunter_check_length)
 
         x = np.asarray(data)
         corr = [self.autocorr(x, i) for i in range(n)]
@@ -72,25 +71,8 @@ class CCHunterWrapper(gym.Env):
         corr = np.nan_to_num(corr)
         mask = corr > self.threshold
 
-        rew = -np.square(corr).mean() if len(corr) > 0 else 0.0
-
-        # corr_pos = corr[corr > 0]
-        # rew = -np.square(corr_pos).mean()
-
-        # rew = -mask.mean() if len(mask) > 0 else 0.0
-
-        cnt = mask.sum()
-
-        # np.set_printoptions(suppress=True)
-        # print(f"data = {np.asarray(data)}")
-        # print(f"corr_arr = \n{corr}")
-        # print(f"corr_std = {corr.std()}")
-        # print(f"corr_max = {corr.max()}")
-        # print(f"corr_min = {corr.min()}")
-        # print(f"threshold = {self.threshold}")
-        # print(f"mask = {mask.astype(np.int64)}")
-        # print(f"cc_hunter_rew = {rew}")
-        # print(f"cc_hunter_cnt = {cnt}")
+        rew = -np.square(corr).mean().item() if len(corr) > 0 else 0.0
+        cnt = mask.sum().item()
 
         return rew, cnt
 
@@ -105,7 +87,7 @@ class CCHunterWrapper(gym.Env):
         # self.cc_hunter_history.append(latency)
         # self.cc_hunter_history.append(None if latency == 2 else latency)
 
-        #MUlong Luo
+        # Mulong Luo
         # change the semantics of cc_hunter_history following the paper
         # only append when there is a conflict miss (i.e., victim_latency is 1(miss))
         # then check the action
@@ -115,6 +97,9 @@ class CCHunterWrapper(gym.Env):
             self.cc_hunter_history.append(0)
         elif latency == 1:
             self.cc_hunter_history.append(1)
+
+        if info["is_guess"]:
+            self.no_guess = False
 
         # self.cc_hunter_history.append(info.get("cache_state_change", None))
 
@@ -131,10 +116,7 @@ class CCHunterWrapper(gym.Env):
                 reward += self.cc_hunter_coeff * rew
                 info["cc_hunter_attack"] = cnt
 
-        # done = (self.step_count >= self.episode_length)
-        # if done:
-        #     rew, cnt = self.cc_hunter_attack(self.cc_hunter_history)
-        #     reward += self.cc_hunter_coeff * rew
-        #     info["cc_hunter_attack"] = cnt
+                if self.no_guess:
+                    reward += self.no_guess_reward
 
         return obs, reward, done, info
