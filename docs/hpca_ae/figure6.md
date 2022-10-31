@@ -1,5 +1,6 @@
-# Figure 6
+# Figure 6: Bit rate of the StealthyStreamline attack and the LRU address-based attack 
 
+The following experiment is performed on the given [ssh host](server.md) with Intel E5-2686v2 CPU. Unfortunately we cannot provide ssh access on other three Intel CPUs shown in the paper. A new machine needs additional calibration.
 
 ```
 $ cd ${GIT_ROOT}/src/stealthy_streamline
@@ -47,16 +48,20 @@ Which looks like
 
 ![](../../fig/stealthy_streamline_error.png)
 
-## running Spectre attack with StreathyStreamline
+We can observe that StealthyStreamline (SS) in green has higher max bit rate than LRU in blue line.
+
+## running Spectre attack with SteathyStreamline
+
+StealthyStreamline can be used to commit the Spectre attack's state into caches efficiently, here we demonstrate it.
+Given the secret ```The_Magic Words_are_12390+mish_Ossifrage``` (which is hardcoded in [```main.c```](../../src/stealthy_stream/spectre_stream/main.c)), we can use Spectre to exact the secret.
+
 
 ```
 $ cd ${GIT_ROOT}/src/stealthy_streamline
 $ ./SSspectre 
 ```
 
-secret = "The_Magic Words_are_12390+mish_Ossifrage"
-
-
+The output looks like the following. Where for each reading, one alphabet of the secret is extracted.
 
 ```
 $ ./SSspctre 
