@@ -151,6 +151,10 @@ For several scenarios, training may take long time, also due to the undeterminis
 
 ## Experiments
 
+We recommend using the provided ssh host for performing the experiments. To access the ssh host, see the following.
+
+[ssh host instructions](docs/hpca_ae/server.md)
+
 We provide scripts to run the following experiments appeared in the original paper.
 
 * [Table IV: attacks found on CacheSimulator](docs/hpca_ae/table4.md)
