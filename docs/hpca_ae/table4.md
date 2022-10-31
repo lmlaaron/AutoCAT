@@ -1,10 +1,16 @@
-# Training a config
+# Finding attack patterns under different configs (Table IV)
+
+We reproduce the attack patterns found in Table IV, as shown below.
+
+[Table4](../../fig/table4.png)
+
+First, go to the directory.
 
 ```
 cd ${GIT_ROOT}/src/rlmeta
 ```
 
-To train a config in Table 4, use the following script:
+To train a config in Table IV, use the following script:
 
 ```
 $ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG>
