@@ -115,7 +115,7 @@ You can launch the experiment to train the RL agent
 
 ```
 $ cd ${GIT_ROOT}/src/rlmeta
-$ python train_ppo_transformer.py
+$ python train_ppo_attack.py table_view=True
 ```
 
 At the beginning the replay buffer will be filled and the print out will look like.
@@ -136,6 +136,7 @@ After the replay buffer is filled, the training logs will be like
 Training... ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 100% 0:00:00
 [2022-10-23 21:04:06,939][root][INFO] - {"return": {"mean": -7.837982208490361, "std": 11.00719994082304, "min": -70.12750244140625, "max": -1.0114586353302002, "count": 3000, "key": "return"}, "policy_ratio": {"mean": 0.9995904984275495, "std": 0.01008690819091325, "min": 0.9565219879150391, "max": 1.0483020544052124, "count": 3000, "key": "policy_ratio"}, "policy_loss": {"mean": -0.015300600946259997, "std": 0.013428813022190391, "min": -0.051137540489435196, "max": 0.050006382167339325, "count": 3000, "key": "policy_loss"}, "value_loss": {"mean": 64041.523216316404, "std": 105816.17287373912, "min": 1.1493895053863525, "max": 609683.625, "count": 3000, "key": "value_loss"}, "entropy": {"mean": 2.07833841276169, "std": 0.012247777578129993, "min": 2.0188612937927246, "max": 2.113884449005127, "count": 3000, "key": "entropy"}, "loss": {"mean": 32020.725061843725, "std": 52908.095275196785, "min": 0.5378807187080383, "max": 304841.78125, "count": 3000, "key": "loss"}, "grad_norm": {"mean": 80.6914478134663, "std": 560.7136433109384, "min": 0.14680133759975433, "max": 16948.568359375, "count": 3000, "key": "grad_norm"}, "sample_data_time/ms": {"mean": 0.33627491199513326, "std": 0.8351939263832907, "min": 0.0283070003206376, "max": 10.895442000219191, "count": 3000, "key": "sample_data_time/ms"}, "batch_learn_time/ms": {"mean": 110.58090069833055, "std": 6.249485072195114, "min": 105.28848000012658, "max": 426.97272399982467, "count": 3000, "key": "batch_learn_time/ms"}, "episode_length": {"mean": 2.4042961170589154, "std": 1.8968691140142928, "min": 1.0, "max": 26.0, "count": 43807, "key": "episode_length"}, "episode_return": {"mean": -0.8572643641427186, "std": 0.5330088683162034, "min": -1.25, "max": 0.99, "count": 43807, "key": "episode_return"}, "episode_time/s": {"mean": 0.013489203685554783, "std": 0.015033721112400809, "min": 0.004837646999476419, "max": 2.085678069000096, "count": 43807, "key": "episode_time/s"}, "steps_per_second": {"mean": 189.22392526112355, "std": 61.580304516542384, "min": 1.4383811406897724, "max": 326.53334890685426, "count": 43807, "key": "steps_per_second"}, "correct_rate": {"mean": 0.07838929851393629, "std": 0.26878321449158576, "min": 0.0, "max": 1.0, "count": 43807, "key": "correct_rate"}, "info": "T Epoch 0", "phase": "Train", "epoch": 0, "time": 641.0643177460006}
 ```
+Look at the ```correct_rate``` and ```episode_return``` for training progress. If the ```correct_rate``` is close to ```1.0```, this means the attack has high success rate.
 
 If the there are no errors reported 
 Use ```Ctrl+C``` to stop the training, which will save the checkpoint of the RL agent to the following path ```${GIT_ROOT}/src/rlmeta/outputs/${DATE}/${TIME}```
