@@ -12,7 +12,7 @@ First, go to the directory.
 cd ${GIT_ROOT}/src/rlmeta
 ```
 
-To train a config in Table V, use the following script:
+(Optional) To train a config in Table V, use the following script:
 
 ```
 $ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG> 
@@ -28,7 +28,7 @@ workding_dir = /home/ml2558/Downloads/AutoCAT/src/rlmeta/outputs/2022-10-31/19-0
 ```
 Please take notes of the ```working_dir```, which is the place where all the checkpoint and logs corresponding to this training is saved.
 
-There are 17 configs in Table V, and we have ```hpca_ae_exp_5_lru```, ```hpca_ae_exp_5_plru```, ..., ```hpca_ae_exp_5_rrip``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
+There are 3 configs in Table V, and we have ```hpca_ae_exp_5_lru```, ```hpca_ae_exp_5_plru```, ..., ```hpca_ae_exp_5_rrip``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
 
 Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path ```src/rlmeta/output/<DATE>/<TIME>/ppo_agent-<X>.pth``` and corresponding training logs in ```src/rlmeta/output/<DATE>/<TIME>/train_ppo_attack.log```. 
 
