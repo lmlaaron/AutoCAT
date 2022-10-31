@@ -53,12 +53,6 @@ We provide server host with these dependencies already installed. Please follow 
 
 ### Option 2: setup environment manually on a new machine with GPU
 
-First, set the path to the current repo.
-
-```
-$ export GIT_ROOT=<path_to_the_autocat_repo>
-```
-
 We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```.
 
 Creating a conda environment:
@@ -104,7 +98,20 @@ Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlme
 
 ## General flow for Training and evaluating RL agent
 
-Once the system is set up (either uisng the provided ssh host or using your own machine), you can launch the experiment to train the RL agent
+Once the system is set up (either uisng the provided ssh host or using your own machine), unzip the ```AutoCAT-master.zip``` and go to the directory.
+
+```
+$ unzip AutoCAT-master.zip
+$ cd AutoCAT-master
+```
+
+Then, set the path to the ```AutoCAT-master``` repo.
+
+```
+$ export GIT_ROOT=<path_to_the_autocat_repo>
+```
+
+You can launch the experiment to train the RL agent
 
 ```
 $ cd ${GIT_ROOT}/src/rlmeta
