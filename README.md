@@ -152,7 +152,7 @@ For several scenarios, training may take long time, to save the time of reviewer
 
 ## Experiments
 
-We provide scripts to reproduce the following appeared in the original paper.
+We provide scripts to run the following experiments appeared in the original paper.
 
 * [Table IV: attacks found on CacheSimulator](docs/hpca_ae/table4.md)
 * [Table V: RL training with different replacement policies](docs/hpca_ae/table5.md)
@@ -162,6 +162,7 @@ We provide scripts to reproduce the following appeared in the original paper.
 * [Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector](docs/hpca_ae/table9.md)
 * [Figure 6: measuring SteathyStreamline attack bit rate and error rate](docs/hpca_ae/figure6.md)
 
+Please go to ```${GIT_ROOT}/docs/hpca_ae/table4.md```, ```${GIT_ROOT}/docs/hpca_ae/table5.md```,..., ```${GIT_ROOT}/docs/hpca_ae/table9.md``` and ```${GIT_ROOT}/docs/hpca_ae/figure6.md``` for the corresponding instructions on how to run each experiments.
 
 ## Repo Structure 
 
