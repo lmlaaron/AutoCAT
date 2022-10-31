@@ -32,7 +32,7 @@ $ cd ${GIT_ROOT}/src/stealthy_streamline
 $ cd covert_channel_stream_1thread_2bits_8way
 $ bash run.sh
 $ cd test
-$ ../../process_error_rate_1thread/Error_rate_HW_LRU 
+$ ../../process_error_rate_1thread/Error_rate_strem_2bit 
 ```
 
 ## plot the figure
