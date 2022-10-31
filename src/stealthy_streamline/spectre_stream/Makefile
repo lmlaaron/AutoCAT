@@ -1,5 +1,5 @@
 all:   
 	gcc -c main.c -O0 
-	gcc main.o  -o LRUspctre
+	gcc main.o  -o SSspctre
 clean:
-	rm *.o LRUspctre
+	rm *.o SSspctre
