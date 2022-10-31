@@ -46,6 +46,13 @@ Sun Oct 23 20:43:01 2022
 
 ## Test setup
 
+### Option 1: use the provided machines
+
+For the convenience of the reviewers.
+We provide server host with these dependencies already installed. Please follow [server.md](docs/hpca_ae/server.md) for instructions on how to access these machines.
+
+### Option 2: setup environment manually on a new machine with GPU
+
 First, set the path to the current repo.
 
 ```
@@ -92,7 +99,7 @@ Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlme
 (py38) $ pip install -e .
 ```
 
-Alternatively, we provide server host with these dependencies already installed. Please follow [server.md](docs/hpca_ae/server.md) for instructions on how to access these machines.
+
 
 
 ## General flow for Training and evaluating RL agent
