@@ -11,13 +11,13 @@ First, go to the directory.
 cd ${GIT_ROOT}/src/rlmeta
 ```
 
-To train a config in Table V, use the following script:
+(Optional) To train a config in Table VII, use the following script:
 
 ```
 $ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG>
 ```
 
-There are 17 configs in Table VII, and we have ```hpca_ae_exp_7_baseline```, ```hpca_ae_exp_5_pl``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
+There are 17 configs in Table VII, and we have ```hpca_ae_exp_7_baseline```, ```hpca_ae_exp_7_pl``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
 
 Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path.
 
