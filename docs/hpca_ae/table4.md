@@ -10,7 +10,7 @@ First, go to the directory.
 cd ${GIT_ROOT}/src/rlmeta
 ```
 
-To train a config in Table IV, use the following script:
+(Optional) To train a config in Table IV, use the following script:
 
 ```
 $ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG>
