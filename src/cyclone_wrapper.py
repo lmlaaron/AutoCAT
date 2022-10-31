@@ -1,5 +1,5 @@
 # simpple SVM based detector
-# based on Cyclone 
+# based on Cyclone
 # window_size = 4
 # interval_size = 20
 # 1 bucket
@@ -36,7 +36,9 @@ class CycloneWrapper(gym.Env):
         self.cyclone_window_size = env_config.get("cyclone_window_size", 4)
         self.cyclone_interval_size = env_config.get("cyclone_interval_size", 40)
         self.cyclone_num_buckets = env_config.get("cyclone_num_buckets", 4)
-        self.cyclone_bucket_size = self.env_config.cache_configs.cache_1.blocks / self.cyclone_num_buckets
+        # self.cyclone_bucket_size = self.env_config.cache_configs.cache_1.blocks / self.cyclone_num_buckets
+        self.cyclone_bucket_size = self.env_config["cache_configs"]["cache_1"][
+            "blocks"] / self.cyclone_num_buckets
         self.cyclone_collect_data = env_config.get("cyclone_collect_data", False)
         self.cyclone_malicious_trace = env_config.get("cyclone_malicious_trace", False)
         self.X = []
@@ -57,7 +59,7 @@ class CycloneWrapper(gym.Env):
         #     "cc_hunter_detection_reward", -1.0)
         #self.cc_hunter_coeff = env_config.get("cc_hunter_coeff", 1.0)
         #self.cc_hunter_check_length = env_config.get("cc_hunter_check_length",
-                                                    # 4)
+        # 4)
 
         self._env = CacheGuessingGameEnv(env_config)
         self.validation_env = CacheGuessingGameEnv(env_config)
@@ -74,6 +76,9 @@ class CycloneWrapper(gym.Env):
         self.cnt = 0
         self.step_count = 0
         #self.cc_hunter_history = []
+
+        self.no_guess = True
+        self.no_guess_reward = env_config["no_guess_reward"]
 
     def load_svm_model(self):
         from numpy import loadtxt
@@ -123,13 +128,15 @@ class CycloneWrapper(gym.Env):
             for i in range(self.cyclone_window_size):
                 temp.append(0)
             self.cyclone_counters.append(temp)
-        
+
         self.step_count = 0
         self.cnt = 0
         #self.cc_hunter_history = []
         obs = self._env.reset(victim_address=victim_address,
                               reset_cache_state=True)
         self.victim_address = self._env.victim_address
+        self.no_guess = True
+
         return obs
 
     ####def autocorr(self, x: np.ndarray, p: int) -> float:
@@ -142,10 +149,10 @@ class CycloneWrapper(gym.Env):
     def cyclone_attack(self, cyclone_counters):
         # collect data to train svm
         #print(cyclone_counters)
-        
+
         for i in range(len(cyclone_counters)):
             self.cyclone_heatmap[i] += cyclone_counters[i]
-        
+
         if self.cyclone_collect_data == True:
             x = np.array(cyclone_counters).reshape(-1)
             if self.cyclone_malicious_trace == True:
@@ -168,10 +175,13 @@ class CycloneWrapper(gym.Env):
         y = self.clf.predict([x])[0]
         rew = -y
 
-        return rew
+        return rew.item()
 
     def step(self, action):
         obs, reward, done, info = self._env.step(action)
+
+        if info["is_guess"]:
+            self.no_guess = False
 
         # is_guess = (self._env.parse_action(action)[1] == 1)
         cur_step_obs = obs[0, :]
@@ -182,7 +192,7 @@ class CycloneWrapper(gym.Env):
 
         # Mulong Luo
         # cyclone
-        if "cyclic_set_index" in info and info["cyclic_set_index"] != -1: 
+        if "cyclic_set_index" in info and info["cyclic_set_index"] != -1:
             set = int(info["cyclic_set_index"])
             if self.step_count < self.episode_length:
                 self.cyclone_counters[int(set / self.cyclone_bucket_size) ][int(self.step_count / self.cyclone_interval_size) ] += 1
@@ -204,6 +214,9 @@ class CycloneWrapper(gym.Env):
                 rew = self.cyclone_attack(self.cyclone_counters)
                 reward += self.cyclone_coeff * rew
                 info["cyclone_attack"] = (rew != 0.0) #self.cnt
+
+                if self.no_guess:
+                    reward += self.no_guess_reward
 
         # done = (self.step_count >= self.episode_length)
         # if done:

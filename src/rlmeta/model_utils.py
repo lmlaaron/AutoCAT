@@ -12,9 +12,10 @@ def get_model(cfg: Dict[str, Any],
               window_size: int,
               output_dim: int,
               checkpoint: Optional[str] = None) -> nn.Module:
-    cfg.args.output_dim = output_dim
+    cfg.args.step_dim = window_size
     if "window_size" in cfg.args:
         cfg.args.window_size = window_size
+    cfg.args.output_dim = output_dim
 
     model = None
     if cfg.type == "mlp":
