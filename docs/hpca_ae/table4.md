@@ -26,11 +26,11 @@ workding_dir = /home/ml2558/Downloads/AutoCAT/src/rlmeta/outputs/2022-10-31/19-0
 ```
 Please take notes of the ```working_dir```, which is the place where all the checkpoint and logs corresponding to this training is saved.
 
-There are 17 configs in Table 4, and we have ```hpca_ae_exp_4_1```, ```hpca_ae_exp_4_2```, ..., ```hpca_ae_exp_4_17``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
+There are 17 configs in Table 4, and we have ```hpca_ae_exp_4_1```, ```hpca_ae_exp_4_2```, ..., ```hpca_ae_exp_4_17``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these. All config files are located in ```src/rlmeta/config/env_config```.
 
 Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path.
 
-To extract the attack pattern from the checkpoint, use the following command (replace ```<NAME_OF_THE_CONFIG>``` and ```<ABSOLUTE_PATH_TO_CHECKPOINT>```) correspondingly.
+To extract the attack pattern from the checkpoint, use the following command (replace ```<NAME_OF_THE_CONFIG>``` and ```<ABSOLUTE_PATH_TO_CHECKPOINT>```) correspondingly. The ```<ABSOLUTE_PATH_TO_CHECKPOINT>``` is under ```wordking_dir``` printed out when training.
 
 ```
 $ python sample_attack.py  env_config=<NAME_OF_THE_CONFIG> checkpoint=<ABSOLUTE_PATH_TO_CHECKPOINT>
