@@ -165,6 +165,8 @@ We provide scripts to run the following experiments appeared in the original pap
 * [Table IX: bit rate, guess accuarcy and detection rate for attacks bypassing SVM-based detector](docs/hpca_ae/table9.md)
 * [Figure 6: measuring SteathyStreamline attack bit rate and error rate](docs/hpca_ae/figure6.md)
 
+Notice: due to Table III in the paper depends on hardware that are not accessible now, we do not intend to reproduce Table III in this evaluation.
+
 Please go to 
 
 * [```${GIT_ROOT}/docs/hpca_ae/table4.md```](docs/hpca_ae/table4.md)
