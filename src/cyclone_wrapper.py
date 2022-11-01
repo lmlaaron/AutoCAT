@@ -100,7 +100,11 @@ class CycloneWrapper(gym.Env):
         fp.close()
 
     # if save_data==True, sa
-    def reset(self, victim_address=-1, save_data=False, set_victim=False):
+    def reset(self,
+              victim_address=-1,
+              save_data=False,
+              set_victim=False,
+              seed: int = -1):
         if save_data == True:
             self.save_svm_data()
 
@@ -117,7 +121,8 @@ class CycloneWrapper(gym.Env):
 
         if set_victim == True and victim_address != -1:
             obs = self._env.reset(victim_address=victim_address,
-                              reset_cache_state=False)
+                                  reset_cache_state=False,
+                                  seed=seed)
             return obs
 
         # reset cyclone counter
@@ -133,7 +138,8 @@ class CycloneWrapper(gym.Env):
         self.cnt = 0
         #self.cc_hunter_history = []
         obs = self._env.reset(victim_address=victim_address,
-                              reset_cache_state=True)
+                              reset_cache_state=True,
+                              seed=seed)
         self.victim_address = self._env.victim_address
         self.no_guess = True
 
