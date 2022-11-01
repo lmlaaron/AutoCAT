@@ -1,261 +1,158 @@
 import logging
 
-from typing import Dict
+from typing import Dict, Optional, Sequence
 
 import hydra
+from omegaconf import DictConfig, OmegaConf
+
+import numpy as np
+
 import torch
 import torch.nn
-import os
-import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-# sys.path.append("/home/mulong/RL_SCA/src/CacheSimulator/src")
 
 import rlmeta.utils.nested_utils as nested_utils
-import numpy as np
+
 from rlmeta.agents.ppo.ppo_agent import PPOAgent
-from rlmeta.core.types import Action
+from rlmeta.core.types import Action, TimeStep
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
-from cchunter_wrapper import CCHunterWrapper
-from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_model import CachePPOModel
-from cache_ppo_transformer_model import CachePPOTransformerModel
-from textbook_attacker import TextbookAgent
-# from cache_guessing_game_env_impl import CacheGuessingGameEnv
-# from cchunter_wrapper import CCHunterWrapper
-from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_model import CachePPOModel
-from cache_ppo_transformer_model import CachePPOTransformerModel
-from cache_ppo_transformer_periodic_model import CachePPOTransformerPeriodicModel
-import matplotlib.pyplot as plt
-import pandas as pd
+
+import model_utils
+
 from cache_env_wrapper import CacheEnvCCHunterWrapperFactory
 
 
-def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False, change_core=False, **kwds):
-    """
-    Autocorrelation plot for time series.
-    Parameters:
-    -----------
-    series: Time series
-    ax: Matplotlib axis object, optional
-    n_lags: maximum number of lags to show. Default is len(series)
-    kwds : keywords
-        Options to pass to matplotlib plotting method
-    Returns:
-    -----------
-    class:`matplotlib.axis.Axes`
-    """
-    import matplotlib.pyplot as plt
-    
-    n_full = len(series)
-    if n_full <= 2:
-      raise ValueError("""len(series) = %i but should be > 2
-      to maintain at least 2 points of intersection when autocorrelating
-      with lags"""%n_full)
-      
-    # Calculate the maximum number of lags permissible
-    # Subtract 2 to keep at least 2 points of intersection,
-    # otherwise pandas.Series.autocorr will throw a warning about insufficient
-    # degrees of freedom
-    n_maxlags = n_full #- 2
-    
-    # calculate the actual number of lags
-    if n_lags is None:
-      # Choosing a reasonable number of lags varies between datasets,
-      # but if the data longer than 200 points, limit this to 100 lags as a
-      # reasonable default for plotting when n_lags is not specified
-      n_lags = min(n_maxlags, 100)
-    else:
-      if n_lags > n_maxlags:
-        raise ValueError("n_lags should be < %i (i.e. len(series)-2)"%n_maxlags)
-    
-    if ax is None:
-        ax = plt.gca(xlim=(1, n_lags), ylim=(-1.0, 1.0))
+def batch_obs(timestep: TimeStep) -> TimeStep:
+    obs, reward, done, info = timestep
+    return TimeStep(obs.unsqueeze(0), reward, done, info)
 
-    if not change_core:
-      data = np.asarray(series)
-      mean = np.mean(data)
-      # c0 = np.sum((data - mean) ** 2) / float(n_full)
-      var = np.var(data)
-      norm = np.square(data - mean).sum()
-      def r(h):
-          # deno = n_full if not change_deno else (n_full - h)
-          # return ((data[:n_full - h] - mean) *
-          #         (data[h:] - mean)).sum() / float(deno) / var
-          if h == 0:
-              return 1.0
-          else:
-              return ((data[:-h] - mean) * (data[h:] - mean)).sum() / norm
-              # return ((data[:-h] - mean) * (data[h:] - mean)).mean() / var
-            
-            # a = data[:-h]
-            # b = data[h:]
-            # return ((a - a.mean()) * (b - b.mean())).mean() / (a.std() * b.std())
-    else:
-      def r(h):
-        return series.autocorr(lag=h)
-      
-    # x = np.arange(n_lags) + 1
-    x = np.arange(n_lags)
-    # y = lmap(r, x)
-    y = np.array([r(xi) for xi in x])
 
-    print(f"y = {y}")
-    print(f"y_max = {np.max(y[1:])}")
-
-    z95 = 1.959963984540054
-    z99 = 2.5758293035489004
-    ax.axhline(y=0.95, linestyle='--', color='grey')
-    # ax.axhline(y=z95 / np.sqrt(n_full), color='grey')
-    ax.axhline(y=0.0, color='black')
-    # ax.axhline(y=-z95 / np.sqrt(n_full), color='grey')
-    # ax.axhline(y=-z99 / np.sqrt(n_full), linestyle='--', color='grey')
-    ax.set_xlabel("Lag")
-    ax.set_ylabel("Autocorrelation")
-    ax.plot(x, y, **kwds)
-    if 'label' in kwds:
-        ax.legend()
-    ax.grid()
-    
-    return ax
-
-def unbatch_action(action: Action) -> Action: 
+def unbatch_action(action: Action) -> Action:
     act, info = action
     act.squeeze_(0)
     info = nested_utils.map_nested(lambda x: x.squeeze(0), info)
     return Action(act, info)
 
 
-def run_loop(env: Env, agent: PPOAgent, victim_addr=-1) -> Dict[str, float]:
+def autocorr(x: np.ndarray, p: int) -> float:
+    if p == 0:
+        return 1.0
+    mean = x.mean()
+    var = x.var()
+    return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var
+
+
+def max_autocorr(data: Sequence[int], n: int) -> float:
+    n = min(len(data), n)
+    x = np.asarray(data)
+    corr = [autocorr(x, i) for i in range(n)]
+    corr = np.asarray(corr[1:])
+    corr = np.nan_to_num(corr)
+    return corr.max()
+
+
+def run_loop(env: Env,
+             agent: PPOAgent,
+             victim_addr: int = -1) -> Dict[str, float]:
     episode_length = 0
     episode_return = 0.0
-    # num_correct = 1
+    num_guess = 0
     num_correct = 0
-    # num_guess = 1 # FIXME, this is not true when our training is not 100% accuracy
-    num_guess = 0 # FIXME, this is not true when our training is not 100% accuracy
-    hit_trace = []
 
-    # import pdb; pdb.set_trace()
     if victim_addr == -1:
         timestep = env.reset()
     else:
         timestep = env.reset(victim_address=victim_addr)
-    
+
     agent.observe_init(timestep)
     while not timestep.done:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
-        timestep.observation.unsqueeze_(0)
-        action, info = agent.act(timestep)
-        action = Action(action, info)
+        timestep = batch_obs(timestep)
+        action = agent.act(timestep)
         # Unbatch the action.
-        #action = unbatch_action(action)
-        # import pdb; pdb.set_trace()
+        action = unbatch_action(action)
 
-        victim_addr = env._env.victim_address
         timestep = env.step(action)
-        obs, reward, done, info = timestep
-        if "guess_correct" in info:
-            num_guess += 1
-            if info["guess_correct"]:
-                print(f"victim_address! {victim_addr} correct guess! {info['guess_correct']}")
-                num_correct += 1
-            else:
-                correct = False
-        hit =  obs[0][0]
-        hit_trace.append(hit)
-        # add, is_guess, is_victim, is_flush, _ = env._env.parse_action(action)
-            
         agent.observe(action, timestep)
 
         episode_length += 1
         episode_return += timestep.reward
 
+        if "guess_correct" in timestep.info:
+            num_guess += 1
+            if timestep.info["guess_correct"]:
+                num_correct += 1
+
+    autocorr_n = env.env._env.cache_size * env.env.cc_hunter_check_length
+
     metrics = {
         "episode_length": episode_length,
         "episode_return": episode_return,
+        "num_guess": num_guess,
+        "num_correct": num_correct,
+        "correct_rate": num_correct / num_guess,
+        "bandwith": num_guess / episode_length,
+        "max_autocorr": max_autocorr(env.env.cc_hunter_history, autocorr_n),
     }
 
-    return metrics, hit_trace, (num_correct, num_guess)
+    return metrics
 
 
 def run_loops(env: Env,
               agent: PPOAgent,
-              num_episodes: int,
+              num_episodes: int = -1,
               seed: int = 0,
-              cache_size: int = None) -> StatsDict:
-    env.seed(seed)
+              reset_cache_state: bool = False) -> StatsDict:
+    # env.seed(seed)
+    env.reset(seed=seed)
     metrics = StatsDict()
-    all_num_corr, all_num_guess = 0, 0
-    episode_length_total = 0
-    if env.env._env.allow_empty_victim_access == False:
-        end_address = env.env.victim_address_max + 1
-    else:
-        end_address = env.env.victim_address_max + 1 + 1
 
-    for i in range(0, 1):
-        for victim_addr in range(env.env.victim_address_min, end_address):
-            cur_metrics, hit_trace, (num_corr, num_guess) = run_loop(env, agent, victim_addr=victim_addr)
-            # import pdb; pdb.set_trace()
-            all_num_corr += num_corr
-            all_num_guess += num_guess
-            episode_length_total += cur_metrics["episode_length"]
+    num_guess = 0
+    num_correct = 0
+    tot_length = 0
+
+    if num_episodes == -1:
+        start = env.env.victim_address_min
+        stop = env.env.victim_address_max + 1 + int(
+            env.env._env.allow_empty_victim_access)
+        for victim_addr in range(start, stop):
+            cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
+            num_guess += cur_metrics["num_guess"]
+            num_correct += cur_metrics["num_correct"]
+            tot_length += cur_metrics["episode_length"]
             metrics.extend(cur_metrics)
-            print("Episode number of guess:", num_guess)
-            print("Episode number of corrects:", num_corr)
-            print("correct rate:", num_corr / num_guess)
-            print("bandwidth rate:", num_guess / cur_metrics["episode_length"])
-        
+    else:
+        for _ in range(num_episodes):
+            cur_metrics = run_loop(env, agent, victim_addr=-1)
+            num_guess += cur_metrics["num_guess"]
+            num_correct += cur_metrics["num_correct"]
+            tot_length += cur_metrics["episode_length"]
+            metrics.extend(cur_metrics)
 
-    # plot\
-        # hit_trace = [int(i) for i in hit_trace]
-        hit_trace = env._env.cc_hunter_history
-        print(hit_trace)
-        data = pd.Series(hit_trace)
-        plt.figure()
-
-        # autocorrelation_plot_forked(data, n_lags= 4 * cache_size, change_deno=True) #consider removing -2
-        autocorrelation_plot_forked(data, n_lags= 8 * cache_size, change_deno=True) #consider removing -2
-        # autocorrelation_plot_forked(data, n_lags=len(data)-2, change_deno=True)
-        plt.savefig('cchunter_hit_trace_{}_acf.png'.format(victim_addr))
-        print("Figure saved as 'cchunter_hit_trace_{}_acf.png".format(victim_addr))
-
-    print("Total number of guess:", all_num_guess)
-    print("Total number of corrects:", all_num_corr)
-    print("Episode total:", episode_length_total)
-
-    print("correct rate:", all_num_corr / all_num_guess)
-    print("bandwidth rate:", all_num_guess / episode_length_total)
+    metrics.add("overall_correct_rate", num_correct / num_guess)
+    metrics.add("overall_bandwith", num_guess / tot_length)
 
     return metrics
 
 
 @hydra.main(config_path="./config", config_name="sample_cchunter")
 def main(cfg):
-    global ccenv
     # Create env
-    cfg.env_config['verbose'] = 1
-    env_fac = CacheEnvCCHunterWrapperFactory(cfg.env_config)
+    cfg.env_config.verbose = 1
+    env_fac = CacheEnvCCHunterWrapperFactory(
+        OmegaConf.to_container(cfg.env_config))
     env = env_fac(index=0)
-    
-    # Load model
-    cfg.model_config["output_dim"] = env.action_space.n
-    params = torch.load(cfg.checkpoint)
-    # model = CachePPOModel(**cfg.model_config)
 
-    model = CachePPOTransformerModel(**cfg.model_config)
-    # model = CachePPOTransformerPeriodicModel(**cfg.model_config)
-    # import pdb; pdb.set_trace()
-    model.load_state_dict(params)
+    # Load model
+    model = model_utils.get_model(cfg.model_config, cfg.env_config.window_size,
+                                  env.action_space.n, cfg.checkpoint)
     model.eval()
 
     # Create agent
     agent = PPOAgent(model, deterministic_policy=cfg.deterministic_policy)
-    #agent = TextbookAgent(cfg.env_config)
 
     # Run loops
-    metrics = run_loops(env, agent, cfg.num_episodes, cfg.seed, cache_size = cfg.env_config['cache_configs']['cache_1']['blocks'])
+    metrics = run_loops(env, agent, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
 
 
