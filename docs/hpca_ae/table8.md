@@ -11,7 +11,7 @@ First, go to the directory.
 cd ${GIT_ROOT}/src/rlmeta
 ```
 
-To train a config in Table VIII, use the following script:
+(Optional) To train a config in Table VIII, use the following script:
 
 ```
 $ python train_ppo_cchunter.py train_device="cuda:0" infer_device="cuda:1" num_train_rollouts=48 num_train_workers=24 num_eval_rollouts=4 num_eval_workers=2 env_config=<NAME_OF_THE_CONFIG>
@@ -50,7 +50,7 @@ sample          max_autocorr    0.60822789  0.10691965    0.30434783    0.995234
 sample  overall_correct_rate    0.99827929  0.00000000    0.99827929    0.99827929        1
 sample      overall_bandwith    0.20806790  0.00000000    0.20806790    0.20806790        1
 ```
-The bit rate(overall_bandwidth), correct_rate, and max_autocorr can be read out directly.
+The bit rate(overall_bandwidth)=0.208, correct_rate=0.998, and max_autocorr=0.608 can be read out directly.
 
 Similarly, to calculate the bit rate, max autocorrelation and accuracy of RL\_baseline
 ```
