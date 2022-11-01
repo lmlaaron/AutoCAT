@@ -45,11 +45,12 @@ class CCHunterWrapper(gym.Env):
         self.no_guess = True
         self.no_guess_reward = env_config["no_guess_reward"]
 
-    def reset(self, victim_address=-1):
+    def reset(self, victim_address=-1, seed: int = -1):
         self.step_count = 0
         self.cc_hunter_history = []
         obs = self._env.reset(victim_address=victim_address,
-                              reset_cache_state=True)
+                              reset_cache_state=True,
+                              seed=seed)
         self.victim_address = self._env.victim_address
         self.no_guess = True
         return obs
