@@ -11,25 +11,54 @@ First, go to the directory.
 cd ${GIT_ROOT}/src/rlmeta
 ```
 
-To train a config in Table V, use the following script:
+To train a config in Table VIII, use the following script:
 
 ```
-$ python train_ppo_attack.py env_config=<NAME_OF_THE_CONFIG>
+$ python train_ppo_cchunter.py train_device="cuda:0" infer_device="cuda:1" num_train_rollouts=48 num_train_workers=24 num_eval_rollouts=4 num_eval_workers=2 env_config=<NAME_OF_THE_CONFIG>
 ```
 
-There are 17 configs in Table V, and we have ```hpca_ae_exp_5_1```, ```hpca_ae_exp_5_2```, ..., ```hpca_ae_exp_5_3``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
+There are 3 configs (only two need training) in Table VIII, and we have ```hpca_ae_exp_8_autocor```, ```hpca_ae_exp_8_baseline``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
 
 Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path.
 
-To extract the attack pattern from the checkpoint, use the following command (replace ```<NAME_OF_THE_CONFIG>``` and ```<ABSOLUTE_PATH_TO_CHECKPOINT>```) correspondingly.
+To calculate the bit rate, max autocorrelation and accuracy of these scenarios, use the following.(replace ```<NAME_OF_THE_CONFIG>``` and ```<ABSOLUTE_PATH_TO_CHECKPOINT>```) correspondingly.
 
 ```
-$ python sample_attack.py  env_config=<NAME_OF_THE_CONFIG> checkpoint=<ABSOLUTE_PATH_TO_CHECKPOINT>
+$ python sample_cchunter.py  env_config=<NAME_OF_THE_CONFIG> checkpoint=<ABSOLUTE_PATH_TO_CHECKPOINT> env_config.window_size=164 num_episodes=1000
 ```
 
-Since the training takes some time, we provide pretrained checkpoints in the following directory ```checkpoint```. 
+Since the training takes some time, we provide pretrained checkpoints in the following directory ```src/rlmeta/data/table8/```.
 
-To calculate the bit rate, max autocorrelation and accuracy of these scenarios, use the following.
+
+
+To calculate the bit rate, max autocorrelation and accuracy of RL\_autocor 
+```
+$ python sample_cchunter.py env_config=hpca_ae_exp_8_autocor checkpoint=${GIT_ROOT}/src/rlmeta/data/table8/hpca_ae_exp_8_autocor/ppo_agent-696.pth env_config.window_size=164 num_episodes=1000
+```
+
+which printout the following in the end
+```
+  info                   key          mean         std           min           max    count
+------  --------------------  ------------  ----------  ------------  ------------  -------
+sample        episode_length  162.00000000  0.00000000  162.00000000  162.00000000     1000
+sample        episode_return   22.71700161  5.76235450  -55.48715697   30.88211980     1000
+sample             num_guess   33.70700000  1.22112694   31.00000000   40.00000000     1000
+sample           num_correct   33.64900000  1.21235267   30.00000000   38.00000000     1000
+sample          correct_rate    0.99831903  0.00821158    0.90909091    1.00000000     1000
+sample              bandwith    0.20806790  0.00753782    0.19135802    0.24691358     1000
+sample          max_autocorr    0.60822789  0.10691965    0.30434783    0.99523411     1000
+sample  overall_correct_rate    0.99827929  0.00000000    0.99827929    0.99827929        1
+sample      overall_bandwith    0.20806790  0.00000000    0.20806790    0.20806790        1
+```
+The bit rate(overall_bandwidth), correct_rate, and max_autocorr can be read out directly.
+
+Similarly, to calculate the bit rate, max autocorrelation and accuracy of RL\_baseline
+```
+$ python sample_cchunter.py env_config=hpca_ae_exp_8_baseline checkpoint=${GIT_ROOT}/src/rlmeta/data/table8/hpca_ae_exp_8_baseline/ppo_agent-429.pth env_config.window_size=164 num_episodes=1000
+```
+
+To calculate the bit rate, max autocorrelation and accuracy of textbook attacker
 
 ```
+$ python sample_cchunter_textbook.py 
 ```
