@@ -18,7 +18,7 @@ $ python train_ppo_cyclone.py train_device="cuda:0" infer_device="cuda:1" num_tr
 
 There are 3 configs (only two need training) in Table IX, and we have ```hpca_ae_exp_9_baseline```, ```hpca_ae_exp_9_svm``` correpondingly, replace ```<NAME_OF_THE_CONFIG>``` with these.
 
-Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path.
+Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path ```src/rlmeta/outputs/<DATE>/<TIME>/```..
 
 To calculate the bit rate, max autocorrelation and accuracy of these scenarios, use the following.(replace ```<NAME_OF_THE_CONFIG>``` and ```<ABSOLUTE_PATH_TO_CHECKPOINT>```) correspondingly.
 
