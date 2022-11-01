@@ -21,7 +21,7 @@ There are 17 configs in Table VII, and we have ```hpca_ae_exp_7_baseline```, ```
 
 Use ```Ctrl+C``` to interrupt the training, which will save a checkpoint in the given path.
 
-Since the training takes some time, we provide pretrained checkpoints in the following directory ```src/rlmeta/data/table6```. For each folder, we include the ```ppo_agent-X.pth``` which is the last checkpoint in the training processes, we also include the training logs.
+Since the training takes some time, we provide pretrained checkpoints in the following directory ```src/rlmeta/data/table7```. For each folder, we include the ```ppo_agent-X.pth``` which is the last checkpoint in the training processes, we also include the training logs.
 
 
 Use the following to grep the interested information from ```train_ppo_attack.log```
