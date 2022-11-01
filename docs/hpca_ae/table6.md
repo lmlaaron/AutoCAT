@@ -57,5 +57,6 @@ will print out the case when the ```step_reward``` is -0.01.
 {"episode_length":{"mean":19.020000000000017,"std":13.37757825617178,"min":7.0,"max":60.0,"count":100,"key":"episode_length"},"correct_rate":{"mean":0.9399999999999998,"std":0.23748684174075835,"min":0.0,"max":1.0,"count":100,"key":"correct_rate"},"info":"EEpoch79",
 ```
 This means at the end episode (Episode 79), the ```episode_length``` is 19.02 and ```correct_rate``` is 0.94.  
+For the cases when ```step_reward``` is -0.02 and -0.005 in Table VI, the ```episode_length``` and ```correct_rate``` can be extracted similarly.
 
 
