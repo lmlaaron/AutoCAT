@@ -62,6 +62,10 @@ def main(cfg):
     cfg.model_config["output_dim"] = env.action_space.n
     train_model = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device)
+    attacker_checkpoint = cfg.attacker_checkpoint
+    if len(attacker_checkpoint) > 0:
+        attacker_params = torch.load(cfg.attacker_checkpoint, map_location=cfg.train_device)
+        train_model.load_state_dict(attacker_params)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
@@ -144,7 +148,7 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:100000]
     y = []
     for line in spec_trace:
@@ -243,7 +247,10 @@ def main(cfg):
         else:
             # Train Attacker
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-            a_stats = agent.train(cfg.steps_per_epoch)
+            if epoch >=50:
+                a_stats = agent.train(cfg.steps_per_epoch)
+            else:
+                a_stats = agent.train(10)
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         #stats = d_stats

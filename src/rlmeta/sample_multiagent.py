@@ -119,14 +119,56 @@ def run_loops(env: Env,
         metrics.extend(cur_metrics)
     return metrics
 
+def tournament(env,
+               cfg):
+    
+    attacker_list = cfg.attackers
+    detector_list = cfg.detectors
+    
+    f = open('tournament.txt','w')
+    for detector in detector_list:
+        for attacker in attacker_list:
+            if detector[1].split('/')[-3:-1] == attacker[1].split('/')[-3:-1]:
+                print(detector[1].split('/')[-3:-1], attacker[1].split('/')[-3:-1])
+                print("from same training instance, skipping")
+                print(detector, attacker)
+                continue
+            # Attacker
+            cfg.model_config["output_dim"] = env.action_space.n
+            cfg.model_config["step_dim"] = 64
+            attacker_params = torch.load(attacker[1])
+            attacker_model = CachePPOTransformerModel(**cfg.model_config)
+            attacker_model.load_state_dict(attacker_params)
+            attacker_model.eval()
+    
+            # Detector
+            cfg.model_config["output_dim"] = 2
+            cfg.model_config["step_dim"] = 66
+            detector_params = torch.load(detector[1], map_location='cuda:1')
+            detector_model = CachePPOTransformerModel(**cfg.model_config)
+            detector_model.load_state_dict(detector_params)
+            detector_model.eval()
+            
+            attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+            detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+            agents = {"attacker": attacker_agent, "detector": detector_agent}
+            metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
+            
+            print(detector)
+            print(attacker)
+            print(metrics.table())
+            f.write(detector[0]+detector[1]+'\n')
+            f.write(attacker[0]+attacker[1]+'\n')
+            f.write(metrics.table()+'\n')
+    f.close()
+
 
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 0
+    cfg.env_config['verbose'] = 0 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-    
     # Load model
     # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
@@ -150,12 +192,10 @@ def main(cfg):
     #detector_agent = RandomAgent(1)
     detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone1.pkl", mode='active')
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone-anti2.pkl", mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
@@ -164,10 +204,10 @@ def main(cfg):
     spec_trace = y
     benign_agent = SpecAgent(cfg.env_config, spec_trace)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
-    # Run loops
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
-
-
+    '''
+    tournament(env, cfg)
+    '''
 if __name__ == "__main__":
     main()

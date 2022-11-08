@@ -160,7 +160,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
                 self.load_state_dict(state_dict)
             elif self.latest is not None:
                 self.load_state_dict(self.latest)
-            #print("reloading model")
+            #print("reloading model", reload_model)
             #print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
         if self._device is None:
             self._device = next(self.parameters()).device
