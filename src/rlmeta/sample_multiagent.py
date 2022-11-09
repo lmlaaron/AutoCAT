@@ -12,7 +12,7 @@ import hydra
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 #from agents.ppo_agent import PPOAgent
 #from agents.spec_agent import SpecAgent
-from agents.prime_probe_agent import PrimeProbeAgent
+from agents.prime_probe_agent2 import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
 from agents.flush_reload_agent import FlushReloadAgent
 from agents.random_agent import RandomAgent
