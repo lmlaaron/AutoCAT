@@ -82,7 +82,7 @@ class CacheGuessingGameEnv(gym.Env):
       },
       "cache_1": {#required
         "blocks": 8, 
-        "associativity": 1,  
+        "associativity": 8,  
         "hit_time": 1 #cycles
       },
       "mem": {#required

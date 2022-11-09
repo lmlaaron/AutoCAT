@@ -3,27 +3,28 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+#from collections import namedtuple
 import time
 
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Sequence, Tuple, Union
 
-#import torch
+import torch
 import torch.nn as nn
 
 #from rich.console import Console
 #from rich.progress import track
 
-#import rlmeta.utils.data_utils as data_utils
-#import rlmeta.utils.nested_utils as nested_utils
+import rlmeta.utils.data_utils as data_utils
+import rlmeta.utils.nested_utils as nested_utils
 
-#from rlmeta.agents.agent import Agent
-#from rlmeta.core.controller import Controller, ControllerLike, Phase
-#from rlmeta.core.model import ModelLike
-#from rlmeta.core.replay_buffer import ReplayBufferLike
-#from rlmeta.core.rescalers import Rescaler, RMSRescaler
+from rlmeta.agents.agent import Agent
+from rlmeta.core.controller import Controller, ControllerLike, Phase
+from rlmeta.core.model import ModelLike
+from rlmeta.core.replay_buffer import ReplayBufferLike
+from rlmeta.core.rescalers import Rescaler, RMSRescaler
 from rlmeta.core.types import Action, TimeStep
-#from rlmeta.core.types import Tensor, NestedTensor
-#from rlmeta.utils.stats_dict import StatsDict
+from rlmeta.core.types import Tensor, NestedTensor
+from rlmeta.utils.stats_dict import StatsDict
 
 import random
 
