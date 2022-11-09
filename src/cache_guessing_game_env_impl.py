@@ -65,7 +65,7 @@ class CacheGuessingGameEnv(gym.Env):
    "attacker_addr_s":8,
    "attacker_addr_e":15,
    "victim_addr_s":0,
-   "victim_addr_e":0,
+   "victim_addr_e":3,
    "flush_inst": False,
    "allow_victim_multi_access": True,
    "verbose":0,
@@ -112,10 +112,10 @@ class CacheGuessingGameEnv(gym.Env):
     self.reset_limit = env_config["reset_limit"] if "reset_limit" in env_config else 1
     self.cache_state_reset = env_config["cache_state_reset"] if "cache_state_reset" in env_config else True
     window_size = env_config["window_size"] if "window_size" in env_config else 0
-    attacker_addr_s = env_config["attacker_addr_s"] if "attacker_addr_s" in env_config else 4
-    attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 7
+    attacker_addr_s = env_config["attacker_addr_s"] if "attacker_addr_s" in env_config else 8
+    attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 15
     victim_addr_s = env_config["victim_addr_s"] if "victim_addr_s" in env_config else 0
-    victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 3
+    victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 0
     victim_rand_s = env_config["victim_rand_s"] if "victim_rand_s" in env_config else 0
     victim_rand_e = env_config["victim_rand_e"] if "victim_rand_e" in env_config else 7
     flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False
@@ -139,7 +139,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.configs = yaml.load(self.config_file, yaml.CLoader)
     self.vprint(self.configs)
 
-    self.num_ways = self.configs["cache_1"]["associativity"] 
+    self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
     
     if "rep_policy" not in self.configs['cache_1']:
@@ -213,24 +213,26 @@ class CacheGuessingGameEnv(gym.Env):
       if self.allow_empty_victim_access == True:
         # | attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
+          len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1  
         )
       else:
         # | attacker_addr | v | victim_guess_addr | 
         self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 2 + len(self.victim_address_space)
+          len(self.attacker_address_space) + 2 + len(self.victim_address_space) 
         )
-    else:
+    else: #means flush_inst == True
       # one-hot encoding
       if self.allow_empty_victim_access == True:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1 
+          #len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
         self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
+          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+          #len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
         )
     
     # let's book keep all obvious information in the observation space 
@@ -325,9 +327,9 @@ class CacheGuessingGameEnv(gym.Env):
       reward = self.length_violation_reward #-10000 
       done = True
     else:
-      if is_victim == True or is_victim_random == True:
+      if is_victim == True: #or is_victim_random == True:
         info['invoke_victim'] = True
-        info['victim_address'] = self.victim_address # temporarily record true victim address
+        #info['victim_address'] = self.victim_address # temporarily record true victim address
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
@@ -344,8 +346,9 @@ class CacheGuessingGameEnv(gym.Env):
             
             elif is_victim_random == False:
                 self.vprint("victim access %d " % self.victim_address)
-                t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
-                t = t.time # do not need to lock again   
+                t, cyclic_set_index, cyclic_way_index, way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
+                t = t.time 
+                info['victim_address'] = self.victim_address  
               
             elif self.victim_address <= self.victim_address_max:
                 self.vprint("victim access %d " % self.victim_address)
@@ -533,7 +536,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint('Reset...(cache state the same)')
 
     self._reset(victim_address)  # fake reset
-    self._reset(victim_address_randspace)
+    #self._reset(victim_address_randspace)
 
     # self.state = [0, len(self.attacker_address_space), 0, 0] * self.window_size
     # self.state = [-1, -1,-1, -1] * self.window_size
