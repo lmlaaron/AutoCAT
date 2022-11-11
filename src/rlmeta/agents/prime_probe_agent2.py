@@ -1,10 +1,15 @@
-''' updated to work without rlmeta environment. action offsets modified to universal cache configuration as below:
-flush_inst: true
-attacker_addr_s: 8
-attacker_addr_e: 23
-victim_addr_s: 8
-victim_addr_e: 15
-'''
+''' action offsets modified for 1set-8way. Prepared for ICLR rebuttal.'''
+
+#   allow_victim_multi_access: true
+#   allow_empty_victim_access: true
+#   attacker_addr_s: 8
+#   attacker_addr_e: 15
+#   victim_addr_s: 0
+#   victim_addr_e: 0
+#   cache_configs:
+#       blocks: 8
+#       associativity: 8
+#       rep_policy: "lru"
 
 class PrimeProbeAgent:
 
@@ -51,26 +56,26 @@ class PrimeProbeAgent:
 
         # do victim trigger
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):
-            action = 4 * self.cache_size # do victim access
+            action = self.cache_size # do victim access
             self.local_step += 1
             return action, info
 
         # do probe
         elif self.local_step < 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) +1 :
-            action = self.local_step - (self.cache_size if self.no_prime else 0 ) - 1   
+            action = self.local_step - 9 - (self.cache_size if self.no_prime else 0 )    
             self.local_step += 1
             return action, info
 
         # do guess and terminate
         elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) +1:
-            action = self.local_step + 2 * self.cache_size +2 * len(self.lat) + 1 # default assume that last is miss
+            action = self.local_step -7 # default assume that last is miss
             for addr in range(1, len(self.lat)):
                 if self.lat[addr].int() == 1: # miss
-                    action = addr + 4 * self.cache_size -1
+                    action = addr + 1 * self.cache_size
                     break
             self.local_step = 0
             self.lat=[]
-            self.no_prime = True
+            #self.no_prime = True
             if action > self.cache_size:
                 action+=1
             return action, info
@@ -80,5 +85,5 @@ class PrimeProbeAgent:
     def observe(self, action, timestep):
         if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):
         ##    self.local_step += 1
-            self.lat.append(timestep.observation[0][0])
+            self.lat.append(timestep[0][0])
         return

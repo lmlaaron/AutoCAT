@@ -1,9 +1,9 @@
 import logging
 import os
-import sys
+#import sys
 from typing import Dict, Any, NamedTuple, Optional, Union
 
-import tqdm
+#import tqdm
 import hydra
 import torch
 import torch.nn
@@ -118,11 +118,11 @@ def run_loops(env: Env,
         cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
         metrics.extend(cur_metrics)
     '''
-    for i in tqdm.tqdm(range(num_episodes)):
+    for i in range(num_episodes):
         cur_metrics = run_loop(env, agent, victim_addr=-1)
         metrics.extend(cur_metrics)
     return metrics
-
+'''
 def tournament(env,
                cfg):
     
@@ -165,12 +165,12 @@ def tournament(env,
             f.write(attacker[0]+attacker[1]+'\n')
             f.write(metrics.table()+'\n')
     f.close()
-
+'''
 
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 0 
+    cfg.env_config['verbose'] = 1 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     # Load model
@@ -193,13 +193,13 @@ def main(cfg):
     #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     attacker_agent = PrimeProbeAgent(cfg.env_config)
 
-    #detector_agent = RandomAgent(1)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    detector_agent = RandomAgent(1)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
