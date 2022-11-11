@@ -168,6 +168,17 @@ def simulate(hierarchy, trace, logger, result_file=''):
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
             r, _, _ = l1.cflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
+        elif op == 'L':
+            assert(l1.rep_policy == plru_lock_policy) # must be locking cache 
+            assert(op == 'L')
+            logger.info(str(current_step) + ':\tLocking ' + address + ' ' + op)
+            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            responses.append(r)
+
+        elif op == 'UL':
+            pass
+
         else:
             raise InvalidOpError
         

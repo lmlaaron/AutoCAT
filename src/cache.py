@@ -34,6 +34,9 @@ class Cache:
         elif rep_policy == 'brrip':
             self.vprint("use brrip")
             self.rep_policy = brrip_policy
+        elif rep_policy == 'plru_lock_policy':
+            self.vprint("use plru_lock")
+            self.rep_policy = plru_lock_policy
         else:
             self.rep_policy = lru_policy
             if name == 'cache_1':

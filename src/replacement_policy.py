@@ -505,3 +505,128 @@ class brrip_policy(rep_policy):
         self.vprint(self.rrpv)
 
         return self.candidate_tags[max_index] 
+
+# test for "locking cache" option
+NOTSET = 0
+LOCK = 1
+UNLOCK = 2
+class plru_lock_policy(rep_policy):
+    def __init__(self, associativity, block_size, verbose = False):
+        self.associativity = associativity
+        self.block_size = block_size
+        self.num_leaves = associativity
+        self.plrutree = [ False ] * ( self.num_leaves - 1 )
+        self.count = 0
+        self.candidate_tags = [ INVALID_TAG ] * self.num_leaves
+        self.lockarray = [ UNLOCK ] * self.num_leaves
+        self.verbose = verbose
+        self.vprint(self.plrutree)
+        self.vprint(self.lockarray)
+        self.vprint(self.candidate_tags)
+         
+    def parent_index(self,index):
+        return math.floor((index - 1) / 2)
+
+    def left_subtree_index(self,index):
+        return 2 * index + 1
+
+    def right_subtree_index(self,index):
+        return 2 * index + 2
+
+    def is_right_subtree(self, index):
+        return index % 2 == 0
+
+    def touch(self, tag, timestamp):
+        # find the index
+        tree_index = 0
+        self.vprint(tree_index)
+        while tree_index < len(self.candidate_tags):
+            if self.candidate_tags[tree_index] == tag:
+                break
+            else:
+                tree_index += 1
+        tree_index += ( self.num_leaves - 1)
+
+        # set the path       
+        right = self.is_right_subtree(tree_index)
+        tree_index = self.parent_index(tree_index)
+        self.plrutree[tree_index] = not right
+        while tree_index != 0:
+            right = self.is_right_subtree(tree_index)
+            tree_index = self.parent_index(tree_index)
+            #exit(-1)
+            self.plrutree[tree_index] = not right
+        self.vprint(self.plrutree)
+        self.vprint(self.lockarray)
+        self.vprint(self.candidate_tags)
+
+    def reset(self, tag, timestamp):
+        self.touch(tag, timestamp)
+
+    def invalidate(self, tag):
+        # find index of tag
+        self.vprint('invalidate  ' + tag)
+        tree_index = 0
+        while tree_index < len(self.candidate_tags):
+            if self.candidate_tags[tree_index] == tag:
+                break
+            else:
+                tree_index += 1
+        #print(tree_index)
+        self.candidate_tags[tree_index] = INVALID_TAG
+        tree_index += (self.num_leaves - 1 )
+        
+        # invalidate the path
+        right = self.is_right_subtree(tree_index)
+        tree_index = self.parent_index(tree_index)
+        self.plrutree[tree_index] = right
+        while tree_index != 0:
+            right = self.is_right_subtree(tree_index)
+            tree_index = self.parent_index(tree_index)
+            self.plrutree[tree_index] = right
+
+        self.vprint(self.plrutree)
+        self.vprint(self.lockarray) 
+        self.vprint(self.candidate_tags)
+
+    def find_victim(self, timestamp):
+        tree_index = 0
+        while tree_index < len(self.plrutree): 
+            if self.plrutree[tree_index] == 1:
+                tree_index = self.right_subtree_index(tree_index)
+            else:
+                tree_index = self.left_subtree_index(tree_index)
+        index = tree_index - (self.num_leaves - 1) 
+        
+        # locking cache 
+        if self.lockarray[index] == UNLOCK:
+            victim_tag = self.candidate_tags[index]
+            return victim_tag 
+        else:
+            return INVALID_TAG
+
+    def instantiate_entry(self, tag, timestamp):
+        # find a tag that can be invalidated
+        index = 0
+        while index < len(self.candidate_tags):
+            if self.candidate_tags[index] == INVALID_TAG:
+                break
+            index += 1
+
+        assert(self.candidate_tags[index] == INVALID_TAG)
+        self.candidate_tags[index] = tag
+        self.touch(tag, timestamp)
+
+    # cache set lock scenario
+    def setlock(self, tag, lock):
+        self.vprint("setlock "+ tag + ' ' + str(lock))
+        # find the index
+        index = 0
+        self.vprint(index)
+        while index < len(self.candidate_tags):
+            if self.candidate_tags[index] == tag:
+                break
+            else:
+                index += 1
+        # set / unset lock
+        self.lockarray[index] = lock 
