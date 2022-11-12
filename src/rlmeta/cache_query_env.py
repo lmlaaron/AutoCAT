@@ -32,8 +32,9 @@ class CacheQueryEnv(gym.Env):
     def __init__(self, env_config):
 
         #sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        from rllib.cache_guessing_game_env_wrapper import CacheGuessingGameEnvWrapper as CacheGuessingGameEnv
-        
+        #from rllib.cache_guessing_game_env_wrapper import CacheGuessingGameEnvWrapper as CacheGuessingGameEnv
+        from cache_guessing_game_env_impl import CacheGuessingGameEnv
+
         env_config["show_latency"] = False                  # for blind training with cachequery, the env is just used as an interface
         # the observation especially the latency should not be printed out 
         self.env = CacheGuessingGameEnv(env_config)   
@@ -87,7 +88,7 @@ class CacheQueryEnv(gym.Env):
         if "cq_level" in env_config:
             level = env_config["cq_level"]
         else:
-            level = 'L2'      # for 4-way cache
+            level = 'L1'      # for 4-way cache
         
         
         # read cq_config
@@ -116,7 +117,7 @@ class CacheQueryEnv(gym.Env):
         config.set('General', 'ways', str(env_config["cache_configs"]["cache_1"]["associativity"]))
 
         # instantiate cq
-        self.CQ = CacheQuery(config)
+        self.CQ = CacheQuery(config, verbose=self.env.verbose)
         '''
         A -> 0
         B -> 1
@@ -156,7 +157,9 @@ class CacheQueryEnv(gym.Env):
         return state
 
     def step(self, action):
+        #return self.env.step(action)
         if action == self.action_space_size - 1:
+            #print("if action == self.action_space_size - 1:")
             if self.revealed == True:
                 self.env.vprint("double reveal! terminated!")
                 state, reward, done, info = self.last_unmasked_tuple
@@ -171,10 +174,15 @@ class CacheQueryEnv(gym.Env):
             self.env.vprint("reveal observation")
             # when doing reveal, launch the actual cachequery
             #self.CQ.command(self.cq_command)
+            #print(" 1 execute " + self.cq_command)
             answer = self.CQ.run(self.cq_command)[0]
+            #print(" 1 execute answer " + answer)
+            #exit(-1)
             answer_index = answer.split().index('->')+1
             while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
+                #print("2 execute " + self.cq_command)
                 answer = self.CQ.run(self.cq_command)[0]            
+                #print("2 execute answer " + answer)
                 answer_index = answer.split().index('->')+1
 
             if answer != None:
@@ -189,8 +197,9 @@ class CacheQueryEnv(gym.Env):
                         lat_cq_cnt -= 1
             #print(state)
             return state, reward, done, info
-
+        
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1
+            #print("elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1")
             tmpaction = self.env.parse_action(action) 
             address = hex(tmpaction[0]+self.env.attacker_address_min)[2:]            # attacker address in attacker_address_space
             is_guess = tmpaction[1]                                                  # check whether to guess or not
@@ -202,7 +211,9 @@ class CacheQueryEnv(gym.Env):
             # if revealed, must make a guess
             # if not revealed can do any thing
             if self.revealed == True:
+                #print("208: if self.revealed == True:")
                 if is_guess == 0: # revealed but not guess # huge penalty
+                    #print("if is_guess == 0: # revealed but not guess # huge penalty")
                     self.env.vprint("reveal but no guess! terminate")
                     done = True
                     reward = self.env.wrong_reward
@@ -210,6 +221,7 @@ class CacheQueryEnv(gym.Env):
                     state = self.env.reset()
                     return state, reward, done, info
                 elif is_guess != 0:  # this must be guess and terminate
+                    #print("elif is_guess != 0:  # this must be guess and terminate")
                     done = True
                     _, _, done, info = self.env.step(action)
                     if int(victim_addr,16) == self.env.victim_address:
@@ -219,18 +231,23 @@ class CacheQueryEnv(gym.Env):
                     info = {}
                     state = self.env.reset()
                     return state, reward, done, info
+            #elif True:
+            #    return self.env.step(action)
             elif self.revealed == False:
+                #print("elif self.revealed == False:")
                 if is_guess != 0:
+                    #print("if is_guess != 0:")
                     # guess without revewl --> huge penalty
                     self.env.vprint("guess without reveal! terminate")
                     done = True
                     reward = self.env.wrong_reward
                     info = {}
                     state = self.env.reset()
-                    return state, reward, done, info   
+                    return state, reward, done, info  
                 else:
+                    #print("242: else:")
                     state, reward, done, info = self.env.step(action)
-
+                    #return state, reward, done, info
                     # append to the cq_command
                     if is_victim == True: 
                         if self.env.victim_address <= self.env.victim_address_max: # check whether it is an empty access
@@ -244,9 +261,11 @@ class CacheQueryEnv(gym.Env):
 
                     self.last_unmasked_tuple = ( state.copy(), reward, done, info )
                     # mask the state so that nothing is revealed
-                    state[:,0] = - np.ones((state.shape[0],)) # use -1 as the default (unrevealed value)
+                    state[:,0] =  -1 * np.ones((state.shape[0],)) # use -1 as the default (unrevealed value)
 
                     #print(state)
+                    #print(self.cq_command)
+                    #exit(-1)
                     return state, reward, done, info
 
 if __name__ == "__main__":
@@ -260,7 +279,7 @@ if __name__ == "__main__":
             'cq_config_path': '../../third_party/cachequery/tool/cachequery.ini', # default path
             'cq_proc': 'i5-6500',  #TODO(Mulong): automatically recompile the cache query
             'cq_cacheset': "34",
-            'cq_level': "L2",
+            'cq_level': "L1",
             'cq_init_command': "@ @",
             'verbose': 1,
             "prefetcher": "nextline",
@@ -270,7 +289,7 @@ if __name__ == "__main__":
             "allow_victim_multi_access": True,#False,
             "allow_empty_victim_access": True,#False,
             "attacker_addr_s": 0,
-            "attacker_addr_e": 4,#4,#11,#15,
+            "attacker_addr_e": 3,#4,#11,#15,
             "victim_addr_s": 0,
             "victim_addr_e": 0,#7,
             "reset_limit": 1,
@@ -284,8 +303,8 @@ if __name__ == "__main__":
                 # for L2 cache of Intel i7-6700 
                 # it is a 4-way cache, this should not be changed
                 "cache_1": {#required
-                  "blocks": 4,#4, 
-                  "associativity": 4,  
+                  "blocks": 8,#4, 
+                  "associativity": 8,  
                   "hit_time": 1 #cycles
                 },
                 "mem": {#required

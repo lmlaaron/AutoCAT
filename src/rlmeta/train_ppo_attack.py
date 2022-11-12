@@ -1,8 +1,10 @@
 import copy
 import logging
+import os
 import time
 
 import hydra
+from omegaconf import DictConfig, OmegaConf
 
 import torch
 import torch.multiprocessing as mp
@@ -15,55 +17,54 @@ from rlmeta.agents.agent import AgentFactory
 from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from rlmeta.core.controller import Phase, Controller
 from rlmeta.core.loop import LoopList, ParallelLoop
-from rlmeta.core.model import wrap_downstream_model
+from rlmeta.core.model import ModelVersion, RemotableModelPool
+from rlmeta.core.model import make_remote_model, wrap_downstream_model
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 from rlmeta.samplers import UniformSampler
+from rlmeta.storage import TensorCircularBuffer
+from rlmeta.utils.optimizer_utils import get_optimizer
+
+import model_utils
 
 from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
-# from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 from metric_callbacks import MetricCallbacks
 
 
-# @hydra.main(config_path="./config", config_name="ppo_lru_8way")
-# @hydra.main(config_path="./config", config_name="ppo_2way_2set")
-# @hydra.main(config_path="./config", config_name="ppo_4way_4set")
-# @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-@hydra.main(config_path="./config", config_name="ppo_exp")
-# @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
-# @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
+@hydra.main(config_path="./config", config_name="ppo_attack")
 def main(cfg):
+    print(f"workding_dir = {os.getcwd()}")
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
-    env_fac = CacheEnvWrapperFactory(cfg.env_config)
-    env = env_fac(0)
-    cfg.model_config["output_dim"] = env.action_space.n
+    env_fac = CacheEnvWrapperFactory(OmegaConf.to_container(cfg.env_config))
+    env = env_fac(index=0)
 
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(
-        cfg.train_device)
-    optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
-
+    train_model = model_utils.get_model(
+        cfg.model_config, cfg.env_config.window_size,
+        env.action_space.n).to(cfg.train_device)
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
     infer_model.eval()
+    optimizer = get_optimizer(cfg.optimizer.name, train_model.parameters(),
+                              cfg.optimizer.args)
 
     ctrl = Controller()
-    rb = ReplayBuffer(cfg.replay_buffer_size, UniformSampler())
+    rb = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
+                      UniformSampler())
 
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
     r_server = Server(cfg.r_server_name, cfg.r_server_addr)
     c_server = Server(cfg.c_server_name, cfg.c_server_addr)
-    m_server.add_service(infer_model)
+    m_server.add_service(RemotableModelPool(infer_model))
     r_server.add_service(rb)
     c_server.add_service(ctrl)
     servers = ServerList([m_server, r_server, c_server])
 
     a_model = wrap_downstream_model(train_model, m_server)
-    t_model = remote_utils.make_remote(infer_model, m_server)
-    e_model = remote_utils.make_remote(infer_model, m_server)
+    t_model = make_remote_model(infer_model, m_server)
+    e_model = make_remote_model(infer_model, m_server)
 
     a_ctrl = remote_utils.make_remote(ctrl, c_server)
     t_ctrl = remote_utils.make_remote(ctrl, c_server)
@@ -79,7 +80,7 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
-                     model_push_period=cfg.push_every_n_steps)
+                     model_push_period=cfg.model_push_period)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
 
@@ -119,7 +120,7 @@ def main(cfg):
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         time.sleep(1)
 
-        stats = agent.eval(cfg.num_eval_episodes)
+        stats = agent.eval(cfg.num_eval_episodes, keep_training_loops=True)
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
         if cfg.table_view:
@@ -127,9 +128,9 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        time.sleep(1)
 
         torch.save(train_model.state_dict(), f"ppo_agent-{epoch}.pth")
+        time.sleep(1)
 
     loops.terminate()
     servers.terminate()
