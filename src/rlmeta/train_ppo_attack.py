@@ -64,11 +64,11 @@ def main(cfg):
 
     a_model = wrap_downstream_model(train_model, m_server)
     t_model = make_remote_model(infer_model, m_server)
-    e_model = make_remote_model(infer_model, m_server)
+    #e_model = make_remote_model(infer_model, m_server)
 
     a_ctrl = remote_utils.make_remote(ctrl, c_server)
     t_ctrl = remote_utils.make_remote(ctrl, c_server)
-    e_ctrl = remote_utils.make_remote(ctrl, c_server)
+    #e_ctrl = remote_utils.make_remote(ctrl, c_server)
 
     a_rb = make_remote_replay_buffer(rb, r_server, prefetch=cfg.prefetch)
     t_rb = make_remote_replay_buffer(rb, r_server)
@@ -82,7 +82,7 @@ def main(cfg):
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
                      model_push_period=cfg.model_push_period)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
-    e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
+    #e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
 
     t_loop = ParallelLoop(env_fac,
                           t_agent_fac,
@@ -93,16 +93,16 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    e_loop = ParallelLoop(env_fac,
-                          e_agent_fac,
-                          e_ctrl,
-                          running_phase=Phase.EVAL,
-                          should_update=False,
-                          num_rollouts=cfg.num_eval_rollouts,
-                          num_workers=cfg.num_eval_workers,
-                          seed=cfg.eval_seed,
-                          episode_callbacks=my_callbacks)
-    loops = LoopList([t_loop, e_loop])
+    #e_loop = ParallelLoop(env_fac,
+    #                      e_agent_fac,
+    #                      e_ctrl,
+    #                      running_phase=Phase.EVAL,
+    #                      should_update=False,
+    #                      num_rollouts=cfg.num_eval_rollouts,
+    #                      num_workers=cfg.num_eval_workers,
+    #                      seed=cfg.eval_seed,
+    #                      episode_callbacks=my_callbacks)
+    loops = LoopList([t_loop])#, e_loop])
 
     servers.start()
     loops.start()
@@ -120,7 +120,7 @@ def main(cfg):
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         time.sleep(1)
 
-        stats = agent.eval(cfg.num_eval_episodes, keep_training_loops=True)
+        #stats = agent.eval(cfg.num_eval_episodes, keep_training_loops=True)
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
         if cfg.table_view:
