@@ -225,6 +225,7 @@ class Cache:
                                 cyclic_set_index = int(index,2)  
                                 cyclic_way_index = i
                             self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
+                        cyclic_way_index = i    
                         break
                 #self.data[index][tag].read(current_step)
                 self.set_rep_policy[index].touch(tag, current_step)
@@ -248,6 +249,7 @@ class Cache:
                                     cyclic_way_index = i  
                                 self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
+                            cyclic_way_index = i  
                             break
                             #self.data[index][tag] = block.Block(self.block_size, current_step, False, address)
                 
@@ -292,6 +294,7 @@ class Cache:
                                         cyclic_way_index = i
                                     self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                                 self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
+                                cyclic_way_index = i
                                 break
                         #del self.data[index][victim_tag]
                         self.set_rep_policy[index].invalidate(victim_tag)

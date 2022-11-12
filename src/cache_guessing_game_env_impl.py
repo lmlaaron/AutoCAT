@@ -476,6 +476,7 @@ class CacheGuessingGameEnv(gym.Env):
     info["cache_state_change"] = cache_state_change
 
     info["cyclic_way_index"] = cyclic_way_index
+    info["way_index"] = cyclic_way_index
     info["cyclic_set_index"] = cyclic_set_index
 
     return np.array(list(reversed(self.state))), reward, done, info
