@@ -120,12 +120,12 @@ char* create_chain(int stride, int offset, char* last){
 // offset decides which set to start
 	char** start = &chain_array[perm[0]*stride + offset];
   printf("create chain stride %d, offset %d, last %p \n", stride, offset, last);
-	for(int i=0; i < 6; i++){
+	for(int i=0; i < 8; i++){
     assert(perm[i]*stride + offset < 512*8*8);
 		chain_array[perm[i]*stride + offset]= (char*) (& chain_array[perm[i+1]*stride + offset]);
         printf("%p\t",&chain_array[perm[i+1]*stride + offset]);
 	}
-	chain_array[perm[6]*stride + offset] = last;
+	//chain_array[perm[6]*stride + offset] = last;
     
     printf("\n");
     void* temp=start, *temp2;
@@ -139,6 +139,7 @@ char* create_chain(int stride, int offset, char* last){
     printf("\n");
        asm __volatile__ (
        "movq (%%rcx),  %%rax     \n"
+       "movq (%%rax),  %%rax     \n"
        "movq (%%rax),  %%rax     \n"
        "movq (%%rax),  %%rax     \n"
        "movq (%%rax),  %%rax     \n"
@@ -232,6 +233,7 @@ void * test_delay(void* arg) {
   {
 
       //Init load 8 cachelines
+// for (set in 0:8) {
     for(int i=0;i<para_v;i++){
        asm __volatile__ (
        "movq (%%rcx),  %%rax     \n"
@@ -256,6 +258,9 @@ void * test_delay(void* arg) {
     //printf("access %p\n", start[sec]);
     idx = cnt<<3;
     idx = idx -1;
+  
+	  
+// not needed 
   //load extra cache lines into the same set to evict the LRU line
    for(int i=para_v;i<para_d;i++){
        asm __volatile__ (
@@ -308,6 +313,7 @@ void * test_delay(void* arg) {
     }
     //printf("test %d\n", cnt);
   }
+//} // end looping for set 
 
   for (cnt=0;cnt<No_test*No_itr;cnt+=1) 
   {
@@ -324,7 +330,6 @@ void * test_delay(void* arg) {
   }
 
   cnt_Max(g_result_value, No_test);
-  
   return start;
 }
 
@@ -372,8 +377,10 @@ int main(int argc, char *argv[]) {
 
   char * chain[8]; //to measure way[i] i=0 to 8
   for(int i=0;i<8;i++){
-    chain[i] = create_chain(way_size, (way_size/2)+(i+1), way[i]); //set 32
+    //chain[i] = create_chain(way_size, (way_size/2)+(i+1), way[i]); //set 32
+    chain[i] = create_chain(way_size, (way_size/2)+i * 64 / 8, way[i]); //set 32
   }
+
   printf("Pointer arrays created\n");
 
     unsigned int t;
