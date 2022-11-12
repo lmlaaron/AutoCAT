@@ -94,16 +94,16 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    #e_loop = ParallelLoop(env_fac,
-    #                      e_agent_fac,
-    #                      e_ctrl,
-    #                      running_phase=Phase.EVAL,
-    #                      should_update=False,
-    #                      num_rollouts=cfg.num_eval_rollouts,
-    #                      num_workers=cfg.num_eval_workers,
-    #                      seed=cfg.eval_seed,
-    #                      episode_callbacks=my_callbacks)
-    loops = LoopList([t_loop]) #, e_loop])
+    e_loop = ParallelLoop(env_fac,
+                          e_agent_fac,
+                          e_ctrl,
+                          running_phase=Phase.EVAL,
+                          should_update=False,
+                          num_rollouts=cfg.num_eval_rollouts,
+                          num_workers=cfg.num_eval_workers,
+                          seed=cfg.eval_seed,
+                          episode_callbacks=my_callbacks)
+    loops = LoopList([t_loop, e_loop])
 
     servers.start()
     loops.start()

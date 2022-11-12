@@ -13,8 +13,8 @@ infer_device: "cuda:0"
 num_train_rollouts: 1
 num_train_workers: 1
 
-num_eval_rollouts: 0
-num_eval_workers: 0
+num_eval_rollouts: 1
+num_eval_workers: 1
 
 replay_buffer_size: 131072
 prefetch: 2
@@ -43,4 +43,4 @@ table_view: false
 
 defaults:
   - env_config: hpca_ae_exp_4_1
-  - model_config: mlp
+  - model_config: lstm 
