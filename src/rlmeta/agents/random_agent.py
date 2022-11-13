@@ -3,16 +3,15 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
-#from collections import namedtuple
 import time
 
-from typing import Any, Dict, Iterable, List, NamedTuple, Optional, Sequence, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import torch
 import torch.nn as nn
 
-#from rich.console import Console
-#from rich.progress import track
+from rich.console import Console
+from rich.progress import track
 
 import rlmeta.utils.data_utils as data_utils
 import rlmeta.utils.nested_utils as nested_utils
@@ -28,35 +27,24 @@ from rlmeta.utils.stats_dict import StatsDict
 
 import random
 
-#console = Console()
-class TimeStep(NamedTuple):
-    observation: Any
-    reward: Optional[float] = None
-    done: bool = False
-    info: Optional[Any] = None
-class Action(NamedTuple):
-    action: Any
-    info: Optional[Any] = None
+console = Console()
 
-class RandomAgent:
+
+class RandomAgent(Agent):
 
     def __init__(self,
                 action_space):
-        #super().__init__()
+        super().__init__()
         self.action_space = action_space
 
     def act(self, timestep: TimeStep) -> Action:
         action = random.randint(0, self.action_space-1)
-        return Action(action)
+        return Action(action, {})
 
-    def observe_init(self, timestep):
-        # initialization doing nothing
-        return
-    
     async def async_act(self, timestep: TimeStep) -> Action:
         action = random.randint(0, self.action_space-1)
 
-        return Action(action)
+        return Action(action, {})
 
     async def async_observe_init(self, timestep: TimeStep) -> None:
         pass
@@ -70,11 +58,3 @@ class RandomAgent:
     
     async def async_update(self) -> None:
         pass
-
-    def observe(self, action, timestep):
-        pass
-        ##if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
-        ####    self.local_step += 1
-        ##    self.lat.append(timestep.observation[0][0])
-        ##return
-

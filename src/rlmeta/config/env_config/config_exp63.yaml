@@ -13,9 +13,9 @@ allow_empty_victim_access: true
 attacker_addr_s: 8
 attacker_addr_e: 15
 victim_addr_s: 0
-victim_addr_e: 0
-victim_rand_s: 0
-victim_rand_e: 7
+victim_addr_e: 7
+#victim_rand_s: 0
+#victim_rand_e: 7
 reset_limit: 1
 opponent_weights: [0.5, 0.5]
 

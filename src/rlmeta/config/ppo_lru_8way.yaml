@@ -38,5 +38,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: lru_8way
+  - env_config: config_exp62.yaml
   - model_config: transformer_lru_8way

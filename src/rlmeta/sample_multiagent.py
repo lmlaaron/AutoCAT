@@ -1,9 +1,8 @@
 import logging
 import os
-#import sys
-from typing import Dict, Any, NamedTuple, Optional, Union
+from typing import Dict
 
-#import tqdm
+import tqdm
 import hydra
 import torch
 import torch.nn
@@ -13,7 +12,7 @@ import rlmeta.utils.nested_utils as nested_utils
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from agents.ppo_agent import PPOAgent
 from agents.spec_agent import SpecAgent
-from agents.prime_probe_agent import PrimeProbeAgent
+from agents.prime_probe_agent2 import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
 from agents.cchunter_agent import CCHunterAgent
 from agents.benign_agent import BenignAgent
@@ -22,14 +21,11 @@ from agents.cyclone_agent import CycloneAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
-#sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
 from cache_ppo_model import CachePPOModel
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
-#class Action(NamedTuple):
-#    action: Any
-#    info: Optional[Any] = None
 
 def unbatch_action(action: Action) -> Action:
     act, info = action
@@ -118,63 +114,22 @@ def run_loops(env: Env,
         cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
         metrics.extend(cur_metrics)
     '''
-    for i in range(num_episodes):
+    for i in tqdm.tqdm(range(num_episodes)):
         cur_metrics = run_loop(env, agent, victim_addr=-1)
         metrics.extend(cur_metrics)
     return metrics
-'''
-def tournament(env,
-               cfg):
-    
-    attacker_list = cfg.attackers
-    detector_list = cfg.detectors
-    
-    f = open('tournament.txt','w')
-    for detector in detector_list:
-        for attacker in attacker_list:
-            if detector[1].split('/')[-3:-1] == attacker[1].split('/')[-3:-1]:
-                print(detector[1].split('/')[-3:-1], attacker[1].split('/')[-3:-1])
-                print("from same training instance, skipping")
-                print(detector, attacker)
-                continue
-            # Attacker
-            cfg.model_config["output_dim"] = env.action_space.n
-            cfg.model_config["step_dim"] = 64
-            attacker_params = torch.load(attacker[1])
-            attacker_model = CachePPOTransformerModel(**cfg.model_config)
-            attacker_model.load_state_dict(attacker_params)
-            attacker_model.eval()
-    
-            # Detector
-            cfg.model_config["output_dim"] = 2
-            cfg.model_config["step_dim"] = 66
-            detector_params = torch.load(detector[1], map_location='cuda:1')
-            detector_model = CachePPOTransformerModel(**cfg.model_config)
-            detector_model.load_state_dict(detector_params)
-            detector_model.eval()
-            
-            attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-            detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-            agents = {"attacker": attacker_agent, "detector": detector_agent}
-            metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
-            
-            print(detector)
-            print(attacker)
-            print(metrics.table())
-            f.write(detector[0]+detector[1]+'\n')
-            f.write(attacker[0]+attacker[1]+'\n')
-            f.write(metrics.table()+'\n')
-    f.close()
-'''
+
 
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 1 
+    cfg.env_config['verbose'] = 1
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
+    
     # Load model
     # Attacker
+    '''
     cfg.model_config["output_dim"] = env.action_space.n
     attacker_params = torch.load(cfg.attacker_checkpoint)
     attacker_model = CachePPOTransformerModel(**cfg.model_config)
@@ -187,18 +142,23 @@ def main(cfg):
     detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
     detector_model = CachePPOTransformerModel(**cfg.model_config)
     detector_model.load_state_dict(detector_params)
-    detector_model.eval()
 
+    detector_model.eval()
+    '''
     # Create agent
     #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     attacker_agent = PrimeProbeAgent(cfg.env_config)
 
     detector_agent = RandomAgent(1)
+
     #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone1.pkl", mode='active')
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
+    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path="/private/home/jxcui/CacheSimulator/src/rlmeta/cyclone-anti2.pkl", mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
+    '''
     spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
@@ -207,11 +167,13 @@ def main(cfg):
         y.append(line)
     spec_trace = y
     benign_agent = SpecAgent(cfg.env_config, spec_trace)
+    '''
+    benign_agent = RandomAgent(1)
+    
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
+    # Run loops
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
-    '''
-    tournament(env, cfg)
-    '''
+
 if __name__ == "__main__":
     main()
