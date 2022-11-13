@@ -6,5 +6,5 @@ checkpoint: ""
 deterministic_policy: true
 
 defaults:
-  - env_config: hpca_ae_exp_4_1
+  - env_config: attack_8way_cq
   - model_config: lstm

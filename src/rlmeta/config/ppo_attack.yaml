@@ -10,8 +10,8 @@ c_server_addr: "127.0.0.1:4413"
 train_device: "cuda:0"
 infer_device: "cuda:0"
 
-num_train_rollouts: 2
-num_train_workers: 2
+num_train_rollouts: 1
+num_train_workers: 1
 
 num_eval_rollouts: 1
 num_eval_workers: 1
@@ -42,5 +42,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: hpca_ae_exp_4_1
+  - env_config: attack_8way_cq
   - model_config: lstm 
