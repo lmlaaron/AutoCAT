@@ -52,16 +52,16 @@ class PrimeProbeAgent:
         if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):# +1:
             action = self.local_step #+ self.cache_size - (self.cache_size if self.no_prime else 0) 
             self.local_step += 1
-            print(self.local_step)
-            print(action)
+            #print(self.local_step)
+            #print(action)
             return action, info
 
         # do victim trigger
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#+1:
             action = self.cache_size #+1 # do victim access
             self.local_step += 1
-            print(self.local_step)
-            print(action)
+            #print(self.local_step)
+            #print(action)
             return action, info
 
         # do probe
@@ -70,8 +70,8 @@ class PrimeProbeAgent:
             self.local_step += 1
             if action > self.cache_size:
                 action += 1
-            print(self.local_step)
-            print(action)
+            #print(self.local_step)
+            #print(action)
             return action, info
 
         # do guess and terminate
@@ -86,8 +86,8 @@ class PrimeProbeAgent:
             self.no_prime = True
             if action > self.cache_size:
                 action+=1
-            print(self.local_step)
-            print(action)
+            #print(self.local_step)
+            #print(action)
             return action, info
         else:        
             assert(False)
