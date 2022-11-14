@@ -4,6 +4,8 @@ Date 2022.1.24
 usage: resotre the ray checkpoint to replay the agent and extract the attack pattern
 '''
 
+from ray.rllib.agents.ppo import PPOTrainer
+import sys
 from copy import deepcopy
 import gym
 from starlette.requests import Request
@@ -11,11 +13,12 @@ import requests
 import pprint
 import ray
 import json
+from ray import tune
 from ray import serve
-from test_custom_policy_diversity_works import *
-from cache_simulator import print_cache
-#from cache_query_env_8way import CacheQueryEnv
-from cache_query_env_8way_hittime import CacheQueryEnv
+#from test_custom_policy_diversity_works import *
+#from cache_simulator import print_cache
+from cache_query_env_8way import CacheQueryEnv
+#from cache_query_env_8way_hittime import CacheQueryEnv
 #from run_gym_rrllib import * # need this to import the config and PPOtrainer
 
 #config["num_workers"] = 1

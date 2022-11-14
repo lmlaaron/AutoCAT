@@ -17,7 +17,7 @@ from rlmeta.agents.agent import AgentFactory
 from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from rlmeta.core.controller import Phase, Controller
 from rlmeta.core.loop import LoopList, ParallelLoop
-from rlmeta.core.model import ModelVersion, RemotableModelPool
+from rlmeta.core.model import RemotableModelPool
 from rlmeta.core.model import make_remote_model, wrap_downstream_model
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList

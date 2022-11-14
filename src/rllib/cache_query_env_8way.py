@@ -108,8 +108,10 @@ class CacheQueryEnv(gym.Env):
         I -> 8
         '''
         self.cq_command = "A B C D E F G H I J K L M N O P A B"  #establish the address alphabet to number mapping
-        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
- 
+        #self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
+        #for i in range(0, 10):
+        #    self.cq_command += (' ' + chr(ord('A') + random.randint(0,25)))
+
         '''
         after this the 4-way cache should be
         [ A B H I] or [0 1 7 8]
@@ -127,7 +129,10 @@ class CacheQueryEnv(gym.Env):
 
         #reset CacheQuery Command
         self.cq_command = "A B C D E F G H I J K L M N O P A B"
-        self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
+        #self.cq_command = "A B C D E F G H I J K L M N O P P O N M L K J I"  #establish the address alphabet to number mapping
+        #for i in range(0, 10):
+        #    self.cq_command += (' ' + chr(ord('A') + random.randint(0,25)))
+	
         return state
 
     def step(self, action):
@@ -232,6 +237,12 @@ if __name__ == "__main__":
     config = {
         'env': 'cache_guessing_game_env', #'cache_simulator_diversity_wrapper',
         'env_config': {
+	    'length_violation_reward': -2.0,
+	    'double_victim_access_reward': -0.01,
+	    'victim_access_reward': -0.01,
+	    'correct_reward': 1.0,
+            'wrong_reward': -1.0,
+	    'step_reward': -0.01,
             'verbose': 1,
             "prefetcher": "nextline",
             "rerandomize_victim": False,
@@ -264,7 +275,7 @@ if __name__ == "__main__":
             }
         }, 
         #'gamma': 0.9, 
-        'num_gpus': 1, 
+        'num_gpus': 0, 
         'num_workers': 1, 
         'num_envs_per_worker': 1, 
         #'entropy_coeff': 0.001, 
