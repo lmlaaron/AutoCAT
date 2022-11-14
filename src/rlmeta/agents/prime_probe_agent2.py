@@ -4,7 +4,9 @@
 #   attacker_addr_s: 8
 #   attacker_addr_e: 15
 #   victim_addr_s: 0
-#   victim_addr_e: 7
+#   victim_addr_e: 0
+#   victim_rand_s: 0
+#   victim_rand_e: 7
 #   cache_configs:
 #       blocks: 8
 #       associativity: 8
@@ -58,7 +60,7 @@ class PrimeProbeAgent:
 
         # do victim trigger
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#+1:
-            action = self.cache_size #+1 # do victim access
+            action = self.cache_size +1 # do victim access
             self.local_step += 1
             #print(self.local_step)
             #print(action)
@@ -76,10 +78,11 @@ class PrimeProbeAgent:
 
         # do guess and terminate
         elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) +1:
-            action = 2 * self.cache_size   # default assume that last is miss
+            #action = 2 * self.cache_size   # default assume that last is miss
+            action = 1 * self.cache_size + 4
             for addr in range(1, len(self.lat)):
                 if self.lat[addr].int() == 1: # miss
-                    action = addr + 1 * self.cache_size
+                    action = addr + 1 * self.cache_size 
                     break
             self.local_step = 0
             self.lat=[]

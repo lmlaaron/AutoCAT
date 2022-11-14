@@ -107,7 +107,7 @@ defaults:
   # - env_config: config_exp_13_nextline
   # - env_config: config_exp_14
   # - env_config: config_exp61
-  # - env_config: config_exp62
-  - env_config: config_exp63  
+  - env_config: config_exp62
+  # - env_config: config_exp63  
   # - env_config: config_exp_14_nextline
   - model_config: transformer_lru_8way

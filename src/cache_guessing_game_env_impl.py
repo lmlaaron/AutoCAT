@@ -65,14 +65,14 @@ class CacheGuessingGameEnv(gym.Env):
    "attacker_addr_s":8,
    "attacker_addr_e":15,
    "victim_addr_s":0,
-   "victim_addr_e":7,
+   "victim_addr_e":0,
    "flush_inst": False,
    "allow_victim_multi_access": True,
    "verbose":0,
    "reset_limit": 1,    # specify how many reset to end an epoch?????
    "allow_empty_victim_access": True,
-   #"victim_rand_s":0,
-   #"victim_rand_e":7,  
+   "victim_rand_s":0,
+   "victim_rand_e":7,  
    "cache_configs": {
       # YAML config file for cache simulaton
       "architecture": {
@@ -115,7 +115,7 @@ class CacheGuessingGameEnv(gym.Env):
     attacker_addr_s = env_config["attacker_addr_s"] if "attacker_addr_s" in env_config else 8
     attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 15
     victim_addr_s = env_config["victim_addr_s"] if "victim_addr_s" in env_config else 0
-    victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 7
+    victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 0
     victim_rand_s = env_config["victim_rand_s"] if "victim_rand_s" in env_config else 0
     victim_rand_e = env_config["victim_rand_e"] if "victim_rand_e" in env_config else 7
     flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False
@@ -170,11 +170,10 @@ class CacheGuessingGameEnv(gym.Env):
                                   self.attacker_address_max + 1)  # start with one attacker cache line
     self.victim_address_min = victim_addr_s 
     self.victim_address_max = victim_addr_e  
-    #self.victim_address_randmin = victim_rand_s
-    #self.victim_address_randmax = victim_rand_e 
-    self.victim_address_space = range(self.victim_address_min,
-                                self.victim_address_max + 1)  #
-    #self.victim_address_randspace = range(self.victim_address_randmin, self.victim_address_randmax +1)
+    self.victim_address_randmin = victim_rand_s
+    self.victim_address_randmax = victim_rand_e 
+    self.victim_address_space = range(self.victim_address_min,self.victim_address_max + 1)  
+    self.victim_address_randspace = range(self.victim_address_randmin, self.victim_address_randmax + 1)
 
     # for randomized mapping rerandomization
     #perm = permutations(list(range(self.victim_address_min, self.victim_address_max + 1 )))
@@ -257,10 +256,10 @@ class CacheGuessingGameEnv(gym.Env):
     if self.allow_empty_victim_access == True:
       #self.victim_address = random.randint(self.victim_address_max +1, self.)
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
-      #self.victim_address_randspace = random.randint(self.victim_address_randmin, self.victim_address_randmax +1)
+      self.victim_address_randspace = random.randint(self.victim_address_randmin, self.victim_address_randmax +1)
     else:
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max)
-      #self.victim_address_randspace = random.randint(self.victim_address_randmin, self.victim_address_randmax)
+      self.victim_address_randspace = random.randint(self.victim_address_randmin, self.victim_address_randmax)
     self._randomize_cache()
     
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
@@ -329,15 +328,19 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       if is_victim == True or is_victim_random == True:
         info['invoke_victim'] = True
-        info['victim_address'] = self.victim_address # temporarily record true victim address
+        #info['victim_address'] = self.victim_address
+        if is_victim == True:
+          info['victim_address'] = self.victim_address
+        if is_victim_random == True: 
+          info['victim_address'] = self.victim_address_randspace
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
 
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if is_victim_random == True:
-                victim_random = random.randint(self.victim_address_min, self.victim_address_max)
-                #victim_random = random.randint(self.victim_address_randmin, self.victim_address_randmax)
+                #victim_random = random.randint(self.victim_address_min, self.victim_address_max)
+                victim_random = random.randint(self.victim_address_randmin, self.victim_address_randmax)
                 self.vprint("victim random access %d " % victim_random)
                 t, cyclic_set_index, cyclic_way_index, way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
                 #assert(way_index != -1)
