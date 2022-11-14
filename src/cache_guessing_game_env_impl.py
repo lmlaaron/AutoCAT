@@ -495,8 +495,11 @@ class CacheGuessingGameEnv(gym.Env):
     info["cache_state_change"] = cache_state_change
     info["cyclic_way_index"] = cyclic_way_index
     info["cyclic_set_index"] = cyclic_set_index
-
-    return np.array(list(reversed(self.state))), reward, done, info
+    #self.state[:,0] =  -1 * np.ones((np.array(list(reversed(self.state))).shape[0],)) # use -1 as the default (unrevealed value)
+    ret_state = np.array(list(reversed(self.state))) 
+    ret_state[:,0] = -1 * np.ones((ret_state.shape[0],))
+    return ret_state, reward, done, info
+    #return np.array(list(reversed(self.state))), reward, done, info
 
   '''
   Gym API: reset the cache state
