@@ -60,14 +60,14 @@ class PrimeProbeAgent:
 
         # do victim trigger
         elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#+1:
-            action = self.cache_size +1 # do victim access
+            action = self.cache_size  # do victim access
             self.local_step += 1
             #print(self.local_step)
             #print(action)
             return action, info
 
         # do probe
-        elif self.local_step < 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) +3 :
+        elif self.local_step < 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) +1 :
             action = self.local_step - 9 - (self.cache_size if self.no_prime else 0 ) 
             self.local_step += 1
             if action > self.cache_size:
@@ -78,10 +78,12 @@ class PrimeProbeAgent:
 
         # do guess and terminate
         elif self.local_step == 2 * self.cache_size - (self.cache_size if self.no_prime else 0 ) +1:
-            #action = 2 * self.cache_size   # default assume that last is miss
-            action = 1 * self.cache_size + 4
-            for addr in range(1, len(self.lat)):
+            '''#action = 2 * self.cache_size   # default assume that last is miss
+            #action = 1 * self.cache_size + 4
+            #for addr in range(1, len(self.lat)):
+                #print(self.lat[addr])
                 if self.lat[addr].int() == 1: # miss
+                    
                     action = addr + 1 * self.cache_size 
                     break
             self.local_step = 0
@@ -89,8 +91,16 @@ class PrimeProbeAgent:
             self.no_prime = True
             if action > self.cache_size:
                 action+=1
-            #print(self.local_step)
+            #print(self.lat)
             #print(action)
+
+            
+            '''
+            action = 10 +1 #1 * self.cache_size 
+            if self.lat[5].int()==1:
+                action = 10 #action + 1
+            else:
+                action = 11 # action + 2
             return action, info
         else:        
             assert(False)
@@ -98,5 +108,5 @@ class PrimeProbeAgent:
     def observe(self, action, timestep):
         if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):
         ##    self.local_step += 1
-            self.lat.append(timestep[0][0])
+            self.lat.append(timestep[0][0][0])
         return

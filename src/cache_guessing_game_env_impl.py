@@ -300,7 +300,7 @@ class CacheGuessingGameEnv(gym.Env):
 
     cyclic_set_index = -1
     cyclic_way_index = -1
-    #way_index = -1
+    way_index = -1
 
     self.vprint('Step ', self.step_count)
     info = {}
@@ -509,11 +509,12 @@ class CacheGuessingGameEnv(gym.Env):
     info["cache_state_change"] = cache_state_change
 
     info["cyclic_way_index"] = cyclic_way_index
-    #info["way_index"] = way_index
+    info["way_index"] = way_index
+    #print(way_index)
     info["cyclic_set_index"] = cyclic_set_index
     #assert(way_index != -1 or done == True)
 
-    #print("access addr " + address + "way_index=" + str(way_index))
+    print("access addr " + address + "way_index=" + str(way_index))
 
     return np.array(list(reversed(self.state))), reward, done, info
 
