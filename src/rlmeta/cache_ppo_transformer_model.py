@@ -5,6 +5,7 @@ from typing import Dict, List, Tuple, Optional, Union
 
 import gym
 import random
+import numpy as np
 
 import torch
 import torch.nn as nn
@@ -13,7 +14,7 @@ import torch.nn.functional as F
 import rlmeta.core.remote as remote
 import rlmeta.utils.nested_utils as nested_utils
 from rlmeta.agents.ppo.ppo_model import PPOModel
-from rlmeta.core.model import DownstreamModel, RemotableModel
+from rlmeta.core.model import DownstreamModel, RemotableModel, ModelVersion, RemotableModelPool
 from rlmeta.core.server import Server
 
 class CachePPOTransformerModel(PPOModel):
@@ -102,7 +103,7 @@ class CachePPOTransformerModel(PPOModel):
 
     @remote.remote_method(batch_size=128)
     def act(
-        self, obs: torch.Tensor, deterministic_policy: torch.Tensor, reload_model=False
+        self, obs: torch.Tensor, deterministic_policy: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         if self._device is None:
             self._device = next(self.parameters()).device
@@ -120,6 +121,27 @@ class CachePPOTransformerModel(PPOModel):
 
             return action.cpu(), logpi.cpu(), v.cpu()
 
+class MACTARemotableModelPool(RemotableModelPool):
+    def __init__(self,
+                 model: RemotableModel,
+                 capacity: int = 0,
+                 identifier: Optional[str] = None) -> None:
+        super().__init__(model, capacity)
+        self.use_history = True
+    
+    @remote.remote_method(batch_size=None) 
+    def set_use_history(self, use_history:bool) -> None:
+        print("set use history", use_history)
+        self.use_history = use_history
+        print("after setting:", self.use_history)
+    
+    @remote.remote_method(batch_size=None)
+    def sample_model(self) -> int:
+        if self._capacity == 0 or not self.use_history:
+            return ModelVersion.LATEST
+        else:
+            return np.random.randint(len(self._history))
+    
 
 class CachePPOTransformerModelPool(CachePPOTransformerModel):
     def __init__(self,
@@ -146,7 +168,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         self.history = []
         self.latest = None
         self.use_history = False
-
+    
     @remote.remote_method(batch_size=128)
     def act(
         self, 
@@ -204,7 +226,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         self.use_history = use_history
         print("after setting:", self.use_history)
 
-class DownstreamModelPool(DownstreamModel):
+class MACTADownstreamModelPool(DownstreamModel):
     def __init__(self,
                  model: nn.Module,
                  server_name: str,
@@ -226,8 +248,8 @@ class DownstreamModelPool(DownstreamModel):
 ModelLike = Union[nn.Module, RemotableModel, DownstreamModel, remote.Remote]
 
 
-def wrap_downstream_model(model: nn.Module,
+def macta_wrap_downstream_model(model: nn.Module,
                           server: Server,
                           name: Optional[str] = None,
                           timeout: float = 60) -> DownstreamModel:
-    return DownstreamModelPool(model, server.name, server.addr, name, timeout)
+    return MACTADownstreamModelPool(model, server.name, server.addr, name, timeout)

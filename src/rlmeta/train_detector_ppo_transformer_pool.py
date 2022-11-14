@@ -13,25 +13,30 @@ import rlmeta.utils.remote_utils as remote_utils
 
 from rlmeta.agents.agent import AgentFactory
 #TODO from rlmeta.agents.ppo.ppo_agent import PPOAgent
-from rlmeta.core.controller import Phase, Controller, DummyController
+#from rlmeta.core.controller import Phase, Controller, DummyController
 from rlmeta.core.maloop import LoopList, MAParallelLoop
 #TODO from rlmeta.core.model import wrap_downstream_model
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
-
+from rlmeta.core.model import ModelVersion#, RemotableModelPool
+from rlmeta.core.model import make_remote_model#, wrap_downstream_model
+from rlmeta.samplers import UniformSampler
+from rlmeta.storage import TensorCircularBuffer
+from rlmeta.utils.optimizer_utils import get_optimizer
+from controller import Phase, Controller, DummyController
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model #CachePPOTransformerModel
-# from cache_ppo_transformer_model_pe import CachePPOTransformerModel
+from cache_ppo_transformer_model import CachePPOTransformerModelPool, macta_wrap_downstream_model, CachePPOTransformerModel, MACTARemotableModelPool
 from metric_callbacks import MACallbacks
 
 from utils.wandb_logger import WandbLogger, stats_filter
 
-from agents.random_agent import RandomAgent
-from agents.benign_agent import BenignAgent
-from agents.spec_agent import SpecAgent
-from agents.ppo_agent import PPOAgent
+#from agents.random_agent import RandomAgent
+#from agents.benign_agent import BenignAgent
+#from agents.spec_agent import SpecAgent
+#from agents.ppo_agent import PPOAgent
+from agents import RandomAgent, BenignAgent, SpecAgent, PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_lru_8way")
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
@@ -60,7 +65,7 @@ def main(cfg):
     env = env_fac(0)
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
-    train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
+    train_model = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device)
     attacker_checkpoint = cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
@@ -72,11 +77,12 @@ def main(cfg):
     infer_model.eval()
 
     ctrl = Controller()
-    rb = ReplayBuffer(cfg.replay_buffer_size)
+    rb = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
+                      UniformSampler())
     #### detector 
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
+    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
@@ -84,7 +90,8 @@ def main(cfg):
     infer_model_d.eval()
     
     ctrl_d = DummyController()
-    rb_d = ReplayBuffer(cfg.replay_buffer_size)
+    rb_d = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
+                        UniformSampler())
     # =========================================================================
     
     #### start server
@@ -92,13 +99,13 @@ def main(cfg):
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
     r_server = Server(cfg.r_server_name, cfg.r_server_addr)
     c_server = Server(cfg.c_server_name, cfg.c_server_addr)
-    m_server.add_service(infer_model)
+    m_server.add_service(MACTARemotableModelPool(infer_model, capacity=10))
     r_server.add_service(rb)
     c_server.add_service(ctrl)
     md_server = Server(cfg.md_server_name, cfg.md_server_addr)
     rd_server = Server(cfg.rd_server_name, cfg.rd_server_addr)
     cd_server = Server(cfg.cd_server_name, cfg.cd_server_addr)
-    md_server.add_service(infer_model_d)
+    md_server.add_service(MACTARemotableModelPool(infer_model_d, capacity=10))
     rd_server.add_service(rb_d)
     cd_server.add_service(ctrl_d)
     servers = ServerList([m_server, r_server, c_server, md_server, rd_server, cd_server])
@@ -106,11 +113,11 @@ def main(cfg):
 
     #### Define remote model and control
     # =========================================================================
-    a_model = wrap_downstream_model(train_model, m_server)
-    t_model = remote_utils.make_remote(infer_model, m_server)
-    ea_model = remote_utils.make_remote(infer_model, m_server)
-    ed_model = remote_utils.make_remote(infer_model, m_server)
-    td_model = remote_utils.make_remote(infer_model, m_server)
+    a_model = macta_wrap_downstream_model(train_model, m_server)
+    t_model = make_remote_model(infer_model, m_server, version=ModelVersion.LATEST)
+    ea_model = make_remote_model(infer_model, m_server, version=ModelVersion.LATEST)
+    ed_model = make_remote_model(infer_model, m_server, version=ModelVersion.LATEST)
+    td_model = make_remote_model(infer_model, m_server, version=ModelVersion.LATEST)
     # ---- control
     a_ctrl = remote_utils.make_remote(ctrl, c_server)
     ta_ctrl = remote_utils.make_remote(ctrl, c_server)
@@ -129,7 +136,7 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
-                     push_every_n_steps=cfg.push_every_n_steps)
+                     model_push_period=cfg.push_every_n_steps)
     ta_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
     ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
@@ -148,8 +155,8 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:1000000]
+    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:1000000]
     y = []
     for line in spec_trace:
         line = line.split()
@@ -163,11 +170,11 @@ def main(cfg):
     
 
     #### detector agent
-    a_model_d = wrap_downstream_model(train_model_d, md_server)
-    t_model_d = remote_utils.make_remote(infer_model_d, md_server)
-    ea_model_d = remote_utils.make_remote(infer_model_d, md_server)
-    ed_model_d = remote_utils.make_remote(infer_model_d, md_server)
-    ta_model_d = remote_utils.make_remote(infer_model_d, md_server)
+    a_model_d = macta_wrap_downstream_model(train_model_d, md_server)
+    t_model_d = make_remote_model(infer_model_d, md_server, version=ModelVersion.LATEST)
+    ea_model_d = make_remote_model(infer_model_d, md_server, version=ModelVersion.LATEST)
+    ed_model_d = make_remote_model(infer_model_d, md_server, version=ModelVersion.LATEST)
+    ta_model_d = make_remote_model(infer_model_d, md_server, version=ModelVersion.LATEST)
     a_rb_d = make_remote_replay_buffer(rb_d, rd_server, prefetch=cfg.prefetch)
     t_rb_d = make_remote_replay_buffer(rb_d, rd_server)
 
@@ -178,7 +185,7 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
-                     push_every_n_steps=cfg.push_every_n_steps)
+                     model_push_period=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
     ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
@@ -236,26 +243,27 @@ def main(cfg):
     a_ctrl.connect()
 
     start_time = time.perf_counter()
+    agent._model.release()
+    agent_d._model.release()
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
-        a_ctrl.set_phase(Phase.TRAIN, reset=True)
         if epoch % 100 >= 50:
             # Train Detector
             agent_d.set_use_history(False)
             agent.set_use_history(True)
-            agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
+            agent_d._controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
             if epoch % 10 == 9:
-                agent_d.model.push_to_history()
+                agent_d._model.release()
         
         else:
             # Train Attacker
             agent_d.set_use_history(True)
             agent.set_use_history(False)
-            agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
+            agent._controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
             if epoch >=50:
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
@@ -264,7 +272,8 @@ def main(cfg):
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:
-                agent.model.push_to_history()
+                #agent.model.push_to_history()
+                agent._model.release()
         
         stats = a_stats or d_stats
 
@@ -276,15 +285,12 @@ def main(cfg):
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         time.sleep(1)
-        
-        a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
         agent.set_use_history(False)
         agent_d.set_use_history(False)
-        agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
+        agent._controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
-        agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
+        agent_d._controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
         d_stats = agent_d.eval(cfg.num_eval_episodes)
-        #stats = d_stats
         stats = a_stats
 
         cur_time = time.perf_counter() - start_time
@@ -298,8 +304,6 @@ def main(cfg):
         time.sleep(1)
         
         wandb_logger.log(train_stats, eval_stats)
-
-
     loops.terminate()
     servers.terminate()
 
