@@ -99,13 +99,13 @@ def main(cfg):
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
     r_server = Server(cfg.r_server_name, cfg.r_server_addr)
     c_server = Server(cfg.c_server_name, cfg.c_server_addr)
-    m_server.add_service(MACTARemotableModelPool(infer_model, capacity=10))
+    m_server.add_service(MACTARemotableModelPool(infer_model, capacity=20))
     r_server.add_service(rb)
     c_server.add_service(ctrl)
     md_server = Server(cfg.md_server_name, cfg.md_server_addr)
     rd_server = Server(cfg.rd_server_name, cfg.rd_server_addr)
     cd_server = Server(cfg.cd_server_name, cfg.cd_server_addr)
-    md_server.add_service(MACTARemotableModelPool(infer_model_d, capacity=10))
+    md_server.add_service(MACTARemotableModelPool(infer_model_d, capacity=20))
     rd_server.add_service(rb_d)
     cd_server.add_service(ctrl_d)
     servers = ServerList([m_server, r_server, c_server, md_server, rd_server, cd_server])
@@ -256,7 +256,7 @@ def main(cfg):
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
-            if epoch % 10 == 9:
+            if epoch % 100 == 99:
                 agent_d._model.release()
         
         else:
@@ -271,7 +271,7 @@ def main(cfg):
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
-            if epoch % 10 == 9:
+            if epoch % 100 == 49:
                 #agent.model.push_to_history()
                 agent._model.release()
         
@@ -287,10 +287,14 @@ def main(cfg):
         time.sleep(1)
         agent.set_use_history(False)
         agent_d.set_use_history(False)
+        time.sleep(1)
         agent._controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
+        print("Eval attacker done")
+        time.sleep(1)
         agent_d._controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
         d_stats = agent_d.eval(cfg.num_eval_episodes)
+        print("Eval detector done")
         stats = a_stats
 
         cur_time = time.perf_counter() - start_time

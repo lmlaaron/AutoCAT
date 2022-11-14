@@ -1,5 +1,5 @@
 import time
-
+from concurrent.futures import Future, ThreadPoolExecutor
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import torch
@@ -57,7 +57,10 @@ class PPOAgent(PPOAgent):
         self._model.set_use_history(use_history)
 
     async def async_observe_init(self, timestep: TimeStep) -> None:
-        self._model.version = await self._model.async_sample_model()
+        try:
+            self._model.version = await self._model.async_sample_model()
+        except:
+            pass
         if self._replay_buffer is None:
             return
         obs, _, done, _ = timestep
@@ -78,8 +81,9 @@ class PPOAgent(PPOAgent):
             obs, torch.tensor([self._deterministic_policy]))
         return Action(action, info={"logpi": logpi, "v": v})
     
-    def train(self, num_steps: int) -> Optional[StatsDict]:
-        #self.controller.set_phase(Phase.TRAIN, reset=True)
+    def train(self,
+              num_steps: int,
+              keep_evaluation_loops: bool = False) -> StatsDict:
         phase = self._controller.phase()
         self._replay_buffer.warm_up(self._learning_starts)
         stats = StatsDict()
@@ -101,22 +105,22 @@ class PPOAgent(PPOAgent):
             self._step_counter += 1
             if self._step_counter % self._model_push_period == 0:
                 self._model.push()
-        
-        #push the last checkpoint to the model history checkpoint
-        #try:
-        #    self.model.push_to_history()
-        #except:
-        #    pass
+        self._model.push() 
         episode_stats = self._controller.stats()
         stats.update(episode_stats)
-        #self._controller.reset_phase(phase)
-
+        self._controller.reset()
         return stats
     
-    def eval(self, num_episodes: Optional[int] = None) -> Optional[StatsDict]:
-        #self.controller.set_phase(Phase.EVAL, limit=num_episodes, reset=True)
+    def eval(self,
+             num_episodes: Optional[int] = None,
+             keep_training_loops: bool = False,
+             non_blocking: bool = False
+            ) -> Union[StatsDict, Future]:
+        print("Local PPO agent eval")
         phase = self._controller.phase()
         while self._controller.count() < num_episodes:
+            print(self._controller.count())
             time.sleep(1)
         stats = self._controller.stats()
+        self._controller.reset()
         return stats
