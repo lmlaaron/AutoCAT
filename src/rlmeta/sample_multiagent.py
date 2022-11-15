@@ -12,7 +12,7 @@ import rlmeta.utils.nested_utils as nested_utils
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from agents.ppo_agent import PPOAgent
 from agents.spec_agent import SpecAgent
-from agents.prime_probe_agent import PrimeProbeAgent
+from agents.prime_probe_agent2 import PrimeProbeAgent
 from agents.evict_reload_agent import EvictReloadAgent
 from agents.cchunter_agent import CCHunterAgent
 from agents.benign_agent import BenignAgent
@@ -166,10 +166,11 @@ def tournament(env,
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 0 
+    cfg.env_config['verbose'] = 1 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     # Load model
+    '''
     # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
     attacker_params = torch.load(cfg.attacker_checkpoint)
@@ -184,18 +185,17 @@ def main(cfg):
     detector_model = CachePPOTransformerModel(**cfg.model_config)
     detector_model.load_state_dict(detector_params)
     detector_model.eval()
-
+    '''
     # Create agent
     #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     attacker_agent = PrimeProbeAgent(cfg.env_config)
 
-    #detector_agent = RandomAgent(1)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    detector_agent = RandomAgent(1)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
-    #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open(os.path.expanduser('~')+'/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:

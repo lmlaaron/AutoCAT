@@ -32,14 +32,14 @@ attacker_checkpoint: ""
 
 # replay_buffer_size: 262144
 # replay_buffer_size: 131072
-replay_buffer_size: 262144
-#replay_buffer_size: 1024
+replay_buffer_size: 65536
+# replay_buffer_size: 1024
 prefetch: 2
 
 batch_size: 512
 lr: 1e-4 #1e-4
 entropy_coeff: 0.03 # default 0.01
-learning_starts: 65536
+#learning_starts: 65536
 push_every_n_steps: 10
 
 num_epochs: 3000
@@ -61,7 +61,7 @@ defaults:
   # - env_config: config_exp7
   # - env_config: config_exp8
   # - env_config: config_exp9
-  - env_config: config_exp61
+  - env_config: config_exp62
   # - env_config: config_exp9_nextline
   # - env_config: config_exp9_stream
   # - env_config: config_exp10

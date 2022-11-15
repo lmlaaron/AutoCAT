@@ -52,12 +52,12 @@ class SpecAgent(Agent):
             flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False            
             self.allow_empty_victim_access = env_config["allow_empty_victim_access"] if "allow_empty_victim_access" in env_config else False
             
-            assert(self.num_ways == 1) # currently only support direct-map cache
-            assert(flush_inst == False) # do not allow flush instruction
-            assert(attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s ) # address space must be shared
+            #assert(self.num_ways == 1) # currently only support direct-map cache
+            #assert(flush_inst == False) # do not allow flush instruction
+            #assert(attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s ) # address space must be shared
             #must be no shared address space
-            assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
-            assert(self.allow_empty_victim_access == False)
+            #assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
+            #assert(self.allow_empty_victim_access == False)
         
         self.cache_line_size = 8 #TODO: remove the hardcode
         self.trace = trace
