@@ -185,9 +185,14 @@ def main(cfg):
             rollout_stats = t_loop.run(num_steps=cfg.replay_buffer_size)
             stats.update(rollout_stats)
 
-            for _ in range(n_step):
-                _, batch, _ = replay_buffer.sample(cfg.batch_size)
+            index = torch.arange(cfg.replay_buffer_size)
+            _, data = replay_buffer[index]
+            data = nested_utils.map_nested(lambda x: x.to(cfg.train_device),
+                                           data)
 
+            for i in range(0, cfg.replay_buffer_size, cfg.batch_size):
+                batch = nested_utils.map_nested(
+                    lambda x, i=i: x[i:i + cfg.batch_size], data)
                 train_stats = learner._train_step(batch)
                 stats.extend(train_stats)
 
