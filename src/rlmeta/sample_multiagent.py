@@ -42,7 +42,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     num_total_guess = 0.0
     num_total_correct_guess = 0.0
 
-    env.env.opponent_weights = [0,1]
+    #env.env.opponent_weights = [0,1]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -120,11 +120,20 @@ def run_loops(env: Env,
     return metrics
 
 def tournament(env,
-               cfg):
+               cfg,
+               ):
     
     attacker_list = cfg.attackers
     detector_list = cfg.detectors
-    
+    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace = spec_trace_f.read().split('\n')[1000000:]
+    y = []
+    for line in spec_trace:
+        line = line.split()
+        y.append(line)
+    spec_trace = y
+    benign_agent = SpecAgent(cfg.env_config, spec_trace)
+
     f = open('tournament.txt','w')
     for detector in detector_list:
         for attacker in attacker_list:
@@ -133,13 +142,7 @@ def tournament(env,
                 print("from same training instance, skipping")
                 print(detector, attacker)
                 continue
-            # Attacker
-            cfg.model_config["output_dim"] = env.action_space.n
-            cfg.model_config["step_dim"] = 64
-            attacker_params = torch.load(attacker[1])
-            attacker_model = CachePPOTransformerModel(**cfg.model_config)
-            attacker_model.load_state_dict(attacker_params)
-            attacker_model.eval()
+
     
             # Detector
             cfg.model_config["output_dim"] = 2
@@ -148,10 +151,26 @@ def tournament(env,
             detector_model = CachePPOTransformerModel(**cfg.model_config)
             detector_model.load_state_dict(detector_params)
             detector_model.eval()
-            
-            attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
             detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-            agents = {"attacker": attacker_agent, "detector": detector_agent}
+            
+            # Attacker
+            if attacker[0]=="PrimeProbe":
+                env.env.opponent_weights = [0,1]
+                attacker_agent = PrimeProbeAgent(cfg.env_config)
+            elif attacker[0]=="Benign":
+                env.env.opponent_weights = [1,0]
+                attacker_agent = PrimeProbeAgent(cfg.env_config)
+            else:
+                env.env.opponent_weights = [0,1]
+                cfg.model_config["output_dim"] = env.action_space.n
+                cfg.model_config["step_dim"] = 64
+                attacker_params = torch.load(attacker[1])
+                attacker_model = CachePPOTransformerModel(**cfg.model_config)
+                attacker_model.load_state_dict(attacker_params)
+                attacker_model.eval()           
+                attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+            
+            agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
             metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
             
             print(detector)
@@ -169,6 +188,7 @@ def main(cfg):
     cfg.env_config['verbose'] = 0 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
+
     # Load model
     # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
@@ -208,6 +228,7 @@ def main(cfg):
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
     '''
     tournament(env, cfg)
+
     '''
 if __name__ == "__main__":
     main()

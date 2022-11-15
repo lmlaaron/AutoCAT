@@ -99,13 +99,13 @@ def main(cfg):
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
     r_server = Server(cfg.r_server_name, cfg.r_server_addr)
     c_server = Server(cfg.c_server_name, cfg.c_server_addr)
-    m_server.add_service(MACTARemotableModelPool(infer_model, capacity=20))
+    m_server.add_service(MACTARemotableModelPool(infer_model, capacity=5))
     r_server.add_service(rb)
     c_server.add_service(ctrl)
     md_server = Server(cfg.md_server_name, cfg.md_server_addr)
     rd_server = Server(cfg.rd_server_name, cfg.rd_server_addr)
     cd_server = Server(cfg.cd_server_name, cfg.cd_server_addr)
-    md_server.add_service(MACTARemotableModelPool(infer_model_d, capacity=20))
+    md_server.add_service(MACTARemotableModelPool(infer_model_d, capacity=5))
     rd_server.add_service(rb_d)
     cd_server.add_service(ctrl_d)
     servers = ServerList([m_server, r_server, c_server, md_server, rd_server, cd_server])
@@ -155,7 +155,7 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:1000000]
     y = []
     for line in spec_trace:
@@ -247,7 +247,7 @@ def main(cfg):
     agent_d._model.release()
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
-        if epoch % 100 >= 50:
+        if epoch % 10 >= 5:
             # Train Detector
             agent_d.set_use_history(False)
             agent.set_use_history(True)
@@ -256,25 +256,23 @@ def main(cfg):
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
-            if epoch % 100 == 99:
+            if epoch % 100 == 9:
                 agent_d._model.release()
-        
+
         else:
             # Train Attacker
             agent_d.set_use_history(True)
             agent.set_use_history(False)
             agent._controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-            if epoch >=50:
+            if epoch >=5:
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(0)
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
-            if epoch % 100 == 49:
-                #agent.model.push_to_history()
+            if epoch % 10 == 4:
                 agent._model.release()
-        
         stats = a_stats or d_stats
 
         cur_time = time.perf_counter() - start_time
