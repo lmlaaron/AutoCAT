@@ -31,9 +31,10 @@ from rlmeta.utils.stats_dict import StatsDict
 
 import model_utils
 
-from cache_env_wrapper import CacheEnvCQWrapperFactory
+from cache_env_wrapper import CacheEnvWrapperFactory
 from metric_callbacks import MetricCallbacks
 from loop_runner import LoopRunner
+
 
 @hydra.main(config_path="./config", config_name="ppo_attack")
 def main(cfg):
@@ -41,7 +42,7 @@ def main(cfg):
     metric_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
-    env_fac = CacheEnvCQWrapperFactory(OmegaConf.to_container(cfg.env_config))
+    env_fac = CacheEnvWrapperFactory(OmegaConf.to_container(cfg.env_config))
     t_env = env_fac(index=0)
     e_env = env_fac(index=1)
 
@@ -120,7 +121,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        
+
         torch.save(model.state_dict(), f"ppo_agent-{epoch}.pth")
 
 
