@@ -97,7 +97,7 @@ class LoopRunner:
         if self._episode_callbacks is not None:
             self._episode_callbacks.on_episode_init(index=0, timestep=timestep)
 
-        while not timestep.terminated or timestep.truncated:
+        while not (timestep.terminated or timestep.truncated):
             # Model server requires a batch_dim, so unsqueeze here for local
             # runs.
             timestep = self._batch_obs(timestep)
