@@ -70,6 +70,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             # attacker obs: r, victim_accessed, original action, current step
             # detector obs: r, domain_id, memory address, 0
             if opponent_info.get('invoke_victim'):
+                cur_opponent_obs[0] = opponent_info['victim_latency']
                 cur_opponent_obs[1] = self.random_domain #1
                 cur_opponent_obs[2] = opponent_info['victim_address']
             else:
