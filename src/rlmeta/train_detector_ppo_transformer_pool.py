@@ -64,6 +64,7 @@ def main(cfg):
         cfg.train_device)
     attacker_checkpoint = cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
+        print("Loading pre-trained attacker")
         attacker_params = torch.load(cfg.attacker_checkpoint, map_location=cfg.train_device)
         train_model.load_state_dict(attacker_params)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
@@ -148,7 +149,7 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:1000000]
     y = []
     for line in spec_trace:
