@@ -93,7 +93,7 @@ class SpecAgent(Agent):
             action = addr % self.cache_size
             info ={}
         else: # domain_id = self.domain_id_1: # victim access
-            action = self.cache_size
+            action = self.cache_size+1
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
         return Action(action, info)
@@ -116,7 +116,7 @@ class SpecAgent(Agent):
             action = addr % self.cache_size
             info ={}
         else: # domain_id = self.domain_id_1: # victim access
-            action = self.cache_size
+            action = self.cache_size+1
             addr = addr % self.cache_size
             info={"reset_victim_addr": True, "victim_addr": addr}
         return Action(action, info)

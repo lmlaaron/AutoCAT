@@ -42,7 +42,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     num_total_guess = 0.0
     num_total_correct_guess = 0.0
 
-    env.env.opponent_weights = [0,1]
+    env.env.opponent_weights = [1,0]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -57,7 +57,6 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         for agent_name, agent in agents.items():
             timestep[agent_name].observation.unsqueeze_(0)
             #print("attacker obs")
-            #print(timestep["detector"].observation)
             action = agent.act(timestep[agent_name])
             # Unbatch the action.
             if isinstance(action, tuple):
@@ -72,7 +71,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
 
         for agent_name, agent in agents.items():
             agent.observe(actions[agent_name], timestep[agent_name])
-        
+            #if agent_name=='detector':print(timestep["detector"].observation)
         episode_length += 1
         episode_return += timestep['attacker'].reward
         is_guess = timestep['attacker'].info.get("is_guess",0)

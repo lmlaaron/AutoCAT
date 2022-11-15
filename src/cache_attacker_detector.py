@@ -153,7 +153,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             benign_reset_victim = action_info.get('reset_victim_addr', False)
             benign_victim_addr = action_info.get('victim_addr', None)
             if self.opponent_agent == 'benign' and benign_reset_victim:
-                self._env.set_victim(benign_victim_addr) 
+                self._env.set_random_victim(benign_victim_addr) 
                 self.victim_address = self._env.victim_address
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
         if opponent_done:

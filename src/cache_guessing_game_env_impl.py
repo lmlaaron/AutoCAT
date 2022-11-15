@@ -254,6 +254,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
     else:
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max)
+    self.victim_random_address = None
     self._randomize_cache()
     
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
@@ -328,7 +329,11 @@ class CacheGuessingGameEnv(gym.Env):
 
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if is_victim_random == True:
-                victim_random = random.randint(self.victim_random_min, self.victim_random_max)
+                if self.victim_random_address is not None:
+                    victim_random = self.victim_random_address
+                    self.vprint("using predefined victim_random_address %d " % victim_random)
+                else:
+                    victim_random = random.randint(self.victim_random_min, self.victim_random_max)
                 self.vprint("victim random access %d " % victim_random)
                 t, cyclic_set_index, cyclic_way_index, way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
                 assert(way_index != -1)
@@ -511,7 +516,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint('Reset...(cache state the same)')
 
     self._reset(victim_address)  # fake reset
-
+    self.victim_random_access = None
     # self.state = [0, len(self.attacker_address_space), 0, 0] * self.window_size
     # self.state = [-1, -1,-1, -1] * self.window_size
     # self.state = [0, len(self.attacker_address_space), 0, 0, 0] * self.window_size
@@ -567,11 +572,15 @@ class CacheGuessingGameEnv(gym.Env):
 
   def set_victim(self, victim_address=-1):
     self.victim_address = victim_address
+    
+  def set_random_victim(self, victim_address=None):
+    self.victim_random_address = victim_address
 
   # fake reset, just set a new victim addr 
   def _reset(self, victim_address=-1):
     self.current_step = 0
     self.victim_accessed = False
+    self.victim_random_address = None
     if victim_address == -1:
       if self.allow_empty_victim_access == False:
         self.victim_address = random.randint(self.victim_address_min, self.victim_address_max)
