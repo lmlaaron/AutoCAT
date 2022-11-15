@@ -1,7 +1,7 @@
 import os
 import sys
 
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 import gym
 
@@ -57,12 +57,14 @@ class CachePPOTransformerModel(PPOModel):
         self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
         self.linear_v = nn.Linear(self.hidden_dim, 1)
 
-        self._device = None
+    @property
+    def device(self) -> torch.device:
+        return next(self.parameters()).device
 
     def make_one_hot(self,
-                      src: torch.Tensor,
-                      num_classes: int,
-                      mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+                     src: torch.Tensor,
+                     num_classes: int,
+                     mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         if mask is None:
             mask = (src == -1)
         src = src.masked_fill(mask, 0)
@@ -70,9 +72,9 @@ class CachePPOTransformerModel(PPOModel):
         return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
     def make_embedding(self,
-                        src: torch.Tensor,
-                        embed: nn.Embedding,
-                        mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+                       src: torch.Tensor,
+                       embed: nn.Embedding,
+                       mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         if mask is None:
             mask = (src == -1)
         src = src.masked_fill(mask, 0)
@@ -86,7 +88,8 @@ class CachePPOTransformerModel(PPOModel):
         # batch_size = obs.size(0)
         l, v, act, stp = torch.unbind(obs, dim=-1)
         mask = (stp == -1)
-        l = self.make_one_hot(l, self.latency_dim, mask)
+        # l = self.make_one_hot(l, self.latency_dim, mask)
+        l = self.make_one_hot(l, self.latency_dim)
         v = self.make_one_hot(v, self.victim_acc_dim, mask)
         act = self.make_embedding(act, self.action_embed, mask)
         stp = self.make_embedding(stp, self.step_embed, mask)
@@ -108,6 +111,8 @@ class CachePPOTransformerModel(PPOModel):
         self, obs: torch.Tensor, deterministic_policy: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         with torch.no_grad():
+            obs = obs.to(self.device)
+            deterministic_policy = deterministic_policy.to(self.device)
             logpi, v = self.forward(obs)
             greedy_action = logpi.argmax(-1, keepdim=True)
             sample_action = logpi.exp().multinomial(1, replacement=True)
@@ -115,4 +120,4 @@ class CachePPOTransformerModel(PPOModel):
                                  sample_action)
             logpi = logpi.gather(dim=-1, index=action)
 
-        return action, logpi, v
+        return action.cpu(), logpi.cpu(), v.cpu()

@@ -18,7 +18,7 @@ from gym import spaces
 import time
 import os, cmd, sys, getopt, re, subprocess, configparser
 ###sys.path.append('../src')
-from ray.rllib.agents.ppo import PPOTrainer
+#from ray.rllib.agents.ppo import PPOTrainer
 import ray
 import ray.tune as tune
 import gym
@@ -51,7 +51,7 @@ class CacheQueryEnv(gym.Env):
         self.revealed = False # initially 
 
         done = False
-        reward = 0 
+        reward = 0.0 
         info = {}
         state = self.env.reset()
         self.last_unmasked_tuple = (state, reward, done, info)
@@ -147,7 +147,7 @@ class CacheQueryEnv(gym.Env):
     def reset(self, victim_address=-1):
         self.revealed = False # reset the revealed 
         done = False
-        reward = 0 
+        reward = 0.0 
         info = {}
         state = self.env.reset(victim_address=victim_address)
         self.last_unmasked_tuple = (state, reward, done, info)
@@ -165,7 +165,7 @@ class CacheQueryEnv(gym.Env):
                 state, reward, done, info = self.last_unmasked_tuple
                 reward = self.env.wrong_reward
                 done = True
-                return state, reward, done, info
+                return state, 1.0*reward, done, info
 
             self.revealed = True
             # return the revealed obs, reward,# return the revealed obs, reward,  
@@ -176,7 +176,7 @@ class CacheQueryEnv(gym.Env):
             #self.CQ.command(self.cq_command)
             #print(" 1 execute " + self.cq_command)
             answer = self.CQ.run(self.cq_command)[0]
-            time.sleep(0.2)
+            #time.sleep(0.2)
             #print(" 1 execute answer " + answer)
             #exit(-1)
             answer_index = answer.split().index('->')+1
@@ -184,7 +184,7 @@ class CacheQueryEnv(gym.Env):
                 #print("2 execute " + self.cq_command)
                 
                 answer = self.CQ.run(self.cq_command)[0]
-                time.sleep(0.2)            
+                #time.sleep(0.2)            
                 #print("2 execute answer " + answer)
                 answer_index = answer.split().index('->')+1
 
@@ -199,7 +199,7 @@ class CacheQueryEnv(gym.Env):
                             state[i][0] = 1
                         lat_cq_cnt -= 1
             #print(state)
-            return state, reward, done, info
+            return state, 1.0*reward, done, info
         
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1
             #print("elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1")
@@ -222,7 +222,7 @@ class CacheQueryEnv(gym.Env):
                     reward = self.env.wrong_reward
                     info = {}
                     state = self.env.reset()
-                    return state, reward, done, info
+                    return state, 1.0*reward, done, info
                 elif is_guess != 0:  # this must be guess and terminate
                     #print("elif is_guess != 0:  # this must be guess and terminate")
                     done = True
@@ -233,7 +233,7 @@ class CacheQueryEnv(gym.Env):
                         reward = self.env.wrong_reward
                     info = {}
                     state = self.env.reset()
-                    return state, reward, done, info
+                    return state, 1.0*reward, done, info
             #elif True:
             #    return self.env.step(action)
             elif self.revealed == False:
@@ -246,7 +246,7 @@ class CacheQueryEnv(gym.Env):
                     reward = self.env.wrong_reward
                     info = {}
                     state = self.env.reset()
-                    return state, reward, done, info  
+                    return state, 1.0*reward, done, info  
                 else:
                     #print("242: else:")
                     state, reward, done, info = self.env.step(action)
@@ -269,7 +269,7 @@ class CacheQueryEnv(gym.Env):
                     #print(state)
                     #print(self.cq_command)
                     #exit(-1)
-                    return state, reward, done, info
+                    return state, 1.0*reward, done, info
 
 if __name__ == "__main__":
     ray.init(include_dashboard=False, ignore_reinit_error=True, num_gpus=1, local_mode=True)
@@ -338,13 +338,13 @@ if __name__ == "__main__":
         'framework': 'torch',
     }
     #tune.run(PPOTrainer, config=config)
-    trainer = PPOTrainer(config=config)
-    def signal_handler(sig, frame):
-        print('You pressed Ctrl+C!')
-        checkpoint = trainer.save()
-        print("checkpoint saved at", checkpoint)
-        sys.exit(0)
+    #####trainer = PPOTrainer(config=config)
+    #####def signal_handler(sig, frame):
+    #####    print('You pressed Ctrl+C!')
+    #####    checkpoint = trainer.save()
+    #####    print("checkpoint saved at", checkpoint)
+    #####    sys.exit(0)
 
-    signal.signal(signal.SIGINT, signal_handler)
-    while True:
-        result = trainer.train() 
+    #####signal.signal(signal.SIGINT, signal_handler)
+    #####while True:
+    #####    result = trainer.train() 
