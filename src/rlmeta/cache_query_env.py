@@ -15,7 +15,7 @@ import sys
 from itertools import permutations
 import gym
 from gym import spaces
-
+import time
 import os, cmd, sys, getopt, re, subprocess, configparser
 ###sys.path.append('../src')
 from ray.rllib.agents.ppo import PPOTrainer
@@ -176,12 +176,15 @@ class CacheQueryEnv(gym.Env):
             #self.CQ.command(self.cq_command)
             #print(" 1 execute " + self.cq_command)
             answer = self.CQ.run(self.cq_command)[0]
+            time.sleep(0.2)
             #print(" 1 execute answer " + answer)
             #exit(-1)
             answer_index = answer.split().index('->')+1
             while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
                 #print("2 execute " + self.cq_command)
-                answer = self.CQ.run(self.cq_command)[0]            
+                
+                answer = self.CQ.run(self.cq_command)[0]
+                time.sleep(0.2)            
                 #print("2 execute answer " + answer)
                 answer_index = answer.split().index('->')+1
 
@@ -281,6 +284,12 @@ if __name__ == "__main__":
             'cq_cacheset': "34",
             'cq_level': "L1",
             'cq_init_command': "@ @",
+            'length_violation_reward': -2.0,
+            'double_victim_access_reward': -0.01,
+            'victim_access_reward': -0.01,
+            'correct_reward': 1.0,
+            'wrong_reward': -2.0,
+            'step_reward': -0.01,
             'verbose': 1,
             "prefetcher": "nextline",
             "rerandomize_victim": False,

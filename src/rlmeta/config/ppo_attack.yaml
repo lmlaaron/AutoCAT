@@ -43,4 +43,4 @@ table_view: false
 
 defaults:
   - env_config: attack_8way_cq
-  - model_config: transformer 
+  - model_config: mlp 

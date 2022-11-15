@@ -241,7 +241,7 @@ if __name__ == "__main__":
 	    'double_victim_access_reward': -0.01,
 	    'victim_access_reward': -0.01,
 	    'correct_reward': 1.0,
-            'wrong_reward': -1.0,
+            'wrong_reward': -2.0,
 	    'step_reward': -0.01,
             'verbose': 1,
             "prefetcher": "nextline",
