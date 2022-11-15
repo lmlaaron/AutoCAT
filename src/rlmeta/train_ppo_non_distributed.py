@@ -185,7 +185,8 @@ def main(cfg):
             rollout_stats = t_loop.run(num_steps=cfg.replay_buffer_size)
             stats.update(rollout_stats)
 
-            index = torch.arange(cfg.replay_buffer_size)
+            # index = torch.arange(cfg.replay_buffer_size)
+            index = torch.randperm(cfg.replay_buffer_size)
             _, data = replay_buffer[index]
             data = nested_utils.map_nested(lambda x: x.to(cfg.train_device),
                                            data)
