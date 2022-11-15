@@ -57,7 +57,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         for agent_name, agent in agents.items():
             timestep[agent_name].observation.unsqueeze_(0)
             #print("attacker obs")
-            #print(timestep["attacker"].observation)
+            #print(timestep["detector"].observation)
             action = agent.act(timestep[agent_name])
             # Unbatch the action.
             if isinstance(action, tuple):

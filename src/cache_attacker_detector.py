@@ -1,4 +1,5 @@
 import copy
+import hydra
 
 from typing import Any, Dict, Sequence, Tuple
 from collections import deque
@@ -64,20 +65,27 @@ class CacheAttackerDetectorEnv(gym.Env):
     
     def get_detector_obs(self, opponent_obs, opponent_info):
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
-        if not np.any(cur_opponent_obs==-1):
+        if opponent_info['way_index'] == -1:
+            pass
+        elif not np.any(cur_opponent_obs==-1):
             # Make sure the observation does not leak information for detector
             # TODO should we include step number? - yes we should - the guess step should not be observed by the detector
             # attacker obs: r, victim_accessed, original action, current step
             # detector obs: r, domain_id, memory address, 0
             if opponent_info.get('invoke_victim'):
+                cur_opponent_obs[0] = opponent_info['victim_latency']
                 cur_opponent_obs[1] = self.random_domain #1
-                cur_opponent_obs[2] = opponent_info['victim_address']
+                cur_opponent_obs[2] = opponent_info['way_index']
+                #cur_opponent_obs[2] = opponent_info['victim_address']
             else:
                 cur_opponent_obs[1] = 1-self.random_domain#0
-                cur_opponent_obs[2] = opponent_info['attacker_address']
+                cur_opponent_obs[2] = opponent_info['way_index']
+                #cur_opponent_obs[2] = opponent_info['attacker_address']
             cur_opponent_obs[3] = self.step_count #0#self.step_count
             self.detector_obs.append(cur_opponent_obs)
             self.detector_obs.popleft()
+        else:
+            pass
         return np.array(list(reversed(self.detector_obs)))
 
     def compute_reward(self, action, reward, opponent_done, opponent_attack_success=False):
@@ -152,6 +160,8 @@ class CacheAttackerDetectorEnv(gym.Env):
             opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
             self.step_count -= 1 # The reset/guess step should not be counted
+        elif opponent_info['way_index'] == -1: #if guess or victim empty access, the step should stop
+            self.step_count -= 1
         if self.step_count >= self.max_step:
             detector_done = True
         else:
@@ -191,30 +201,36 @@ class CacheAttackerDetectorEnv(gym.Env):
         #print(obs["detector"])
         return obs, reward, done, info
 
-if __name__ == '__main__':
-    env = CacheAttackerDetectorEnv({})
+@hydra.main(config_path="./rlmeta/config", config_name="ppo_exp")
+def main(cfg):
+    env = CacheAttackerDetectorEnv(cfg.env_config)
     env.opponent_weights = [0,1]
     action_space = env.action_space
     obs = env.reset()
     done = {'__all__':False}
-    i = 0
     for k in range(2):
-      while not done['__all__']:
-        i += 1
-        action = {'attacker':np.random.randint(low=3, high=6),
+        i = 0
+        while not done['__all__']:
+            i += 1
+            print('------------------')
+            action = {'attacker':np.random.randint(low=3, high=10),
                   'benign':np.random.randint(low=2, high=5),
                   'detector':np.random.randint(low=0, high=1)}
-        obs, reward, done, info = env.step(action)
-        print("step: ", i)
-        print("obs: ", obs['detector'])
-        print("action: ", action)
-        print("victim: ", env.victim_address, env._env.victim_address)
+            obs, reward, done, info = env.step(action)
+            print("step: ", i)
+            print("obs: ", obs['detector'])
+            print("action: ", action)
+            print("victim: ", env.victim_address, env._env.victim_address)
+            print("victim's domain id:", env.random_domain)
+            #print("done:", done)
+            print("reward:", reward)
+            print(env.victim_address_min, env.victim_address_max)
+            #print("info:", info )
+            if info['attacker'].get('invoke_victim'):
+                print(info['attacker'])
+        obs = env.reset()
+        done = {'__all__':False}
 
-        #print("done:", done)
-        print("reward:", reward)
-        print(env.victim_address_min, env.victim_address_max)
-        #print("info:", info )
-        if info['attacker'].get('invoke_victim'):
-            print(info['attacker'])
-      obs = env.reset()
-      done = {'__all__':False}
+if __name__ == '__main__':
+    main()
+
