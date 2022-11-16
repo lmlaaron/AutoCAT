@@ -43,33 +43,36 @@ detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outpu
 
 #Tournament
 attackers: [ 
-             ["PrimeProbe", ""],
-             ["IBRPPO-attacker-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/attacker-2049.pth"],
-             ["IBRPPO-attacker-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-24-54/attacker-2049.pth"],
-             ["IBRPPO-attacker-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-23-31/attacker-2049.pth"],
-             ["AutoCAT-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-39-43/ppo_agent-99.pth"],
-             ["AutoCAT-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-32/ppo_agent-99.pth"],
-             ["AutoCAT-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-57/ppo_agent-99.pth"],
-             ["MACTA-attacker-1", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/20-20-00/attacker-2049.pth"],
-             ["MACTA-attacker-2", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/03-04-01/attacker-2049.pth"],
-             ["MACTA-attacker-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-35-10/attacker-2049.pth"],
-             ["MACTA-attacker-4", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-51/attacker-2049.pth"],
+            #["PrimeProbe", ""],
+            #["IBRPPO-attacker-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/attacker-2049.pth"],
+            #["IBRPPO-attacker-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-24-54/attacker-2049.pth"],
+            #["IBRPPO-attacker-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-23-31/attacker-2049.pth"],
+            #["AutoCAT-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-39-43/ppo_agent-99.pth"],
+            #["AutoCAT-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-32/ppo_agent-99.pth"],
+            #["AutoCAT-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-57/ppo_agent-99.pth"],
+            #["MACTA-attacker-1", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/20-20-00/attacker-2049.pth"],
+            #["MACTA-attacker-2", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/03-04-01/attacker-2049.pth"],
+            #["MACTA-attacker-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-35-10/attacker-2049.pth"],
+            #["MACTA-attacker-4", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-51/attacker-2049.pth"],
              ["Benign", ""],
            
             ]
-detectors: [ #["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/detector-1999.pth"],
-             #["IBRPPO-detector-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-24-54/detector-1999.pth"],
-             #["IBRPPO-detector-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-23-31/detector-1999.pth"],
+detectors: [ ["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/detector-1999.pth"],
+             ["IBRPPO-detector-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-24-54/detector-1999.pth"],
+             ["IBRPPO-detector-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-23-31/detector-1999.pth"],
              #["MACTA-detector-1", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/20-20-00/detector-1999.pth"],
              #["MACTA-detector-2", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/03-04-01/detector-1999.pth"],
              #["MACTA-detector-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-35-10/detector-1999.pth"],
              #["MACTA-detector-4", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-51/detector-1999.pth"],
-             ["Cyclone-1", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-15/21-30-00/cyclone.pkl"],
-             ["Cyclone-2", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-15/21-30-13/cyclone.pkl"],
-             ["Cyclone-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-15/21-31-39/cyclone.pkl"],
-             ["CC-Hunter-1", "n/a"],
-             ["CC-Hunter-2", "n/a"],
-             ["CC-Hunter-3", "n/a"]
+             #["Cyclone-1", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-15/21-30-00/cyclone.pkl"],
+             #["Cyclone-2", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-15/21-30-13/cyclone.pkl"],
+             #["Cyclone-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-15/21-31-39/cyclone.pkl"],
+             #["CC-Hunter-1", "n/a"],
+             #["CC-Hunter-2", "n/a"],
+             #["CC-Hunter-3", "n/a"],
+             #["None", "None"],
+             #["None", "None"],
+             #["None", "None"]
             ]
 
 deterministic_policy: true

@@ -149,6 +149,8 @@ def tournament(env,
                 detector_agent = CycloneAgent(cfg.env_config, svm_model_path=detector[1], mode='active')
             elif "CC-Hunter" in detector[0]:
                 detector_agent = CCHunterAgent(cfg.env_config)
+            elif "None" in detector[0]:
+                detector_agent = RandomAgent(1)
             else:
                 cfg.model_config["output_dim"] = 2
                 cfg.model_config["step_dim"] = 66
