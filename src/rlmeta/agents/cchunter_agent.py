@@ -64,8 +64,8 @@ class CCHunterAgent:
         # then check the action
         # if the action is attacker access, then it is T->S append 1
         # else if the action is trigger victim, then it is S->T append 0
-        if victim_access:
-            print(info)
+        #if victim_access:
+        #    print(info)
         if "victim_latency" in info.keys() and info["victim_latency"] == 1:
             self.cc_hunter_history.append(0)
         elif latency == 1:
@@ -82,7 +82,7 @@ class CCHunterAgent:
         rew = -np.square(corr).mean() if len(corr) > 0 else 0.0
 
         cnt = mask.sum()
-        if cnt >=1 and cur_step_obs[-1]>=64:
+        if cnt >=1 and cur_step_obs[-1]>=63:
             action = 1, info
         else:
             action = 0, info

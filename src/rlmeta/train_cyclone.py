@@ -5,7 +5,7 @@ import torch
 import pickle
 import numpy as np
 from typing import Dict
-
+from tqdm import tqdm
 from sklearn.svm import SVC
 
 from agents.ppo_agent import PPOAgent
@@ -46,7 +46,7 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
         timestep = env.reset()
     else:
         timestep = env.reset(victim_address=victim_addr)
-    print("victim address: ", env.env.victim_address )
+    #print("victim address: ", env.env.victim_address )
     for agent_name, agent in agents.items():
         agent.observe_init(timestep[agent_name])
     while not timestep["__all__"].done:
@@ -110,7 +110,7 @@ def collect(cfg, num_samples):
     #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     attacker_agent = PrimeProbeAgent(cfg.env_config)
     detector_agent = CycloneAgent(cfg.env_config)
-    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace_f = open(os.path.expanduser('~')+'/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:1000000]
     trace = []
     for line in spec_trace:
@@ -120,7 +120,7 @@ def collect(cfg, num_samples):
     benign_agent = SpecAgent(cfg.env_config, spec_trace)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     X, y = [], [] 
-    for i in range(num_samples):
+    for i in tqdm(range(num_samples)):
         x, label = run_loop(env, agents)
         X.append(x)
         y.append(LABEL[label])
@@ -136,7 +136,7 @@ def train(cfg):
     # train the svm classifier
     # report accuracy
     X_train, y_train = collect(cfg, num_samples=20000)
-    X_test, y_test = collect(cfg, num_samples=1000)
+    X_test, y_test = collect(cfg, num_samples=100)
     clf = SVC(kernel='rbf', gamma='auto')
     clf.fit(X_train,y_train)
     print("Train Accuracy:", clf.score(X_train,y_train))
