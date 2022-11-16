@@ -95,7 +95,13 @@ class LoopRunner:
                                                         1,
                                                         action=action,
                                                         timestep=timestep)
+        
+        if episode_return > 0:
+            correct_rate = 1.0
+        else:
+            correct_rate = 0.0
         metrics = {
+            "corrate_rate": correct_rate,
             "episode_length": episode_length,
             "episode_return": episode_return,
         }
