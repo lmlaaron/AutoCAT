@@ -60,6 +60,7 @@ class Cache:
         self.data = {}
         self.set = {}
         self.domain_id_tags = {} # for cyclone
+        self.lock_tags = {} # test - additional tag to indicate locking status
 
         #Pointer to the next lowest level of memory
         #Main memory gets the default None value
@@ -77,10 +78,12 @@ class Cache:
                     index = '0'
                 self.data[index] = []    # use array of blocks for each set
                 self.domain_id_tags[index] = [] # for cyclone
+                self.lock_tags[index] = [] # for locking status tag
                 for j in range(associativity):
                     # isntantiate with empty tags
                     self.data[index].append((INVALID_TAG, block.Block(self.block_size, 0, False, 'x')))
                     self.domain_id_tags[index].append(('X','X')) # for cyclone
+                    print(self.domain_id_tags[index])
 
                 self.set_rep_policy[index] = self.rep_policy(associativity, block_size) 
 

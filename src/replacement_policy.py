@@ -508,8 +508,7 @@ class brrip_policy(rep_policy):
 
 # test for "locking cache" option
 NOTSET = 0
-LOCK = 1
-UNLOCK = 2
+LOCK = 1 # need to switch lock<->unlock when 2 continuos tags are same
 class plru_lock_policy(rep_policy):
     def __init__(self, associativity, block_size, verbose = False):
         self.associativity = associativity
