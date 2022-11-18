@@ -88,7 +88,7 @@ class CacheQueryEnv(gym.Env):
         if "cq_level" in env_config:
             level = env_config["cq_level"]
         else:
-            level = 'L2'      # for 4-way cache
+            level = 'L1'      # for 4-way cache
         
         
         # read cq_config
@@ -133,7 +133,8 @@ class CacheQueryEnv(gym.Env):
         if 'cq_init_command' in config:
             self.cq_init_command = config["cq_init_command"]
         else:
-            self.cq_init_command = "A B C D E F G H I A B"  #establish the address alphabet to number mapping
+            self.cq_init_command = "A B C D E F G H I J K L M N O P A"
+            "A B C D E F G H I A"#B"  #establish the address alphabet to number mapping
         
         self.cq_command= self.cq_init_command
         
@@ -282,7 +283,7 @@ if __name__ == "__main__":
             'cq_config_path': '../../third_party/cachequery/tool/cachequery.ini', # default path
             'cq_proc': 'i5-6500',  #TODO(Mulong): automatically recompile the cache query
             'cq_cacheset': "34",
-            'cq_level': "L2",
+            'cq_level': "L1",
             'cq_init_command': "@ @",
             'length_violation_reward': -2.0,
             'double_victim_access_reward': -0.01,
