@@ -174,9 +174,9 @@ class Cache:
             assert(False)
 
     # pl_opt: indicates the PL cache option
-    # pl_opt = -1: normal read
-    # pl_opt = PL_LOCK: lock the cache line
-    # pl_opt = PL_UNLOCK: unlock the cache line
+    #   pl_opt = -1: normal read
+    #   pl_opt = PL_LOCK: lock the cache line
+    #   pl_opt = PL_UNLOCK: unlock the cache line
     def read_no_prefetch(self, address, current_step, pl_opt= -1, domain_id = 'X', lock_id = 0):
         # cyclone
         cyclic_set_index = -1
@@ -194,14 +194,13 @@ class Cache:
             #print(block_offset)
             #print(index)
             #print(tag)
-            #Get the tags in this set
-            in_cache = []
+            
+            in_cache = [] #Get the tags in this set
             for i in range( 0, len(self.data[index]) ):
                 if self.data[index][i][0] != INVALID_TAG:#'x':
                     in_cache.append(self.data[index][i][0])
 
-            #If this tag exists in the set, this is a hit
-            if tag in in_cache:
+            if tag in in_cache: #If this tag exists in the set, this is a hit
                 #print(tag + 'in cache')
                 for i in range( 0, len(self.data[index])):
                     if self.data[index][i][0] == tag: 
@@ -219,10 +218,10 @@ class Cache:
                     self.set_rep_policy[index].setlock(tag, pl_opt)
                 r = response.Response({self.name:True}, self.hit_time)
                 evict_addr = -1 #no evition needed
-            else:
-                #Read from the next level of memory
-                r, cyclic_set_index, cyclic_way_index, evict_addr = self.next_level.read(address, current_step, pl_opt)
+
+            else: #Read from the next level of memory
                 
+                r, cyclic_set_index, cyclic_way_index, evict_addr = self.next_level.read(address, current_step, pl_opt)
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
                 if evict_addr != -1:
@@ -332,10 +331,10 @@ class Cache:
         return r, cyclic_set_index, cyclic_way_index, evict_addr
 
     # pl_opt: indicates the PL cache option
-    # pl_opt = -1: normal read
-    # pl_opt = 1: lock the cache line
-    # pl_opt = 2: unlock the cache line
-    def write(self, address, from_cpu, current_step, pl_opt = -1, domain_id = 'X'):
+    #   pl_opt = -1: normal read
+    #   pl_opt = 1: lock the cache line
+    #   pl_opt = 2: unlock the cache line
+    def write(self, address, from_cpu, current_step, pl_opt = -1, domain_id = 'X', lock_id = 0):
 
         address = address.zfill(8) 
         # cyclcone
