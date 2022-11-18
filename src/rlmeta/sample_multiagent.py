@@ -74,6 +74,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             #if agent_name=='detector':print(timestep["detector"].observation)
         episode_length += 1
         episode_return += timestep['attacker'].reward
+        #print("step_reward", timestep['attacker'].reward)
         is_guess = timestep['attacker'].info.get("is_guess",0)
         correct_guess = timestep['attacker'].info.get("guess_correct",0)
         num_total_guess += is_guess
@@ -187,8 +188,8 @@ def main(cfg):
     attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     #attacker_agent = PrimeProbeAgent(cfg.env_config)
 
-    #detector_agent = RandomAgent(1)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    detector_agent = RandomAgent(1)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 

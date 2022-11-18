@@ -127,7 +127,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         
         if action_detector == 1 and detector_correct:
             # the attacker should not receive as much reward if being detected
-            attacker_reward -= 10 
+            attacker_reward -= 0 #10 
         #else:
         #    attacker_reward += 0.1
         

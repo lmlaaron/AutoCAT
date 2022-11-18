@@ -1,4 +1,4 @@
-num_episodes: 100
+num_episodes: 10
 seed: 123 #123 1234 12345
 
 #cyclone
@@ -34,8 +34,8 @@ seed: 123 #123 1234 12345
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-57/ppo_agent-99.pth"
 
 #
-attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-11-15/13-23-18/attacker-249.pth"
-detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-11-15/13-23-18/detector-99.pth" #no init
+attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-17/21-18-05/attacker-249.pth"
+detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-16/04-45-32/detector-599.pth" #no init
 
 
 

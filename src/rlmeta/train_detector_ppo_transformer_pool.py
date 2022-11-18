@@ -1,7 +1,7 @@
 import copy
 import logging
 import time
-
+import os
 import hydra
 
 import torch
@@ -149,7 +149,7 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/private/home/jxcui/remix3.txt','r')
+    spec_trace_f = open(os.path.expanduser('~')+'/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:1000000]
     y = []
     for line in spec_trace:
