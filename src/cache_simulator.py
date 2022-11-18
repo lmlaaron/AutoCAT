@@ -177,7 +177,12 @@ def simulate(hierarchy, trace, logger, result_file=''):
             responses.append(r)
 
         elif op == 'UL':
-            pass
+            assert(l1.rep_policy == plru_lock_policy)
+            assert(op == 'UL')
+            logger.info(str(current_step) + ':\tUnlocking ' + address + ' ' + op)
+            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            responses.append(r)
 
         else:
             raise InvalidOpError

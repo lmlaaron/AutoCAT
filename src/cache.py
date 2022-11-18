@@ -127,10 +127,10 @@ class Cache:
         self.same_level_caches.append(cache)
 
     # read with prefetcher
-    def read(self, address, current_step, pl_opt= -1, domain_id = 'X'):
+    def read(self, address, current_step, pl_opt= -1, domain_id = 'X', lock_id = 0):
         address = address.zfill(8) 
         if self.prefetcher == "none":
-            return self.read_no_prefetch(address, current_step, pl_opt, domain_id)
+            return self.read_no_prefetch(address, current_step, pl_opt, domain_id, lock_id)
         elif self.prefetcher == "nextline":
             ret = self.read_no_prefetch(hex(int(address, 16) + 1)[2:], current_step, pl_opt, domain_id)
             # prefetch the next line
@@ -177,7 +177,7 @@ class Cache:
     # pl_opt = -1: normal read
     # pl_opt = PL_LOCK: lock the cache line
     # pl_opt = PL_UNLOCK: unlock the cache line
-    def read_no_prefetch(self, address, current_step, pl_opt= -1, domain_id = 'X'):
+    def read_no_prefetch(self, address, current_step, pl_opt= -1, domain_id = 'X', lock_id = 0):
         # cyclone
         cyclic_set_index = -1
         cyclic_way_index = -1
@@ -190,7 +190,7 @@ class Cache:
             evict_addr = -1
         else:
             #Parse our address to look through this cache
-            block_offset, index, tag = self.parse_address(address)
+            block_offset, index, tag, lock_id = self.parse_address(address)
             #print(block_offset)
             #print(index)
             #print(tag)
@@ -454,16 +454,19 @@ class Cache:
             if index == '':
                 index = '0'
             tag = binary_address[:-(self.block_offset_size+self.index_size)]
+            lock_id = binary_address[:-(self.block_offset_size + self.index_size + tag)]
         else:
             block_offset = '0'
             if self.index_size != 0:
                 index = binary_address[-(self.index_size):]
                 tag = binary_address[:-self.index_size] 
+                lock_id = binary_address[:-(index + tag)]
             else:
                 index = '0'
                 tag = binary_address
+                lock_id = binary_address
 
-        return (block_offset, index, tag)
+        return (block_offset, index, tag, lock_id)
 
 class InvalidOpError(Exception):
     pass
