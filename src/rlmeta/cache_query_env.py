@@ -164,7 +164,7 @@ class CacheQueryEnv(gym.Env):
             if self.revealed == True:
                 self.env.vprint("double reveal! terminated!")
                 state, reward, done, info = self.last_unmasked_tuple
-                reward = self.env.wrong_reward
+                reward = 1.5* self.env.wrong_reward
                 done = True
                 return state, 1.0*reward, done, info
 
@@ -199,7 +199,7 @@ class CacheQueryEnv(gym.Env):
                         else:                            # miss
                             state[i][0] = 1
                         lat_cq_cnt -= 1
-            #print(state)
+            print(state)
             return state, 1.0*reward, done, info
         
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1
@@ -220,14 +220,24 @@ class CacheQueryEnv(gym.Env):
                     #print("if is_guess == 0: # revealed but not guess # huge penalty")
                     self.env.vprint("reveal but no guess! terminate")
                     done = True
-                    reward = self.env.wrong_reward
+                    reward = 1.5 * self.env.wrong_reward
                     info = {}
                     state = self.env.reset()
                     return state, 1.0*reward, done, info
                 elif is_guess != 0:  # this must be guess and terminate
                     #print("elif is_guess != 0:  # this must be guess and terminate")
                     done = True
-                    _, _, done, info = self.env.step(action)
+                    state, _, done, info = self.env.step(action)
+                    if state[0][1] == 0:
+                        self.env.vprint("guess without access! terminate!")
+                        reward = 1.5 * self.env.wrong_reward
+                        done = True
+                        info={}
+                        state = self.env.reset()
+                        return state, 1.0 *reward, done, info
+
+                    #done = True
+                    #_, _, done, info = self.env.step(action)
                     if int(victim_addr,16) == self.env.victim_address:
                         reward = self.env.correct_reward
                     else:
@@ -244,7 +254,7 @@ class CacheQueryEnv(gym.Env):
                     # guess without revewl --> huge penalty
                     self.env.vprint("guess without reveal! terminate")
                     done = True
-                    reward = self.env.wrong_reward
+                    reward = 1.5 * self.env.wrong_reward
                     info = {}
                     state = self.env.reset()
                     return state, 1.0*reward, done, info  
