@@ -187,7 +187,7 @@ class CacheQueryEnv(gym.Env):
                         else:                            # miss
                             state[i][0] = 1
                         lat_cq_cnt -= 1
-            print(state)
+            #print(state)
             return state, reward, done, info
 
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1

@@ -156,7 +156,7 @@ class CacheGuessingGameEnv(gym.Env):
     check window size
     '''
     if window_size == 0:
-      self.window_size = self.cache_size * 10 + 8 #10 
+      self.window_size = self.cache_size * 4 + 8 #10 + 8 #10 
       #self.window_size = self.cache_size * 8 + 8 #10 
     else:
       self.window_size = window_size

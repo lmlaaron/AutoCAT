@@ -6,5 +6,5 @@ checkpoint: ""
 deterministic_policy: true
 
 defaults:
-  - env_config: attack_4way_cq
+  - env_config: attack_8way_cq
   - model_config: transformer

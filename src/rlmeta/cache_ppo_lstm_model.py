@@ -117,4 +117,4 @@ class CachePPOLstmModel(PPOModel):
                                  sample_action)
             logpi = logpi.gather(dim=-1, index=action)
 
-        return action, logpi, v
+        return action.cpu(), logpi.cpu(), v.cpu()

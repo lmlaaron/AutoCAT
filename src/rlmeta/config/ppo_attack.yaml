@@ -42,5 +42,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: attack_4way_cq
+  - env_config: attack_8way_cq
   - model_config: transformer 
