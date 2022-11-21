@@ -180,30 +180,30 @@ class CacheQueryEnv(gym.Env):
             #print(self.CQ.conf.cache('ways'))
             #print(self.CQ.settings['level'])
             #print(state)
-            answer = self.CQ.run(self.cq_command)[0]
-            #time.sleep(0.2)
-            #print(" 1 execute answer " + answer)
-            #exit(-1)
-            answer_index = answer.split().index('->')+1
-            while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
-                #print("2 execute " + self.cq_command)
-                
-                answer = self.CQ.run(self.cq_command)[0]
-                #time.sleep(0.2)            
-                #print("2 execute answer " + answer)
-                answer_index = answer.split().index('->')+1
+            ####answer = self.CQ.run(self.cq_command)[0]
+            #####time.sleep(0.2)
+            #####print(" 1 execute answer " + answer)
+            #####exit(-1)
+            ####answer_index = answer.split().index('->')+1
+            ####while answer_index < len(answer.split()) and answer.split()[answer_index] == "Runtime":
+            ####    #print("2 execute " + self.cq_command)
+            ####    
+            ####    answer = self.CQ.run(self.cq_command)[0]
+            ####    #time.sleep(0.2)            
+            ####    #print("2 execute answer " + answer)
+            ####    answer_index = answer.split().index('->')+1
 
-            if answer != None:
-                lat_cq = answer.split()[answer.split().index('->')+1:]
-                lat_cq_cnt = len(lat_cq) - 1
-                for i in range(len(state)):
-                    if state[i][0] != 2 and lat_cq_cnt >= 0:
-                        if int(lat_cq[lat_cq_cnt]) > 50: # hit
-                            state[i][0] = 0
-                        else:                            # miss
-                            state[i][0] = 1
-                        lat_cq_cnt -= 1
-            #print(state)
+            ####if answer != None:
+            ####    lat_cq = answer.split()[answer.split().index('->')+1:]
+            ####    lat_cq_cnt = len(lat_cq) - 1
+            ####    for i in range(len(state)):
+            ####        if state[i][0] != 2 and lat_cq_cnt >= 0:
+            ####            if int(lat_cq[lat_cq_cnt]) > 50: # hit
+            ####                state[i][0] = 0
+            ####            else:                            # miss
+            ####                state[i][0] = 1
+            ####            lat_cq_cnt -= 1
+            #####print(state)
             return state, 1.0*reward, done, info
         
         elif action < self.action_space_size - 1: # this time the action must be smaller than sction_space_size -1
