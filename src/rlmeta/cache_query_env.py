@@ -133,8 +133,16 @@ class CacheQueryEnv(gym.Env):
         if 'cq_init_command' in config:
             self.cq_init_command = config["cq_init_command"]
         else:
-            self.cq_init_command = "A B C D E F G H A B"
-            "A B C D E F G H I A"#B"  #establish the address alphabet to number mapping
+            temp = "ABCDEFGHIJKLMNOPQ"
+            self.cq_init_command = "A"
+            for i in range(0,16):#len(temp)):
+                self.cq_init_command += " "
+                self.cq_init_command += temp[random.randint(0, len(temp)- 1)]
+            #print(self.cq_init_command)
+
+
+            #self.cq_init_command = "A B C D E F G H A B"
+            #"A B C D E F G H I A"#B"  #establish the address alphabet to number mapping
         
         self.cq_command= self.cq_init_command
         
@@ -152,6 +160,13 @@ class CacheQueryEnv(gym.Env):
         info = {}
         state = self.env.reset(victim_address=victim_address)
         self.last_unmasked_tuple = (state, reward, done, info)
+
+        temp = "ABCDEFGHIJKLMNOPQ"
+        self.cq_init_command = "A"
+        for i in range(0,16):#len(temp)):
+            self.cq_init_command += " "
+            self.cq_init_command += temp[random.randint(0, len(temp)- 1)]
+        #print(self.cq_init_command)
 
         #reset CacheQuery Command
         self.cq_command = self.cq_init_command

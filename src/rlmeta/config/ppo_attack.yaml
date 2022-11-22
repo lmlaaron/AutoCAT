@@ -29,7 +29,7 @@ optimizer:
 learning_starts: 65536
 model_push_period: 10
 
-entropy_coeff: 0.02
+entropy_coeff: 0.05
 
 num_epochs: 1000
 steps_per_epoch: 3000
