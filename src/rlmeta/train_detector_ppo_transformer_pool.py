@@ -138,7 +138,7 @@ def main(cfg):
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
                      model_push_period=cfg.push_every_n_steps)
     ta_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
-    td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
+    td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=False)
     ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
     ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
     #### random detector 
@@ -156,7 +156,7 @@ def main(cfg):
     
     '''
     spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:1000000]
+    spec_trace = spec_trace_f.read().split('\n')[:100]#[:1000000]
     y = []
     for line in spec_trace:
         line = line.split()
@@ -187,7 +187,7 @@ def main(cfg):
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
                      model_push_period=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
-    ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
+    ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=False)
     ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
@@ -247,16 +247,17 @@ def main(cfg):
     agent_d._model.release()
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
-        if epoch % 10 >= 5:
+        if epoch % 100 >= 50:
             # Train Detector
             agent_d.set_use_history(False)
             agent.set_use_history(True)
             agent_d._controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
+            agent_d._controller.reset_phase(Phase.TRAIN_DETECTOR)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
-            if epoch % 100 == 9:
+            if epoch % 10 == 9:
                 agent_d._model.release()
 
         else:
@@ -264,14 +265,15 @@ def main(cfg):
             agent_d.set_use_history(True)
             agent.set_use_history(False)
             agent._controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-            if epoch >=5:
+            agent._controller.reset_phase(Phase.TRAIN_ATTACKER)
+            if epoch>=50:
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(0)
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
-            if epoch % 10 == 4:
+            if epoch % 10 == 9:
                 agent._model.release()
         stats = a_stats or d_stats
 
@@ -287,10 +289,12 @@ def main(cfg):
         agent_d.set_use_history(False)
         time.sleep(1)
         agent._controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
+        agent._controller.reset_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes)
         a_stats = agent.eval(cfg.num_eval_episodes)
         print("Eval attacker done")
         time.sleep(1)
         agent_d._controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
+        agent_d._controller.reset_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes)
         d_stats = agent_d.eval(cfg.num_eval_episodes)
         print("Eval detector done")
         stats = a_stats

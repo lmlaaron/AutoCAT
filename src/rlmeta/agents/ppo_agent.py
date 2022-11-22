@@ -106,9 +106,9 @@ class PPOAgent(PPOAgent):
             if self._step_counter % self._model_push_period == 0:
                 self._model.push()
         self._model.push() 
-        episode_stats = self._controller.stats()
+        episode_stats = self._controller.stats(phase)
         stats.update(episode_stats)
-        self._controller.reset()
+        self._controller.reset_phase(phase)
         return stats
     
     def eval(self,
@@ -118,9 +118,9 @@ class PPOAgent(PPOAgent):
             ) -> Union[StatsDict, Future]:
         print("Local PPO agent eval")
         phase = self._controller.phase()
-        while self._controller.count() < num_episodes:
-            print(self._controller.count())
+        while self._controller.count(phase) < num_episodes:
+            print(self._controller.count(phase))
             time.sleep(1)
-        stats = self._controller.stats()
-        self._controller.reset()
+        stats = self._controller.stats(phase)
+        self._controller.reset_phase(phase)
         return stats
