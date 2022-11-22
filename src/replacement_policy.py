@@ -359,7 +359,7 @@ class plru_pl_policy(rep_policy):
         index = tree_index - (self.num_leaves - 1) 
         
         # pl cache 
-        if self.lockarray[index] == PL_UNLOCK:
+        if self.lockarray[index] == PL_UNLOCK: # PL_UNLOCK = 2
             victim_tag = self.candidate_tags[index]
             return victim_tag 
         else:
@@ -508,7 +508,7 @@ class brrip_policy(rep_policy):
 
 # test for "locking cache" option
 NOTSET = 0
-LOCK = 1 # need to switch lock<->unlock when 2 continuos tags are same
+LOCK = 1 
 UNLOCK = 2
 class plru_lock_policy(rep_policy):
     def __init__(self, associativity, block_size, verbose = False):
@@ -518,10 +518,10 @@ class plru_lock_policy(rep_policy):
         self.plrutree = [ False ] * ( self.num_leaves - 1 )
         self.count = 0
         self.candidate_tags = [ INVALID_TAG ] * self.num_leaves
-        self.lockarray = [ UNLOCK ] * self.num_leaves
+        self.lockarray2 = [ UNLOCK ] * self.num_leaves
         self.verbose = verbose
         self.vprint(self.plrutree)
-        self.vprint(self.lockarray)
+        self.vprint(self.lockarray2)
         self.vprint(self.candidate_tags)
          
     def parent_index(self,index):
@@ -557,7 +557,7 @@ class plru_lock_policy(rep_policy):
             #exit(-1)
             self.plrutree[tree_index] = not right
         self.vprint(self.plrutree)
-        self.vprint(self.lockarray)
+        self.vprint(self.lockarray2)
         self.vprint(self.candidate_tags)
 
     def reset(self, tag, timestamp):
@@ -586,7 +586,7 @@ class plru_lock_policy(rep_policy):
             self.plrutree[tree_index] = right
 
         self.vprint(self.plrutree)
-        self.vprint(self.lockarray) 
+        self.vprint(self.lockarray2) 
         self.vprint(self.candidate_tags)
 
     def find_victim(self, timestamp):
@@ -599,7 +599,7 @@ class plru_lock_policy(rep_policy):
         index = tree_index - (self.num_leaves - 1) 
         
         # locking cache 
-        if self.lockarray[index] == UNLOCK:
+        if self.lockarray2[index] == UNLOCK:
             victim_tag = self.candidate_tags[index]
             return victim_tag 
         else:
@@ -618,8 +618,8 @@ class plru_lock_policy(rep_policy):
         self.touch(tag, timestamp)
 
     # cache set lock scenario
-    def setlock(self, tag, lock):
-        self.vprint("setlock "+ tag + ' ' + str(lock))
+    def setlock2(self, tag, lock):
+        self.vprint("setlock2 "+ tag + ' ' + str(lock))
         # find the index
         index = 0
         self.vprint(index)
@@ -629,4 +629,18 @@ class plru_lock_policy(rep_policy):
             else:
                 index += 1
         # set / unset lock
-        self.lockarray[index] = lock 
+        self.lockarray2[index] = lock
+
+    def set_way_lock(self, way_index, lock):
+        pass
+        '''
+        self.vprint("set way lock " + way_index + ' ' + str(lock))
+        way_index = 0
+        self.vprint(way_index)
+        while way_index < len(self.associativity):
+            if self.associativity[index] == way_index:
+                break
+            else:
+                way_index += 1
+        '''
+

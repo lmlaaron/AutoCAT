@@ -134,7 +134,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
                 l = l1_c2
             else:
                 l = l1
-            r, _, _, _ = l.read(address, current_step)
+            r, _, _, _, _ = l.read(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         elif op == 'RL' or op == 'RL2':      # pl cache lock cacheline
@@ -142,7 +142,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
             # multilcore not implemented
             assert(op == 'RL')
             logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            r, _, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         elif op == 'RU' or op == 'RU2':      # pl cache unlock cacheline
@@ -150,7 +150,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
             # multilcore not implemented
             assert(op == 'RU')
             logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            r, _, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         #Call write
@@ -168,19 +168,19 @@ def simulate(hierarchy, trace, logger, result_file=''):
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
             r, _, _ = l1.cflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
-        elif op == 'L':
+        elif op == 'LO': # LOCK = 1
             assert(l1.rep_policy == plru_lock_policy) # must be locking cache 
-            assert(op == 'L')
+            assert(op == 'LO')
             logger.info(str(current_step) + ':\tLocking ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            r, _, _, _, _ = l1.read(address, current_step, lock_opt = LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
 
-        elif op == 'UL':
+        elif op == 'UL': # UNLOCK = 2
             assert(l1.rep_policy == plru_lock_policy)
             assert(op == 'UL')
             logger.info(str(current_step) + ':\tUnlocking ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            r, _, _, _, _ = l1.read(address, current_step, lock_opt = UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
 
