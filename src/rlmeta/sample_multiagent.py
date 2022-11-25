@@ -42,7 +42,6 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     num_total_guess = 0.0
     num_total_correct_guess = 0.0
 
-    #env.env.opponent_weights = [0,1]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -192,11 +191,10 @@ def tournament(env,
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 0 
+    cfg.env_config['verbose'] = 1 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
 
-    '''
     # Load model
     # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
@@ -213,12 +211,14 @@ def main(cfg):
     detector_model.load_state_dict(detector_params)
     detector_model.eval()
 
+    env.env.opponent_weights = [0,1]
+    
     # Create agent
-    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
+    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
 
-    #detector_agent = RandomAgent(1)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    detector_agent = RandomAgent(1)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
@@ -237,5 +237,6 @@ def main(cfg):
     '''
     tournament(env, cfg)
 
+    '''
 if __name__ == "__main__":
     main()

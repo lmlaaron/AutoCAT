@@ -146,6 +146,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         self.history = []
         self.latest = None
         self.use_history = False
+        self.reload_model = False
 
     @remote.remote_method(batch_size=128)
     def act(
@@ -154,13 +155,14 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         deterministic_policy: torch.Tensor,
         reload_model: bool
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if reload_model:
+        if self.reload_model:
             if self.use_history and len(self.history)>0:
                 state_dict = random.choice(self.history)
                 self.load_state_dict(state_dict)
             elif self.latest is not None:
                 self.load_state_dict(self.latest)
-            #print("reloading model", reload_model)
+            self.reload_model = False
+            print("reloading model", self.reload_model)
             #print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
         if self._device is None:
             self._device = next(self.parameters()).device
@@ -204,6 +206,12 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         self.use_history = use_history
         print("after setting:", self.use_history)
 
+    @remote.remote_method(batch_size=None) 
+    def set_reload_model(self, reload_model:bool) -> None:
+        print("set reload model", reload_model)
+        self.reload_model = reload_model
+        print("after set reload model:", self.reload_model)
+
 class DownstreamModelPool(DownstreamModel):
     def __init__(self,
                  model: nn.Module,
@@ -217,6 +225,10 @@ class DownstreamModelPool(DownstreamModel):
         self.client.sync(self.server_name, self.remote_method_name("set_use_history"),
                          use_history)
     
+    def set_reload_model(self, reload_model):
+        self.client.sync(self.server_name, self.remote_method_name("set_reload_model"),
+                         reload_model)
+   
     def push_to_history(self) -> None:
         state_dict = self.wrapped.state_dict()
         state_dict = nested_utils.map_nested(lambda x: x.cpu(), state_dict)

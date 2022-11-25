@@ -54,6 +54,9 @@ class PPOAgent(PPOAgent):
     def set_use_history(self, use_history):
         self.model.set_use_history(use_history)
     
+    def set_reload_model(self, reload_model):
+        self.model.set_reload_model(reload_model)
+
     def act(self, timestep: TimeStep) -> Action:
         obs = timestep.observation
         reload_model = timestep.info.get("episode_reset", False)
@@ -90,6 +93,7 @@ class PPOAgent(PPOAgent):
 
             if step % self.push_every_n_steps == self.push_every_n_steps - 1:
                 self.model.push()
+                self.set_reload_model(True)
         
         #push the last checkpoint to the model history checkpoint
         #try:

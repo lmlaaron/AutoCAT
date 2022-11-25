@@ -242,7 +242,9 @@ def main(cfg):
         if epoch % 100 >= 50:
             # Train Detector
             agent_d.set_use_history(False)
+            agent_d.set_reload_model(True)
             agent.set_use_history(True)
+            agent.set_reload_model(True)
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
@@ -255,6 +257,8 @@ def main(cfg):
             # Train Attacker
             agent_d.set_use_history(True)
             agent.set_use_history(False)
+            agent_d.set_reload_model(True)
+            agent.set_reload_model(True)
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
             if epoch >=50:
                 a_stats = agent.train(cfg.steps_per_epoch)
@@ -280,6 +284,8 @@ def main(cfg):
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
         agent.set_use_history(False)
         agent_d.set_use_history(False)
+        agent.set_reload_model(True)
+        agent_d.set_reload_model(True)
         agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
         agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)

@@ -40,6 +40,8 @@ class MACallbacks(EpisodeCallbacks):
                 if self.tot_guess>0:
                     self._custom_metrics["attacker_correct_rate"] = self.acc_guess / float(self.tot_guess)
                 self._custom_metrics["num_total_guess"] = float(self.tot_guess)
+                self._custom_metrics["num_total_attacks"] = float(self.acc_guess)
+
 
 class CCHunterMetricCallbacks(EpisodeCallbacks):
     def __init__(self):
