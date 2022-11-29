@@ -42,7 +42,6 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
     num_total_guess = 0.0
     num_total_correct_guess = 0.0
 
-    #env.env.opponent_weights = [0,1]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -195,8 +194,8 @@ def main(cfg):
     cfg.env_config['verbose'] = 0 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-
-    '''
+    env.env.opponent_weights = [1,0]
+    
     # Load model
     # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
@@ -237,5 +236,6 @@ def main(cfg):
     '''
     tournament(env, cfg)
 
+    '''
 if __name__ == "__main__":
     main()
