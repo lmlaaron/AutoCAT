@@ -187,8 +187,8 @@ def main(cfg):
     attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     #attacker_agent = PrimeProbeAgent(cfg.env_config)
 
-    #detector_agent = RandomAgent(1)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    detector_agent = RandomAgent(1)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
