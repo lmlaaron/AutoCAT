@@ -16,11 +16,11 @@ rd_server_addr: "127.0.0.1:4722"
 cd_server_name: "cd_server"
 cd_server_addr: "127.0.0.1:4733"
 
-detector_checkpoint: ""
+#detector_checkpoint: ""
 attacker_checkpoint: ""
 
 #detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/detector-999.pth"
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-999.pth"
+detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-999.pth"
 #detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-32-17/detector-999.pth"
 
 train_device: "cuda:0"
@@ -64,7 +64,8 @@ defaults:
   # - env_config: config_exp7
   # - env_config: config_exp8
   # - env_config: config_exp9
-  - env_config: config_exp61
+  # - env_config: config_exp61
+  - env_config: config_exp61_anti
   # - env_config: config_exp9_nextline
   # - env_config: config_exp9_stream
   # - env_config: config_exp10
