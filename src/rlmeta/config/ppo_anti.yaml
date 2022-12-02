@@ -19,37 +19,15 @@ cd_server_addr: "127.0.0.1:4733"
 detector_checkpoint: ""
 attacker_checkpoint: ""
 
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/20-20-00/detector-1999.pth"
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/03-03-48/detector-1999.pth" #hard flag
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/03-04-01/detector-1999.pth" #hard flag
-
-#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-11/14-04-52/attacker-249.pth" #hard flag
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-11/14-04-52/detector-2584.pth" #hard flag
-#FP-PPO############################################                                                                                             
-#fp-5x-1                                                                                                                                        
-#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/attacker-1949.pth" #hard flag 5*fp             
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/detector-1999.pth" #hard flag                  
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/detector-999.pth" #hard flag
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/detector-499.pth" #hard flag
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-08-29/21-22-12/detector-2399.pth" #hard flag
-
-#fp-5x-2                                                                                                                                        
-#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-27/attacker-1949.pth" #hard flag 5*fp             
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-27/detector-1999.pth" #hard flag                   
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-27/detector-999.pth" #hard flag 
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-27/detector-499.pth" #hard flag 
-
-#fp-5x-3
-#attacker_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-31/attacker-1949.pth" #hard flag 5*fp
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-31/detector-1999.pth" #hard flag
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-31/detector-999.pth" #hard flag
-#detector_checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-09-13/19-42-31/detector-499.pth" #hard flag
+#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/detector-999.pth"
+#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-999.pth"
+#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-32-17/detector-999.pth"
 
 train_device: "cuda:0"
 infer_device: "cuda:1"
 train_device_d: "cuda:2" #"cuda:2"
 infer_device_d: "cuda:3" #"cuda:3"
-num_train_rollouts: 48 #72 #48 #24
+num_train_rollouts: 72 #72 #48 #24
 num_train_workers: 24  #24
 
 num_eval_rollouts: 12 #2
@@ -57,7 +35,7 @@ num_eval_workers: 4 #2
 
 # replay_buffer_size: 262144
 # replay_buffer_size: 131072
-replay_buffer_size: 262144
+replay_buffer_size: 65536
 #replay_buffer_size: 1024
 prefetch: 2
 
