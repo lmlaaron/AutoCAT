@@ -74,6 +74,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             #if agent_name=='detector':print(timestep["detector"].observation)
         episode_length += 1
         episode_return += timestep['attacker'].reward
+        #print("step_reward", timestep['attacker'].reward)
         is_guess = timestep['attacker'].info.get("is_guess",0)
         correct_guess = timestep['attacker'].info.get("guess_correct",0)
         num_total_guess += is_guess
