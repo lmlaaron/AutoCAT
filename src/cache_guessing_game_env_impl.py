@@ -96,7 +96,9 @@ class CacheGuessingGameEnv(gym.Env):
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
-
+    self.ev_addr = env_config["ev_addr"] if "ev_addr" in env_config else 0
+    self.ev_mode = env_config["ev_mode"] if "ev_mode" in env_config else False
+    assert(self.ev_mode != False )
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
@@ -200,30 +202,35 @@ class CacheGuessingGameEnv(gym.Env):
     define the action space
     '''
     # using tightened action space
-    if self.flush_inst == False:
-      # one-hot encoding
-      if self.allow_empty_victim_access == True:
-        # | attacker_addr | v | victim_guess_addr | guess victim not access |
-        self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
-        )
-      else:
-        # | attacker_addr | v | victim_guess_addr | 
-        self.action_space = spaces.Discrete(
-          len(self.attacker_address_space) + 1 + len(self.victim_address_space)
-        )
+    if self.ev_mode != False:
+      # |attacker_addr| terminate|
+      self.action_space = spaces.Discrete(len(self.attacker_address_space) + 1)
+    
     else:
-      # one-hot encoding
-      if self.allow_empty_victim_access == True:
-        # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
-        self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
-        )
+      if self.flush_inst == False:
+        # one-hot encoding
+        if self.allow_empty_victim_access == True:
+          # | attacker_addr | v | victim_guess_addr | guess victim not access |
+          self.action_space = spaces.Discrete(
+            len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          )
+        else:
+          # | attacker_addr | v | victim_guess_addr | 
+          self.action_space = spaces.Discrete(
+            len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+          )
       else:
-        # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
-        self.action_space = spaces.Discrete(
-          2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
-        )
+        # one-hot encoding
+        if self.allow_empty_victim_access == True:
+          # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
+          self.action_space = spaces.Discrete(
+            2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          )
+        else:
+          # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
+          self.action_space = spaces.Discrete(
+            2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
+          )
     
     '''
     define the observation space
@@ -267,6 +274,9 @@ class CacheGuessingGameEnv(gym.Env):
     self.guess_buffer_size = 100
     self.guess_buffer = [False] * self.guess_buffer_size
     self.last_state = None
+
+    if self.ev_mode != False:
+      self.l1.read(hex(self.ceaser_mapping(self.ev_addr))[2:], -2, domain_id='X')
 
   '''
   clear the history buffer that calculates the correctness rate
@@ -333,6 +343,25 @@ class CacheGuessingGameEnv(gym.Env):
     is_flush = action[3]                                              # check whether to flush
     victim_addr = hex(action[4] + self.victim_address_min)[2:]        # victim address
     
+    if self.ev_mode != False and original_action == len(self.attacker_address_space): # is_victim is interpretted as terminate
+      t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(self.ev_addr))[2:], self.current_step, domain_id='v')
+      t = t.time # do not need to lock again
+      if t > 500:
+        reward = self.correct_reward
+        self.vprint("evicted correctly!")
+        info['guess_correct'] = 1
+      else:
+        reward = self.wrong_reward
+        self.vprint("not evicted!")
+        info['guess_correct'] = 0
+
+      self.step_count += 1
+      done = True
+      self.state.append([2, 0, original_action, self.step_count])
+      self.state.popleft()
+      info['is_guess'] = 1
+      return np.array(list(reversed(self.state))), reward, done, info
+
     '''
     The actual stepping logic
 
@@ -562,6 +591,9 @@ class CacheGuessingGameEnv(gym.Env):
       for cache in self.hierarchy:
         if self.hierarchy[cache].next_level:
           print_cache(self.hierarchy[cache])
+
+    if self.ev_mode != False:
+      self.l1.read(hex(self.ceaser_mapping(self.ev_addr))[2:], -2, domain_id='X')
 
     return np.array(list(reversed(self.state)))
 
