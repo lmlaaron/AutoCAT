@@ -144,7 +144,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.cache_size = self.configs['cache_1']['blocks']
     self.flush_inst = flush_inst
     self.reset_time = 0
-    self._seed = -1
+
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
     
@@ -278,7 +278,7 @@ class CacheGuessingGameEnv(gym.Env):
   set the seed for randomization
   '''
   def seed(self, seed):
-      self._seed = seed
+      random.seed(seed)
 
   '''
   remap the victim address range
@@ -519,13 +519,11 @@ class CacheGuessingGameEnv(gym.Env):
             reset_cache_state=False,
             reset_observation=True,
             seed = -1):
-    self._seed = seed
-
     if self.ceaser_access_count > self.ceaser_remap_period:
       self.remap() # do the remap, generating a new mapping function if remap is set true
       self.ceaser_access_count = 0
 
-    if self.cache_state_reset or reset_cache_state or self._seed != -1:
+    if self.cache_state_reset or reset_cache_state or seed != -1:
       self.vprint('Reset...(also the cache state)')
       self.hierarchy = build_hierarchy(self.configs, self.logger)
       self.l1 = self.hierarchy['cache_1']
@@ -535,10 +533,10 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         self.lv = self.hierarchy['cache_1']
 
-      if self._seed == -1:
+      if seed == -1:
         self._randomize_cache()
       else:
-        self.seed_randomization(self._seed)
+        self.seed_randomization(seed)
     else:
       self.vprint('Reset...(cache state the same)')
 
@@ -649,12 +647,12 @@ class CacheGuessingGameEnv(gym.Env):
   so that we can set the same state for randomization
   '''
   def seed_randomization(self, seed=-1):    
-    return self._randomize_cache(mode="union", seed= seed)
+    return self._randomize_cache(mode="union", seed=seed)
 
   '''
   randomize the cache so that the attacker has to do a prime step
   '''
-  def _randomize_cache(self, mode = "union", seed=-1):
+  def _randomize_cache(self, mode="union", seed=-1):
     # use seed so that we can get identical initialization states
     if seed != -1:
       random.seed(seed)
