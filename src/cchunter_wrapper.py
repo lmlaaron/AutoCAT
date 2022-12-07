@@ -121,3 +121,6 @@ class CCHunterWrapper(gym.Env):
                     reward += self.no_guess_reward
 
         return obs, reward, done, info
+
+    def seed(self, seed: int) -> None:
+        self._env.seed(seed)

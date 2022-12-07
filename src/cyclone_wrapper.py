@@ -19,6 +19,7 @@ from sklearn.model_selection import cross_val_score
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
 import pickle
 import os
+
 class CycloneWrapper(gym.Env):
     def __init__(self,
                  env_config: Dict[str, Any],
@@ -230,3 +231,6 @@ class CycloneWrapper(gym.Env):
         #     reward += self.cc_hunter_coeff * rew
         #     info["cc_hunter_attack"] = cnt
         return obs, reward, done, info
+
+    def seed(self, seed: int) -> None:
+        self._env.seed(seed)
