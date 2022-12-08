@@ -25,7 +25,7 @@ cache_configs:
     blocks: 4
     associativity: 4
     hit_time: 1
-    rep_policy: "rand"
+    rep_policy: "lru"
     prefetcher: "none"
   mem:
     hit_time: 1000

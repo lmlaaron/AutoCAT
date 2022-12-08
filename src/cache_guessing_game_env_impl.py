@@ -3,6 +3,7 @@
 # description: environment for study RL for side channel attack
 from calendar import c
 from collections import deque
+from tkinter import W
 
 import numpy as np
 import random
@@ -92,13 +93,13 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
+
     # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
     self.ev_addr = env_config["ev_addr"] if "ev_addr" in env_config else 0
     self.ev_mode = env_config["ev_mode"] if "ev_mode" in env_config else False
-    assert(self.ev_mode != False )
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
@@ -122,6 +123,11 @@ class CacheGuessingGameEnv(gym.Env):
     victim_addr_s = env_config["victim_addr_s"] if "victim_addr_s" in env_config else 0
     victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 3
     flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False
+ 
+    self.prime_scope = env_config["prime_scope"] if "prime_scope" in env_config else False
+    self.prime_scope_reward = env_config["prime_scope_reward"] if "prime_scope_reward" in env_config else self.length_violation_reward
+ 
+ 
     self.verbose = env_config["verbose"] if "verbose" in env_config else 0
     self.super_verbose = env_config["super_verbose"] if "super_verbose" in env_config else 0
     self.logger = logging.getLogger()
@@ -198,6 +204,9 @@ class CacheGuessingGameEnv(gym.Env):
     # initially do a remap for the remapped cache
     self.remap()
    
+    if self.prime_scope != False:
+      self.victim_access_step = 0
+
     '''
     define the action space
     '''
@@ -362,6 +371,54 @@ class CacheGuessingGameEnv(gym.Env):
       info['is_guess'] = 1
       return np.array(list(reversed(self.state))), reward, done, info
 
+    # for prime scope
+    if self.prime_scope != False:
+      if self.victim_accessed == True:
+        if self.current_step == self.victim_access_step + 2:
+          if is_guess == 0:
+            reward = 1.1 * self.prime_scope_reward
+            done = True
+            #print(reward)
+            info['is_guess'] = 0
+            self.vprint(original_action)
+            self.vprint(address)
+            self.vprint(is_guess)
+            self.vprint(is_victim)
+            self.vprint(is_flush)
+            self.vprint(victim_addr)
+            self.vprint("prime_scope rule violated! no guess after one measure")
+            return np.array(list(reversed(self.state))), reward, done, info
+          else:
+            #reward = 2.0
+            #reward = 1.1 * self.prime_scope_reward
+            done = True
+            #print(reward)
+            info['is_guess'] = 0
+            self.vprint(original_action)
+            self.vprint(address)
+            self.vprint(is_guess)
+            self.vprint(is_victim)
+            self.vprint(is_flush)
+            self.vprint(victim_addr)
+            self.vprint("prime scope make a guess")
+            #return np.array(list(reversed(self.state))), reward, done, info
+
+        elif self.current_step == self.victim_access_step + 1:
+          if is_guess == 1 or is_victim == 1:
+            reward = 1.2 * self.prime_scope_reward
+            done = True
+            #print(reward)
+            info['is_guess'] = 0
+            self.vprint("prime_scope rule violated! no access after victim access")
+            return np.array(list(reversed(self.state))), reward, done, info
+      elif self.victim_accessed == 0 and is_guess == 1:
+          reward = 1.3 * self.prime_scope_reward
+          #print(reward)
+          done = True
+          info['is_guess'] = 0
+          self.vprint("prime_scope rule violated! guess without victim access!")
+          return np.array(list(reversed(self.state))), reward, done, info
+
     '''
     The actual stepping logic
 
@@ -383,6 +440,8 @@ class CacheGuessingGameEnv(gym.Env):
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
+          if self.prime_scope != False:
+            self.victim_access_step = self.current_step
 
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
             if self.victim_address <= self.victim_address_max:
@@ -551,6 +610,9 @@ class CacheGuessingGameEnv(gym.Env):
     if self.ceaser_access_count > self.ceaser_remap_period:
       self.remap() # do the remap, generating a new mapping function if remap is set true
       self.ceaser_access_count = 0
+
+    if self.prime_scope != False:
+      self.victim_access_step = 0
 
     if self.cache_state_reset or reset_cache_state or seed != -1:
       self.vprint('Reset...(also the cache state)')
