@@ -8,6 +8,7 @@ import numpy as np
 
 import gym
 
+from autocorrelation import autocorrelation
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
 
 
@@ -55,19 +56,12 @@ class CCHunterWrapper(gym.Env):
         self.no_guess = True
         return obs
 
-    def autocorr(self, x: np.ndarray, p: int) -> float:
-        if p == 0:
-            return 1.0
-        mean = x.mean()
-        var = x.var()
-        return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var
-
     def cc_hunter_attack(self, data: Sequence[int]) -> Tuple[float, int]:
         # Mulong: only calculate 4 * size_cache size lag
         n = min(len(data), self._env.cache_size * self.cc_hunter_check_length)
 
         x = np.asarray(data)
-        corr = [self.autocorr(x, i) for i in range(n)]
+        corr = [autocorrelation(x, i) for i in range(n)]
         corr = np.asarray(corr[1:])
         corr = np.nan_to_num(corr)
         mask = corr > self.threshold

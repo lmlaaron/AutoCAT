@@ -35,6 +35,8 @@ import pandas as pd
 #from cache_env_wrapper import CacheEnvCCHunterWrapperFactory
 import matplotlib.font_manager as font_manager
 
+from autocorrelation import autocorrelation
+
 fontaxes = {
     'family': 'Arial',
      #   'color':  'black',
@@ -96,23 +98,8 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
 
     if not change_core:
       data = np.asarray(series)
-      mean = np.mean(data)
-      # c0 = np.sum((data - mean) ** 2) / float(n_full)
-      var = np.var(data)
-      norm = np.square(data - mean).sum()
-      def r(h):
-          # deno = n_full if not change_deno else (n_full - h)
-          # return ((data[:n_full - h] - mean) *
-          #         (data[h:] - mean)).sum() / float(deno) / var
-          if h == 0:
-              return 1.0
-          else:
-              return ((data[:-h] - mean) * (data[h:] - mean)).sum() / norm
-              # return ((data[:-h] - mean) * (data[h:] - mean)).mean() / var
-            
-            # a = data[:-h]
-            # b = data[h:]
-            # return ((a - a.mean()) * (b - b.mean())).mean() / (a.std() * b.std())
+      def r(h: int) -> float:
+        return autocorrelation(data, h)
     else:
       def r(h):
         return series.autocorr(lag=h)
