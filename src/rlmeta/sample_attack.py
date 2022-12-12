@@ -21,8 +21,8 @@ from cache_env_wrapper import CacheEnvWrapperFactory
 
 
 def batch_obs(timestep: TimeStep) -> TimeStep:
-    obs, reward, done, info = timestep
-    return TimeStep(obs.unsqueeze(0), reward, done, info)
+    obs, reward, terminated, truncated, info = timestep
+    return TimeStep(obs.unsqueeze(0), reward, terminated, truncated, info)
 
 
 def unbatch_action(action: Action) -> Action:
@@ -46,7 +46,7 @@ def run_loop(env: Env,
                              reset_cache_state=reset_cache_state)
 
     agent.observe_init(timestep)
-    while not timestep.done:
+    while not timestep.terminated or timestep.truncated:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
         timestep = batch_obs(timestep)
         action = agent.act(timestep)
