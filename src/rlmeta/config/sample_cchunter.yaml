@@ -4,6 +4,9 @@ seed: 0
 checkpoint: ""
 deterministic_policy: true
 
+threshold: 0.75
+# threshold: [0.6, 0.8]
+
 defaults:
   - env_config: hpca_ae_exp_8_autocor
   - model_config: transformer
