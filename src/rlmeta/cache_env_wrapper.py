@@ -12,6 +12,7 @@ from cache_guessing_game_env_impl import CacheGuessingGameEnv
 from cchunter_wrapper import CCHunterWrapper
 from cyclone_wrapper import CycloneWrapper
 
+
 class CacheEnvWrapperFactory(EnvFactory):
     def __init__(self, env_config: Dict[str, Any]) -> None:
         self._env_config = env_config
@@ -22,7 +23,7 @@ class CacheEnvWrapperFactory(EnvFactory):
 
     def __call__(self, index: int, *args, **kwargs) -> Env:
         env = CacheGuessingGameEnv(self.env_config)
-        env = GymWrapper(env)
+        env = GymWrapper(env, old_step_api=True)
         return env
 
 
@@ -37,7 +38,7 @@ class CacheEnvCCHunterWrapperFactory(EnvFactory):
     def __call__(self, index: int, *args, **kwargs) -> Env:
         # env = CacheGuessingGameEnv(self.env_config)
         env = CCHunterWrapper(self.env_config)
-        env = GymWrapper(env)
+        env = GymWrapper(env, old_step_api=True)
         return env
 
 
@@ -52,7 +53,5 @@ class CacheEnvCycloneWrapperFactory(EnvFactory):
     def __call__(self, index: int, *args, **kwargs) -> Env:
         # env = CacheGuessingGameEnv(self.env_config)
         env = CycloneWrapper(self.env_config)
-        env = GymWrapper(env)
+        env = GymWrapper(env, old_step_api=True)
         return env
-
-
