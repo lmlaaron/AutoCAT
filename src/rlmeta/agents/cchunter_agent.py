@@ -15,8 +15,8 @@ class CCHunterAgent:
                  keep_latency: bool = True) -> None:
         self.local_step = 0
         self.cc_hunter_history = []
-        self.cc_hunter_check_length = 8
-        self.threshold = 0.9998
+        self.cc_hunter_check_length = 2
+        self.threshold = 0.415
         if "cache_configs" in env_config:
             #self.logger.info('Load config from JSON')
             self.configs = env_config["cache_configs"]
@@ -46,7 +46,8 @@ class CCHunterAgent:
             return 1.0
         mean = x.mean()
         var = max(x.var(), 1e-12)
-        return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var
+        return ((x[: -p] - mean) * (x[p: ] - mean)).sum() / np.square(x - mean).sum() #Eq (1)
+        #return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var # Eq (2)
 
     def act(self, timestep):
         if timestep.observation[0][0][0] == -1:
@@ -57,6 +58,7 @@ class CCHunterAgent:
         cur_step_obs = timestep.observation[0][0]
         info = timestep.info
         latency = cur_step_obs[0] #if self.keep_latency else -1
+        domain_id = cur_step_obs[1]
         victim_access = cur_step_obs[1]
         #MUlong Luo
         # change the semantics of cc_hunter_history following the paper
@@ -65,27 +67,38 @@ class CCHunterAgent:
         # if the action is attacker access, then it is T->S append 1
         # else if the action is trigger victim, then it is S->T append 0
         #if victim_access:
-        #    print(info)
-        if "victim_latency" in info.keys() and info["victim_latency"] == 1:
+        #=============
+        #if "victim_latency" in info.keys() and info["victim_latency"] == 1:
+        #    self.cc_hunter_history.append(0)
+        #elif latency == 1:
+        #    self.cc_hunter_history.append(1)
+        
+        if domain_id == 0 and latency == 1:
             self.cc_hunter_history.append(0)
-        elif latency == 1:
+        elif domain_id == 1 and latency == 1:
             self.cc_hunter_history.append(1)
 
         n = min(len(self.cc_hunter_history), self.cache_size * self.cc_hunter_check_length
                 )  # Mulong: only calculate 4 * size_cache size lag
-
         x = np.asarray(self.cc_hunter_history)
         corr = [self.autocorr(x, i) for i in range(n)]
         corr = np.asarray(corr[1:])
         corr = np.nan_to_num(corr)
+        #if n>30 and np.max(corr) >=1: 
+        #    print(corr)
         mask = corr > self.threshold
         rew = -np.square(corr).mean() if len(corr) > 0 else 0.0
 
         cnt = mask.sum()
         if cnt >=1 and cur_step_obs[-1]>=63:
             action = 1, info
+
         else:
             action = 0, info
+
+        #if cur_step_obs[-1]>=63:
+        #    print("cc_hunter history",x)
+        #    print(corr)
         # np.set_printoptions(suppress=True)
         # print(f"data = {np.asarray(data)}")
         # print(f"corr_arr = \n{corr}")

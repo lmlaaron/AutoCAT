@@ -30,7 +30,7 @@ class CycloneAgent:
             self.clf = pickle.load(open(svm_model_path,'rb'))
         
         self.cyclone_window_size = env_config.get("cyclone_window_size", 4)
-        self.cyclone_interval_size = env_config.get("cyclone_interval_size", 40)
+        self.cyclone_interval_size = env_config.get("cyclone_interval_size", 16)
         self.cyclone_num_buckets = env_config.get("cyclone_num_buckets", 4)
         self.cyclone_bucket_size = env_config.cache_configs.cache_1.blocks / self.cyclone_num_buckets
         self.cyclone_collect_data = env_config.get("cyclone_collect_data", False)
@@ -46,7 +46,7 @@ class CycloneAgent:
     def cyclone_attack(self, cyclone_counters):
         for i in range(len(cyclone_counters)):
             self.cyclone_heatmap[i] += cyclone_counters[i]
-
+        #print("cyclone heatmap",self.cyclone_heatmap)
         if self.cyclone_collect_data == True:
             x = np.array(cyclone_counters).reshape(-1)
             if self.cyclone_malicious_trace == True:
@@ -56,6 +56,7 @@ class CycloneAgent:
             self.X.append(x)
             self.Y.append(y)
         x = np.array(cyclone_counters).reshape(-1)
+        #print(x)
         y = self.clf.predict([x])[0]
         if y >= 0.5:
             return 1
@@ -87,6 +88,7 @@ class CycloneAgent:
         if "cyclic_set_index" in info.keys() and info["cyclic_set_index"] != -1: 
             set = int(info["cyclic_set_index"])
             if self.local_step <= self.episode_length: #"<= or <"?
+                #print(info)
                 self.cyclone_counters[int(set / self.cyclone_bucket_size) ][int(self.step_count / self.cyclone_interval_size) ] += 1    
 
         if timestep.observation[0][0][-1] >= self.episode_length-1 and self.mode=='active': 
