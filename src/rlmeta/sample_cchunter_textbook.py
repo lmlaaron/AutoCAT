@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from typing import Dict, Optional, Sequence
+from typing import Dict, Optional, Sequence, Union
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -22,7 +22,12 @@ from rlmeta.utils.stats_dict import StatsDict
 import model_utils
 
 from cache_env_wrapper import CacheEnvCCHunterWrapperFactory
+from cache_env_wrapper import CacheEnvCycloneWrapperFactory
 from textbook_attacker import TextbookAgent
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from autocorrelation import autocorrelation
+
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -50,9 +55,11 @@ def max_autocorr(data: Sequence[int], n: int) -> float:
     return corr.max()
 
 
-def run_loop(env: Env,
-             agent: PPOAgent,
-             victim_addr: int = -1) -> Dict[str, float]:
+def run_loop(
+        env: Env,
+        agent: PPOAgent,
+        victim_addr: int = -1,
+        threshold: Union[float, Sequence[float]] = 0.75) -> Dict[str, float]:
     episode_length = 0
     episode_return = 0.0
     num_guess = 0
@@ -84,6 +91,11 @@ def run_loop(env: Env,
 
     autocorr_n = (env.env.env._env.cache_size *
                   env.env.env.cc_hunter_check_length)
+    max_ac = max_autocorr(env.env.cc_hunter_history, autocorr_n)
+
+    if isinstance(threshold, float):
+        threshold = (threshold, )
+    detect = [max_ac >= t for t in threshold]
 
     metrics = {
         "episode_length": episode_length,
@@ -92,8 +104,10 @@ def run_loop(env: Env,
         "num_correct": num_correct,
         "correct_rate": num_correct / num_guess,
         "bandwith": num_guess / episode_length,
-        "max_autocorr": max_autocorr(env.env.cc_hunter_history, autocorr_n),
+        "max_autocorr": max_ac,
     }
+    for t, d in zip(threshold, detect):
+        metrics[f"detect_rate-{t}"] = d
 
     return metrics
 
@@ -102,7 +116,8 @@ def run_loops(env: Env,
               agent: PPOAgent,
               num_episodes: int = -1,
               seed: int = 0,
-              reset_cache_state: bool = False) -> StatsDict:
+              reset_cache_state: bool = False,
+              threshold: Union[float, Sequence[float]] = 0.75) -> StatsDict:
     # env.seed(seed)
     env.reset(seed=seed)
     metrics = StatsDict()
@@ -116,14 +131,20 @@ def run_loops(env: Env,
         stop = env.env.victim_address_max + 1 + int(
             env.env._env.allow_empty_victim_access)
         for victim_addr in range(start, stop):
-            cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
+            cur_metrics = run_loop(env,
+                                   agent,
+                                   victim_addr=victim_addr,
+                                   threshold=threshold)
             num_guess += cur_metrics["num_guess"]
             num_correct += cur_metrics["num_correct"]
             tot_length += cur_metrics["episode_length"]
             metrics.extend(cur_metrics)
     else:
         for _ in range(num_episodes):
-            cur_metrics = run_loop(env, agent, victim_addr=-1)
+            cur_metrics = run_loop(env,
+                                   agent,
+                                   victim_addr=-1,
+                                   threshold=threshold)
             num_guess += cur_metrics["num_guess"]
             num_correct += cur_metrics["num_correct"]
             tot_length += cur_metrics["episode_length"]
