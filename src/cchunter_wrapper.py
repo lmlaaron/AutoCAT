@@ -106,13 +106,21 @@ class CCHunterWrapper(gym.Env):
 
             if self.step_count < self.episode_length:
                 done = False
-            else:
-                rew, cnt = self.cc_hunter_attack(self.cc_hunter_history)
-                reward += self.cc_hunter_coeff * rew
-                info["cc_hunter_attack"] = cnt
+            # else:
+            #     rew, cnt = self.cc_hunter_attack(self.cc_hunter_history)
+            #     reward += self.cc_hunter_coeff * rew
+            #     info["cc_hunter_attack"] = cnt
+            #
+            #     if self.no_guess:
+            #         reward += self.no_guess_reward
 
-                if self.no_guess:
-                    reward += self.no_guess_reward
+        if self.step_count >= self.episode_length:
+            rew, cnt = self.cc_hunter_attack(self.cc_hunter_history)
+            reward += self.cc_hunter_coeff * rew
+            info["cc_hunter_attack"] = cnt
+            if self.no_guess:
+                reward += self.no_guess_reward
+            done = True
 
         return obs, reward, done, info
 
