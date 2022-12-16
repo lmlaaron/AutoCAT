@@ -344,104 +344,96 @@ class CacheGuessingGameEnv(gym.Env):
     '''
     victim_latency = None
     # if self.current_step > self.window_size : # if current_step is too long, terminate
-    # if self.step_count >= self.window_size - 1:
-    #   r = 2 #
-    #   self.vprint("length violation!")
-    #   reward = self.length_violation_reward #-10000 
-    #   done = True
-    # else:
-    if is_victim == True:
-      if self.allow_victim_multi_access == True or self.victim_accessed == False:
-        r = 2 #
-        self.victim_accessed = True
-
-        if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
-          if self.victim_address <= self.victim_address_max:
-            self.vprint("victim access (hex) %x " % self.victim_address)
-            t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
-            t = t.time # do not need to lock again
-          else:
-            self.vprint("victim make a empty access!") # do not need to actually do something
-            t = 1 # empty access will be treated as HIT??? does that make sense???
-            #t = self.l1.read(str(self.victim_address), self.current_step).time 
-        if t > 500:   # for LRU attack, has to force victim access being hit
-          victim_latency = 1
-          self.current_step += 1
-          reward = self.victim_miss_reward #-5000
-          if self.force_victim_hit == True:
-            done = True
-            self.vprint("victim access has to be hit! terminate!")
-          else:
-            done = False
-        else:
-          victim_latency = 0
-          self.current_step += 1
-          reward = self.victim_access_reward #-10
-          done = False
-      else:
-        r = 2
-        self.vprint("does not allow multi victim access in this config, terminate!")
-        self.current_step += 1
-        reward = self.double_victim_access_reward # -10000
-        done = True
-    else:
-      if is_guess == True:
-        r = 2  #
-        '''
-        this includes two scenarios
-        1. normal scenario
-        2. empty victim access scenario: victim_addr parsed is victim_addr_e, 
-        and self.victim_address is also victim_addr_e + 1
-        '''
-        if self.victim_accessed and victim_addr == hex(self.victim_address)[2:]:
-            if victim_addr != hex(self.victim_address_max + 1)[2:]: 
-              self.vprint("correct guess (hex) " + victim_addr)
-            else:
-              self.vprint("correct guess empty access!")
-            # update the guess buffer 
-            self.guess_buffer.append(True)
-            self.guess_buffer.pop(0)
-            reward = self.correct_reward # 200
-            done = True
-        else:
-            if victim_addr != hex(self.victim_address_max + 1)[2:]:
-              self.vprint("wrong guess (hex) " + victim_addr )
-            else:
-              self.vprint("wrong guess empty access!")
-            # update the guess buffer 
-            self.guess_buffer.append(False)
-            self.guess_buffer.pop(0)
-            reward = self.wrong_reward #-9999
-            done = True
-      elif is_flush == False or self.flush_inst == False:
-        lat, cyclic_set_index, cyclic_way_index, _ = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
-        lat = lat.time # measure the access latency
-        if lat > 500:
-          self.vprint("access (hex) " + address + " miss")
-          r = 1 # cache miss
-        else:
-          self.vprint("access (hex) " + address + " hit"  )
-          r = 0 # cache hit
-        self.current_step += 1
-        reward = self.step_reward #-1 
-        done = False
-      else:    # is_flush == True
-        self.l1.cflush(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='X')
-        #cflush = 1
-        self.vprint("cflush (hex) " + address )
-        #self.vprint("mapped (hex) " + hex(self.ceaser_mapping(int('0x' + address, 16)))[2:])
-        r = 2
-        self.current_step += 1
-        reward = self.step_reward
-        done = False
-
     if self.step_count >= self.window_size - 1:
       r = 2 #
       self.vprint("length violation!")
-      if self.length_violation_reward != 0:
-        reward = self.length_violation_reward #-10000 
+      reward = self.length_violation_reward #-10000 
       done = True
+    else:
+      if is_victim == True:
+        if self.allow_victim_multi_access == True or self.victim_accessed == False:
+          r = 2 #
+          self.victim_accessed = True
 
+          if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
+            if self.victim_address <= self.victim_address_max:
+              self.vprint("victim access (hex) %x " % self.victim_address)
+              t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
+              t = t.time # do not need to lock again
+            else:
+              self.vprint("victim make a empty access!") # do not need to actually do something
+              t = 1 # empty access will be treated as HIT??? does that make sense???
+              #t = self.l1.read(str(self.victim_address), self.current_step).time 
+          if t > 500:   # for LRU attack, has to force victim access being hit
+            victim_latency = 1
+            self.current_step += 1
+            reward = self.victim_miss_reward #-5000
+            if self.force_victim_hit == True:
+              done = True
+              self.vprint("victim access has to be hit! terminate!")
+            else:
+              done = False
+          else:
+            victim_latency = 0
+            self.current_step += 1
+            reward = self.victim_access_reward #-10
+            done = False
+        else:
+          r = 2
+          self.vprint("does not allow multi victim access in this config, terminate!")
+          self.current_step += 1
+          reward = self.double_victim_access_reward # -10000
+          done = True
+      else:
+        if is_guess == True:
+          r = 2  #
+          '''
+          this includes two scenarios
+          1. normal scenario
+          2. empty victim access scenario: victim_addr parsed is victim_addr_e, 
+          and self.victim_address is also victim_addr_e + 1
+          '''
+          if self.victim_accessed and victim_addr == hex(self.victim_address)[2:]:
+              if victim_addr != hex(self.victim_address_max + 1)[2:]: 
+                self.vprint("correct guess (hex) " + victim_addr)
+              else:
+                self.vprint("correct guess empty access!")
+              # update the guess buffer 
+              self.guess_buffer.append(True)
+              self.guess_buffer.pop(0)
+              reward = self.correct_reward # 200
+              done = True
+          else:
+              if victim_addr != hex(self.victim_address_max + 1)[2:]:
+                self.vprint("wrong guess (hex) " + victim_addr )
+              else:
+                self.vprint("wrong guess empty access!")
+              # update the guess buffer 
+              self.guess_buffer.append(False)
+              self.guess_buffer.pop(0)
+              reward = self.wrong_reward #-9999
+              done = True
+        elif is_flush == False or self.flush_inst == False:
+          lat, cyclic_set_index, cyclic_way_index, _ = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
+          lat = lat.time # measure the access latency
+          if lat > 500:
+            self.vprint("access (hex) " + address + " miss")
+            r = 1 # cache miss
+          else:
+            self.vprint("access (hex) " + address + " hit"  )
+            r = 0 # cache hit
+          self.current_step += 1
+          reward = self.step_reward #-1 
+          done = False
+        else:    # is_flush == True
+          self.l1.cflush(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='X')
+          #cflush = 1
+          self.vprint("cflush (hex) " + address )
+          #self.vprint("mapped (hex) " + hex(self.ceaser_mapping(int('0x' + address, 16)))[2:])
+          r = 2
+          self.current_step += 1
+          reward = self.step_reward
+          done = False
     #return observation, reward, done, info
     if done == True and is_guess != 0:
       info["is_guess"] = True
