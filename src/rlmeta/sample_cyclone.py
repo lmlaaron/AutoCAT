@@ -49,7 +49,7 @@ def run_loop(env: Env,
         timestep = env.reset(victim_address=victim_addr)
 
     agent.observe_init(timestep)
-    while not timestep.terminated or timestep.truncated:
+    while not (timestep.terminated or timestep.truncated):
         # Model server requires a batch_dim, so unsqueeze here for local runs.
         timestep = batch_obs(timestep)
         action = agent.act(timestep)

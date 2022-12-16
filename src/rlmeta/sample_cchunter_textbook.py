@@ -1,4 +1,6 @@
 import logging
+import os
+import sys
 
 from typing import Dict, Optional, Sequence
 
@@ -22,30 +24,27 @@ import model_utils
 from cache_env_wrapper import CacheEnvCCHunterWrapperFactory
 from textbook_attacker import TextbookAgent
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from autocorrelation import autocorrelation
+
+
 def batch_obs(timestep: TimeStep) -> TimeStep:
-    obs, reward, done, info = timestep
-    return TimeStep(obs.unsqueeze(0), reward, done, info)
+    obs, reward, terminated, truncated, info = timestep
+    return TimeStep(obs.unsqueeze(0), reward, terminated, truncated, info)
 
 
 def unbatch_action(action: Action) -> Action:
     act, info = action
-    #act.squeeze_(0)
+    # act.squeeze_(0)
     info = nested_utils.map_nested(lambda x: x.squeeze(0), info)
     return Action(act, info)
-
-
-def autocorr(x: np.ndarray, p: int) -> float:
-    if p == 0:
-        return 1.0
-    mean = x.mean()
-    var = x.var()
-    return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var
 
 
 def max_autocorr(data: Sequence[int], n: int) -> float:
     n = min(len(data), n)
     x = np.asarray(data)
-    corr = [autocorr(x, i) for i in range(n)]
+    corr = [autocorrelation(x, i) for i in range(n)]
     corr = np.asarray(corr[1:])
     corr = np.nan_to_num(corr)
     return corr.max()
@@ -65,7 +64,7 @@ def run_loop(env: Env,
         timestep = env.reset(victim_address=victim_addr)
 
     agent.observe_init(timestep)
-    while not timestep.done:
+    while not (timestep.terminated or timestep.truncated):
         # Model server requires a batch_dim, so unsqueeze here for local runs.
         timestep = batch_obs(timestep)
         action = agent.act(timestep)
@@ -83,7 +82,8 @@ def run_loop(env: Env,
             if timestep.info["guess_correct"]:
                 num_correct += 1
 
-    autocorr_n = env.env._env.cache_size * env.env.cc_hunter_check_length
+    autocorr_n = (env.env.env._env.cache_size *
+                  env.env.env.cc_hunter_check_length)
 
     metrics = {
         "episode_length": episode_length,
