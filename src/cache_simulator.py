@@ -112,6 +112,7 @@ def print_cache(cache):
 #Loop through the instructions in the tracefile and use the given memory hierarchy to find AMAT
 def simulate(hierarchy, trace, logger, result_file=''):
     responses = []
+    
     if result_file != '':
         f = open(result_file, 'w')
     #We only interface directly with L1. Reads and writes will automatically
@@ -130,9 +131,8 @@ def simulate(hierarchy, trace, logger, result_file=''):
         if len(inst2) == 3:
             set_no = inst2[0]
             op = inst2[1]
+            
             lock_bit = inst2[2] #i.e., 1110 means lock ways 0,1,2 and unlock way 3
-            #lock_vector = [int(x) for x in str(lock_bit)] # shown as [1,1,1,0] for 1110
-            return lock_bit
 
         #Call read for this address on our memory hierarchy
         if op == 'R' or op == 'R2':
@@ -184,11 +184,11 @@ def simulate(hierarchy, trace, logger, result_file=''):
             assert(op == 'D')
             
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
-            #address = set_no
+            
             #r, _ = l1.lock(current_step)
             #r,_ = l1.lock(set_no, current_step)
-            #r, _ = l1.read(address, current_step)
-            r = None
+            r, _, _ = l1.lock(set_no, current_step, lock_bit)
+            #r = None
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             '''underscore _ ignore a value when unpacking. www.datacamp.com/tutorial/role-underscore-python '''
 
@@ -206,16 +206,18 @@ def simulate(hierarchy, trace, logger, result_file=''):
     
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
-    #return lock_bit
-
-def lock_vector(lock_bit):
+'''   
+def lock_vector():
     
+    if lock_bit == str:
+
+    #lock_bit2 = int((lock_bit))
     #print("test")
     #aa = lock_bit
     #lock_vector = [int(x) for x in str(lock_bit)] # shown as [1,1,1,0] for 1110
     #return lock_vector
-    return lock_bit
-
+        return lock_bit
+'''
 def analyze_results(hierarchy, responses, logger): #Parse all the responses from the simulation
     n_instructions = len(responses)
     total_time = 0
