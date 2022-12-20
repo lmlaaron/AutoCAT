@@ -184,11 +184,11 @@ def simulate(hierarchy, trace, logger, result_file=''):
             assert(op == 'D')
             
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
-            address = set_no
-            r, _, _, _ = l1.lock(set_no, address, current_step)
+            #address = set_no
+            #r, _ = l1.lock(current_step)
             #r,_ = l1.lock(set_no, current_step)
-            #r, _ = l1.read(address, set_no, current_step)
-            #r = None
+            #r, _ = l1.read(address, current_step)
+            r = None
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             '''underscore _ ignore a value when unpacking. www.datacamp.com/tutorial/role-underscore-python '''
 
