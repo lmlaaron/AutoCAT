@@ -1,4 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python  
+'''above line ensures the used interpreter is the first one on your environment's $PATH
+If there are several versions of Python installed'''
 
 import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
@@ -37,18 +39,15 @@ def main():
     sh = logging.StreamHandler()
     logger.addHandler(fh)
     logger.addHandler(sh)
-
     fh_format = logging.Formatter('%(message)s')
     fh.setFormatter(fh_format)
     sh.setFormatter(fh_format)
     logger.setLevel(logging.INFO)
-    
     logger.info('Loading config...')
     config_file = open(arguments['config_file'])
     configs = yaml.full_load(config_file)
     hierarchy = build_hierarchy(configs, logger)
     logger.info('Memory hierarchy built.')
-
     logger.info('Loading tracefile...')
     trace_file = open(arguments['trace_file'])
     trace = trace_file.read().splitlines()
@@ -61,8 +60,6 @@ def main():
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
     
-    
-
 #Print the contents of a cache as a table
 #If the table is too long, it will print the first few sets,
 #break, and then print the last set
@@ -80,8 +77,7 @@ def print_cache(cache):
             ways.append("Way " + str(way_no))
             way_no += 1
         
-        #Print either all the sets if the cache is small, or just a few
-        #sets and then the last set
+        #Print either all the sets if the cache is small, or just a few sets and then the last set
         sets.append(ways)
         if len(set_indexes) > table_size + 4 - 1:
             for s in range(min(table_size, len(set_indexes) - 4)):
@@ -113,8 +109,7 @@ def print_cache(cache):
         table.inner_row_border = True
         print(table.table)
 
-#Loop through the instructions in the tracefile and use
-#the given memory hierarchy to find AMAT
+#Loop through the instructions in the tracefile and use the given memory hierarchy to find AMAT
 def simulate(hierarchy, trace, logger, result_file=''):
     responses = []
     if result_file != '':
@@ -126,93 +121,113 @@ def simulate(hierarchy, trace, logger, result_file=''):
         l1_c2 = hierarchy['cache_1_core_2']
     for current_step in range(len(trace)):
         instruction = trace[current_step]
-        address, op = instruction.split()
+
+        inst2 = instruction.split() # added to indicate third argument('locking') which designates which ways to lock/unlock
+        if len(inst2) == 2:
+            address = inst2[0]
+            op = inst2[1]
+            
+        if len(inst2) == 3:
+            set_no = inst2[0]
+            op = inst2[1]
+            lock_bit = inst2[2] #i.e., 1110 means lock ways 0,1,2 and unlock way 3
+            #lock_vector = [int(x) for x in str(lock_bit)] # shown as [1,1,1,0] for 1110
+            return lock_bit
+
         #Call read for this address on our memory hierarchy
         if op == 'R' or op == 'R2':
-            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
+            logger.info(str(current_step) + ':\tReading address ' + address + ' op: ' + op)
+            if len(inst2) ==3:
+                logger.info(str((current_step)) + ':\tprevious lock_bit ' + lock_bit)
             if op == 'R2':
                 l = l1_c2
             else:
                 l = l1
-            r, _, _, _, _ = l.read(address, current_step)
+            r, _, = l.read(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RL' or op == 'RL2':      # pl cache lock cacheline
-            assert(l1.rep_policy == plru_pl_policy) # must be pl cache 
-            # multilcore not implemented
+             
+        # pl cache lock cacheline
+        elif op == 'RL' or op == 'RL2': # multilcore not implemented    
+            assert(l1.rep_policy == plru_pl_policy)  
             assert(op == 'RL')
             logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            r, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RU' or op == 'RU2':      # pl cache unlock cacheline
+
+        # pl cache unlock cacheline
+        elif op == 'RU' or op == 'RU2': # multilcore not implemented    
             assert(l1.rep_policy == plru_pl_policy)
-            # multilcore not implemented
             assert(op == 'RU')
             logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            r, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
+
         #Call write
-        elif op == 'W' or op == 'W2':
-            # multilcore not implemented
+        elif op == 'W' or op == 'W2': # multilcore not implemented
             #assert(op == 'W')
             logger.info(str(current_step) + ':\tWriting ' + address + ' ' + op)
             r, _, _= l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
+
         #Call cflush
-        elif op == 'F' or op == 'F2':
-            ## multilcore not implemented
-            #assert(op == 'F')
+        elif op == 'F' or op == 'F2': ## multilcore not implemented
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
-            r, _, _ = l1.cflush(address, current_step)
-            #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
-        elif op == 'LO': # LOCK = 1
-            assert(l1.rep_policy == plru_lock_policy) # must be locking cache 
-            assert(op == 'LO')
-            logger.info(str(current_step) + ':\tLocking ' + address + ' ' + op)
-            r, _, _, _, _ = l1.read(address, current_step, lock_opt = LOCK )
-            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
-            responses.append(r)
+            r, _, _ = l1.cflush(address, current_step) 
+        
+        #Call lock
+        elif op == 'D': 
+            #assert(l1.rep_policy == lru_lock_policy) 
+            assert(op == 'D')
+            
+            logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
+            address = set_no
+            r, _, _, _ = l1.lock(set_no, address, current_step)
+            #r,_ = l1.lock(set_no, current_step)
+            #r, _ = l1.read(address, set_no, current_step)
+            #r = None
+            #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            '''underscore _ ignore a value when unpacking. www.datacamp.com/tutorial/role-underscore-python '''
 
-        elif op == 'UL': # UNLOCK = 2
-            assert(l1.rep_policy == plru_lock_policy)
-            assert(op == 'UL')
-            logger.info(str(current_step) + ':\tUnlocking ' + address + ' ' + op)
-            r, _, _, _, _ = l1.read(address, current_step, lock_opt = UNLOCK )
-            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-
+            
         else:
             raise InvalidOpError
         
         #if result_file != '':
         # print the trace 
-        print(address + ' ' + str(r.time), file = f )
+        #print(address + ' ' + str(r.time), file = f )
         for cache in hierarchy:
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
     
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
+    #return lock_bit
 
-def analyze_results(hierarchy, responses, logger):
-    #Parse all the responses from the simulation
+def lock_vector(lock_bit):
+    
+    #print("test")
+    #aa = lock_bit
+    #lock_vector = [int(x) for x in str(lock_bit)] # shown as [1,1,1,0] for 1110
+    #return lock_vector
+    return lock_bit
+
+def analyze_results(hierarchy, responses, logger): #Parse all the responses from the simulation
     n_instructions = len(responses)
-
     total_time = 0
     for r in responses:
         total_time += r.time
     logger.info('\nNumber of instructions: ' + str(n_instructions))
     logger.info('\nTotal cycles taken: ' + str(total_time) + '\n')
-
     amat = compute_amat(hierarchy['cache_1'], responses, logger)
     logger.info('\nAMATs:\n'+pprint.pformat(amat))
 
 def compute_amat(level, responses, logger, results={}):
-    #Check if this is main memory
-    #Main memory has a non-variable hit time
+    #Check if this is main memory. Main memory has a non-variable hit time
     if not level.next_level:
         results[level.name] = level.hit_time
     else:
@@ -239,7 +254,6 @@ def compute_amat(level, responses, logger, results={}):
         logger.info('\tNumber of hits: ' + str(n_access - n_miss))
         logger.info('\tNumber of misses: ' + str(n_miss))
     return results
-
 
 def build_hierarchy(configs, logger):
     #Build the cache hierarchy with the given configuration
