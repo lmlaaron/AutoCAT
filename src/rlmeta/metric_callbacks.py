@@ -29,7 +29,7 @@ class CCHunterMetricCallbacks(EpisodeCallbacks):
             self.tot_guess += 1
             self.acc_guess += int(info["guess_correct"])
 
-        if timestep.done:
+        if timestep.terminated or timestep.truncated:
             self._custom_metrics["total_guess"] = self.tot_guess
             if self.tot_guess > 0:
                 self._custom_metrics[
@@ -55,7 +55,7 @@ class CycloneMetricCallbacks(EpisodeCallbacks):
             self.tot_guess += 1
             self.acc_guess += int(info["guess_correct"])
 
-        if timestep.done:
+        if timestep.terminated or timestep.truncated:
             self._custom_metrics["total_guess"] = self.tot_guess
             if self.tot_guess > 0:
                 self._custom_metrics[

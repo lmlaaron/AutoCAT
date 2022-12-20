@@ -5,7 +5,5 @@ checkpoint: ""
 deterministic_policy: true
 
 defaults:
-  - env_config: cyclone
-  - model_config: transformer_cchunter
-  # - env_config: cchunter_baseline
-  # - model_config: transformer_cchunter_baseline
+  - env_config: hpca_ae_exp_9_svm
+  - model_config: transformer
