@@ -501,6 +501,7 @@ class lru_lock_policy(rep_policy):
         self.verbose = verbose
         self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
         self.vprint(self.lock_vector_array)
+        
 
     def touch(self, tag, timestamp): #if it is hit you still need to update the replacement policy
         assert(tag in self.blocks)
@@ -556,9 +557,12 @@ class lru_lock_policy(rep_policy):
         self.blocks[tag] = LOCK_TAG
     
     '''
-    def set_lock_vector(self, lock_vector_array): # gathers lock vectors per line into the array
-        
-        self.vprint("lock_vector arrays are " + str(lock_vector_array))
+    def set_lock_vector(self, test):
+    #def set_lock_vector(self, lock_vector_array): # gathers lock vectors per line into the array
+        self.test = test
+        lock_vector_array = [int(x) for x in str(test)]
+
+        #self.vprint("lock_vector arrays are " + str(lock_vector_array))
         #index = 0
         #self.vprint(index)
         #while index < len(lock_vector_array)+1:
@@ -567,4 +571,4 @@ class lru_lock_policy(rep_policy):
         #    else:
         #        index +=1
         #self.lock_vector_array[index] = LOCK
-    
+        return lock_vector_array

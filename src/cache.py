@@ -419,15 +419,12 @@ class Cache:
     def lock(self, lock_bit): #(self, set_no, lock_bit):
         
         r = response.Response({self.name:True}, self.lock_time)
-        #r = 0
+        #self.lock_bit = lock_bit
+        
         lock_vector_array = [int(x) for x in str(lock_bit)]
         print(lock_vector_array)
-        #if len(lock_vector) == self.associativity:
-        #lock_bit = 0
-        #block_offset, index, tag = self.parse_address(address)
-        #index = set_no
-        #index = 0
-        #self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+
+        lru_lock_policy.set_lock_vector(self, test=lock_bit)
         
         return r, lock_vector_array
         

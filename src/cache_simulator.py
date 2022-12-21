@@ -143,6 +143,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
             else:
                 l = l1
             r, _ = l.read(address, current_step)
+            
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
              
@@ -166,7 +167,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
 
         #Call write
         elif op == 'W' or op == 'W2': # multilcore not implemented
-            #assert(op == 'W')
+            assert(op == 'W')
             logger.info(str(current_step) + ':\tWriting ' + address + ' ' + op)
             r, _, _= l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
@@ -179,7 +180,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
         
         #Call lock
         elif op == 'D': 
-            #assert(l1.rep_policy == lru_lock_policy) 
+            assert(l1.rep_policy == lru_lock_policy) 
             assert(op == 'D')
             
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
