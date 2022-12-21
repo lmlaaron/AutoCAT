@@ -81,7 +81,7 @@ class Cache:
                 for i in range(associativity):
                     # isntantiate with empty tags
                     self.data[index].append((INVALID_TAG, block.Block(self.block_size, 0, False, 'x')))
-                    '''self.data = {'11':[('--------', 1, 0, False, 'X', 0)]}''' 
+                    '''self.data = {'0':[('--------', 1, 0, False, 'X', 0)]}''' 
                     # 5th element of value is 'LOCK_TAG', default value is 0 
                 
                 self.set_rep_policy[index] = self.rep_policy(associativity, block_size) 
@@ -89,15 +89,6 @@ class Cache:
     def vprint(self, *args):
         if self.verbose == 1:
             print( " "+" ".join(map(str,args))+" ")
-
-    
-    def lock_info(): # import lockbits when op ='D'
-        
-        vec = cache_simulator.lock_vector
-        
-        lock_vector = [int(x) for x in str(vec)] # ex. [1,1,1,1] or [0,1,0,0]
-        
-        lockbits = len(lock_vector)
 
     # flush the cache line that contains the address from all cache hierachy
     # since flush is does not affect memory domain_id
@@ -132,19 +123,19 @@ class Cache:
         self.same_level_caches.append(cache)
 
     # read with prefetcher
-    def read(self, address, current_step):  
+    def read(self, address, current_step, pl_opt= -1):  
     #def read(self, address, current_step, pl_opt= -1, lock_opt = 0): 
         address = address.zfill(8) 
         if self.prefetcher == "none":
             return self.read_no_prefetch(address, current_step)#, lock_opt)
             
         elif self.prefetcher == "nextline":
-            ret = self.read_no_prefetch(hex(int(address, 16) + 1)[2:], current_step)#, pl_opt)
+            ret = self.read_no_prefetch(hex(int(address, 16) + 1)[2:], current_step, pl_opt)
             # prefetch the next line
-            self.read_no_prefetch(address, current_step)#, pl_opt)
+            self.read_no_prefetch(address, current_step, pl_opt)
             return ret 
         elif self.prefetcher == "stream":
-            ret = self.read_no_prefetch(address, current_step)#, pl_opt)
+            ret = self.read_no_prefetch(address, current_step, pl_opt)
             # {"first": -1, "second": -1}
             # first search if it is next expected
             found= False
@@ -155,7 +146,7 @@ class Cache:
                     pref_addr = entry["second"] + int(address, 16) - entry["first"]
                     # do prefetch
                     if pref_addr >= 0:
-                        self.read_no_prefetch(hex(pref_addr)[2:], current_step)#, pl_opt)#, lock_opt, lock_id) 
+                        self.read_no_prefetch(hex(pref_addr)[2:], current_step, pl_opt)#, lock_opt, lock_id) 
                         # update the table
                         self.prefetcher_table[i] = {"first": entry["second"], "second":pref_addr}
                 elif int(address, 16) == entry["first"] + 1 or int(address, 16) == entry["first"] -1 and entry["first"] != -1:
@@ -179,7 +170,7 @@ class Cache:
     #   regardless of locking options (0 for unlocked and 1 for locked)
 
     def read_no_prefetch(self, address, current_step, pl_opt= -1):
-
+        #lock_bit 
         r = None
         #vec = cache_simulator.lock_vector
         #vec2 = vec(lock_string=)
@@ -219,7 +210,7 @@ class Cache:
             # the tag not exist in the set, cache miss
             else: 
                 #Read from the next level of memory
-                r, evict_addr = self.next_level.read(address, current_step)
+                r, evict_addr = self.next_level.read(address, current_step, pl_opt)
                 
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
@@ -425,21 +416,20 @@ class Cache:
 
         return r, way_index
     
-    def lock(self, set_no, current_step, lock_bit):#, lock_opt, timestamp):#, timestamp):#, locking):
+    def lock(self, lock_bit): #(self, set_no, lock_bit):
         
-        way_index = -1
-        evict_addr = -1
         r = response.Response({self.name:True}, self.lock_time)
         
-        lock_vector = [int(x) for x in str(lock_bit)]
-        lock_bits = len(lock_vector)
+        lock_vector_array = [int(x) for x in str(lock_bit)]
+        print(lock_vector_array)
+        #if len(lock_vector) == self.associativity:
         #lock_bit = 0
-
-        
         #block_offset, index, tag = self.parse_address(address)
-        index = set_no
-
-        self.set_rep_policy[index].set_lock_vector(lock_vector)
+        #index = set_no
+        #index = 0
+        #self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+        return lock_vector_array
+        
 
 
     def parse_address(self, address):

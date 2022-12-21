@@ -7,7 +7,6 @@ Usage: defines various replacement policy to be used in AutoCAT
 import block
 import random
 INVALID_TAG = '--------'
-LOCK_TAG = 0 #default for unlock
 
 # interface for cache replacement policy per set
 class rep_policy:
@@ -383,6 +382,7 @@ class plru_pl_policy(rep_policy):
         # find the index
         index = 0
         self.vprint(index) # self.lockarray = 
+        
         while index < len(self.candidate_tags):
             if self.candidate_tags[index] == tag:
                 break
@@ -390,6 +390,7 @@ class plru_pl_policy(rep_policy):
                 index += 1
         
         self.lockarray[index] = lock # set / unset lock
+        
 
 class brrip_policy(rep_policy):
     def __init__(self, associativity, block_size, verbose = False):
@@ -497,8 +498,8 @@ class lru_lock_policy(rep_policy):
         self.associativity = associativity
         self.block_size = block_size
         self.blocks = {}
-        self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
         self.verbose = verbose
+        self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
         self.vprint(self.lock_vector_array)
 
     def touch(self, tag, timestamp): #if it is hit you still need to update the replacement policy
@@ -523,18 +524,18 @@ class lru_lock_policy(rep_policy):
 
     def find_victim(self, lock_vector_array): #modifed to allow lock bit operation
         in_cache = list(self.blocks.keys())
-        index = 0
+        #index = 0
         victim_tag = in_cache[0]
-        while index < len(lock_vector_array): 
-            if self.lock_vector_array[index] == UNLOCK: #UNLOCK = 0
-                for b in in_cache:
-                    self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
-                    if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
-                        victim_tag = b
-                    return victim_tag 
-            else:
-                index +=1
-                return INVALID_TAG
+        #while index < len(lock_vector_array): 
+            #if self.lock_vector_array[index] == 0: #UNLOCK: #UNLOCK = 0
+        for b in in_cache:
+            self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
+            if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
+                victim_tag = b
+        return victim_tag 
+            #else:
+            #    index +=1
+            #    return INVALID_TAG
 
 
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
@@ -551,16 +552,17 @@ class lru_lock_policy(rep_policy):
         #self.blocks[tag] = block.Block(self.block_size, timestamp, False, 'L')
         self.blocks[tag] = LOCK_TAG
     '''
+    '''
     def set_lock_vector(self, lock_vector_array): # gathers lock vectors per line into the array
-        pass
+        
         self.vprint("lock_vectors are " + str(lock_vector_array))
         index = 0
         self.vprint(index)
-        while index < len(lock_vector_array):
+        while index < len(lock_vector_array)+1:
             if lock_vector_array[index] == 1:
                 break
             else:
                 index +=1
         self.lock_vector_array[index] = LOCK
-
+    '''
         
