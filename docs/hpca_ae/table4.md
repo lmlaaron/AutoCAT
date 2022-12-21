@@ -159,5 +159,5 @@ Reset...(also the cache state)
 
 i.e., the attacker will have the  attack pattern  is ```7 --> 4 --> 5 --> v --> 7 --> 5 --> 4 --> g``` as shown in Table 4 in the paper. For the case when the secret is ```1,2,3```, the corresponding attack pattern is ```7-->4-->5-->v --> 7-->5-->g```, ```7-->4-->5-->v --> 7-->5-->4-->g```  and ```7-->4-->5-->v-->7-->g```. Some of the patterns make a guess earlier, this is because they can infer the secret based on the previous accesses. Among these patterns correpsonding to the secret values, we select the longest patterns to put in Table 4 in the paper.
 
-Using the given checkpoints  in ```src/rlmeta/data/table4/```, you can reporduce the rest attack sequences found in Table IV.
+Using the given checkpoints  in ```src/rlmeta/data/table4/```, you can reporduce the rest attack sequences found in Table IV. (for config 12, use seed =9)
 
