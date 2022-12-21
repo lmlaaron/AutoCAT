@@ -546,23 +546,25 @@ class lru_lock_policy(rep_policy):
     def invalidate(self, tag):
         assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
-    ''''
+
+    
+
+    '''
     def lock_bit(self, tag, timestamp): # cache block locking scenario
         assert(tag == LOCK_TAG or tag not in self.blocks)
         #self.blocks[tag] = block.Block(self.block_size, timestamp, False, 'L')
         self.blocks[tag] = LOCK_TAG
-    '''
+    
     '''
     def set_lock_vector(self, lock_vector_array): # gathers lock vectors per line into the array
         
-        self.vprint("lock_vectors are " + str(lock_vector_array))
-        index = 0
-        self.vprint(index)
-        while index < len(lock_vector_array)+1:
-            if lock_vector_array[index] == 1:
-                break
-            else:
-                index +=1
-        self.lock_vector_array[index] = LOCK
-    '''
-        
+        self.vprint("lock_vector arrays are " + str(lock_vector_array))
+        #index = 0
+        #self.vprint(index)
+        #while index < len(lock_vector_array)+1:
+        #    if lock_vector_array[index] == 1:
+        #        break
+        #    else:
+        #        index +=1
+        #self.lock_vector_array[index] = LOCK
+    

@@ -189,7 +189,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
             #r, _, _ = l1.lock(set_no, current_step, lock_bit)
             #r, _, _ = l1.lock(set_no, lock_bit)
             print(lock_bit)
-            r = l1.lock(lock_bit)
+            r, _ = l1.lock(lock_bit)
             #r = None
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             '''underscore _ ignore a value when unpacking. www.datacamp.com/tutorial/role-underscore-python '''

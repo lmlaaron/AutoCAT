@@ -170,7 +170,7 @@ class Cache:
     #   regardless of locking options (0 for unlocked and 1 for locked)
 
     def read_no_prefetch(self, address, current_step, pl_opt= -1):
-        #lock_bit 
+        
         r = None
         #vec = cache_simulator.lock_vector
         #vec2 = vec(lock_string=)
@@ -419,7 +419,7 @@ class Cache:
     def lock(self, lock_bit): #(self, set_no, lock_bit):
         
         r = response.Response({self.name:True}, self.lock_time)
-        
+        #r = 0
         lock_vector_array = [int(x) for x in str(lock_bit)]
         print(lock_vector_array)
         #if len(lock_vector) == self.associativity:
@@ -428,7 +428,8 @@ class Cache:
         #index = set_no
         #index = 0
         #self.set_rep_policy[index].set_lock_vector(lock_vector_array)
-        return lock_vector_array
+        
+        return r, lock_vector_array
         
 
 
