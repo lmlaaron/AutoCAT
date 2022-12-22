@@ -1,4 +1,28 @@
 import logging
+import os
+import sys
+
+from typing import Dict, Optional, Sequence, Union
+
+import hydra
+from omegaconf import DictConfig, OmegaConf
+
+import numpy as np
+
+import torch
+import torch.nn
+
+import rlmeta.utils.nested_utils as nested_utils
+
+from rlmeta.agents.ppo.ppo_agent import PPOAgent
+from rlmeta.core.types import Action, TimeStep
+from rlmeta.envs.env import Env
+from rlmeta.utils.stats_dict import StatsDict
+
+import model_utils
+
+
+import logging
 
 from typing import Dict, Optional, Sequence
 
@@ -22,16 +46,27 @@ import model_utils
 from cache_env_wrapper import CacheEnvCycloneWrapperFactory
 from textbook_attacker import TextbookAgent
 
+
 def batch_obs(timestep: TimeStep) -> TimeStep:
-    obs, reward, done, info = timestep
-    return TimeStep(obs.unsqueeze(0), reward, done, info)
+    obs, reward, terminated, truncated, info = timestep
+    return TimeStep(obs.unsqueeze(0), reward, terminated, truncated, info)
 
 
 def unbatch_action(action: Action) -> Action:
     act, info = action
-    #act.squeeze_(0)
+    # act.squeeze_(0)
     info = nested_utils.map_nested(lambda x: x.squeeze(0), info)
     return Action(act, info)
+
+
+def max_autocorr(data: Sequence[int], n: int) -> float:
+    n = min(len(data), n)
+    x = np.asarray(data)
+    corr = [autocorrelation(x, i) for i in range(n)]
+    corr = np.asarray(corr[1:])
+    corr = np.nan_to_num(corr)
+    return corr.max()
+
 
 
 def run_loop(env: Env,
@@ -49,7 +84,7 @@ def run_loop(env: Env,
         timestep = env.reset(victim_address=victim_addr)
 
     agent.observe_init(timestep)
-    while not timestep.done:
+    while not (timestep.terminated or timestep.truncated):
         # Model server requires a batch_dim, so unsqueeze here for local runs.
         timestep = batch_obs(timestep)
         action = agent.act(timestep)
@@ -133,7 +168,9 @@ def main(cfg):
     #model.eval()
 
     # Create agent
-    agent = TextbookAgent(cfg.env_config)#PPOAgent(model, deterministic_policy=cfg.deterministic_policy)
+    agent = TextbookAgent(
+        cfg.env_config
+    )  #PPOAgent(model, deterministic_policy=cfg.deterministic_policy)
 
     # Run loops
     metrics = run_loops(env, agent, cfg.num_episodes, cfg.seed)

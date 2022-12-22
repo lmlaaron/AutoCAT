@@ -35,6 +35,8 @@ import pandas as pd
 #from cache_env_wrapper import CacheEnvCCHunterWrapperFactory
 import matplotlib.font_manager as font_manager
 
+from autocorrelation import autocorrelation
+
 fontaxes = {
     'family': 'Arial',
      #   'color':  'black',
@@ -96,23 +98,8 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
 
     if not change_core:
       data = np.asarray(series)
-      mean = np.mean(data)
-      # c0 = np.sum((data - mean) ** 2) / float(n_full)
-      var = np.var(data)
-      norm = np.square(data - mean).sum()
-      def r(h):
-          # deno = n_full if not change_deno else (n_full - h)
-          # return ((data[:n_full - h] - mean) *
-          #         (data[h:] - mean)).sum() / float(deno) / var
-          if h == 0:
-              return 1.0
-          else:
-              return ((data[:-h] - mean) * (data[h:] - mean)).sum() / norm
-              # return ((data[:-h] - mean) * (data[h:] - mean)).mean() / var
-            
-            # a = data[:-h]
-            # b = data[h:]
-            # return ((a - a.mean()) * (b - b.mean())).mean() / (a.std() * b.std())
+      def r(h: int) -> float:
+        return autocorrelation(data, h)
     else:
       def r(h):
         return series.autocorr(lag=h)
@@ -121,7 +108,7 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
     x = np.arange(n_lags)
     # y = lmap(r, x)
     y = np.array([r(xi) for xi in x])
-
+    print(y)
     print(f"y = {y}")
     print(f"y_max = {np.max(y[1:])}")
 
@@ -142,8 +129,13 @@ def autocorrelation_plot_forked(series, ax=None, n_lags=None, change_deno=False,
 def main():
     plt.figure(num=None, figsize=(5, 2), dpi=300, facecolor='w')
     series_human = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
-    series_baseline = [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
-    series_l2 = [0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1]
+    #series_baseline = [1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+    # sampled from python sample_cchunter.py checkpoint=/home/ml2558/CacheSimulator/src/rlmeta/data/table8/hpca_ae_exp_8_baseline_new/exp1/ppo_agent-499.pth  num_episodes=1
+    series_baseline = [0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+    #series_l2 = [0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1]
+    # sampled from python sample_cchunter.py checkpoint=/home/ml2558/CacheSimulator/src/rlmeta/data/table8/hpca_ae_exp_8_autocor_new/exp1/ppo_agent-499.pth  num_episodes=1
+    series_l2 = [0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0]
+    #series_l2 = [0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1]
 
     for i in range(0, len(series_baseline)):
       series_baseline[i] += 1.2

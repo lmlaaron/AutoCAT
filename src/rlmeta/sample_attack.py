@@ -21,7 +21,6 @@ from cache_env_wrapper import CacheEnvWrapperFactory
 from metric_callbacks import MetricCallbacks
 from loop_runner import LoopRunner
 
-
 def run_loops(env: Env,
               agent: PPOAgent,
               num_episodes: int = -1,

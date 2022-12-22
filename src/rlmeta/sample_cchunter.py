@@ -1,6 +1,8 @@
 import logging
+import os
+import sys
 
-from typing import Dict, Optional, Sequence
+from typing import Dict, Optional, Sequence, Union
 
 import hydra
 from omegaconf import DictConfig, OmegaConf
@@ -21,10 +23,14 @@ import model_utils
 
 from cache_env_wrapper import CacheEnvCCHunterWrapperFactory
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from autocorrelation import autocorrelation
+
 
 def batch_obs(timestep: TimeStep) -> TimeStep:
-    obs, reward, done, info = timestep
-    return TimeStep(obs.unsqueeze(0), reward, done, info)
+    obs, reward, terminated, truncated, info = timestep
+    return TimeStep(obs.unsqueeze(0), reward, terminated, truncated, info)
 
 
 def unbatch_action(action: Action) -> Action:
@@ -34,26 +40,20 @@ def unbatch_action(action: Action) -> Action:
     return Action(act, info)
 
 
-def autocorr(x: np.ndarray, p: int) -> float:
-    if p == 0:
-        return 1.0
-    mean = x.mean()
-    var = x.var()
-    return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var
-
-
 def max_autocorr(data: Sequence[int], n: int) -> float:
     n = min(len(data), n)
     x = np.asarray(data)
-    corr = [autocorr(x, i) for i in range(n)]
+    corr = [autocorrelation(x, i) for i in range(n)]
     corr = np.asarray(corr[1:])
     corr = np.nan_to_num(corr)
     return corr.max()
 
 
-def run_loop(env: Env,
-             agent: PPOAgent,
-             victim_addr: int = -1) -> Dict[str, float]:
+def run_loop(
+        env: Env,
+        agent: PPOAgent,
+        victim_addr: int = -1,
+        threshold: Union[float, Sequence[float]] = 0.75) -> Dict[str, float]:
     episode_length = 0
     episode_return = 0.0
     num_guess = 0
@@ -65,7 +65,7 @@ def run_loop(env: Env,
         timestep = env.reset(victim_address=victim_addr)
 
     agent.observe_init(timestep)
-    while not timestep.done:
+    while not (timestep.terminated or timestep.truncated):
         # Model server requires a batch_dim, so unsqueeze here for local runs.
         timestep = batch_obs(timestep)
         action = agent.act(timestep)
@@ -83,7 +83,13 @@ def run_loop(env: Env,
             if timestep.info["guess_correct"]:
                 num_correct += 1
 
-    autocorr_n = env.env._env.cache_size * env.env.cc_hunter_check_length
+    autocorr_n = (env.env.env._env.cache_size *
+                  env.env.env.cc_hunter_check_length)
+    max_ac = max_autocorr(env.env.cc_hunter_history, autocorr_n)
+
+    if isinstance(threshold, float):
+        threshold = (threshold, )
+    detect = [max_ac >= t for t in threshold]
 
     metrics = {
         "episode_length": episode_length,
@@ -92,8 +98,10 @@ def run_loop(env: Env,
         "num_correct": num_correct,
         "correct_rate": num_correct / num_guess,
         "bandwith": num_guess / episode_length,
-        "max_autocorr": max_autocorr(env.env.cc_hunter_history, autocorr_n),
+        "max_autocorr": max_ac,
     }
+    for t, d in zip(threshold, detect):
+        metrics[f"detect_rate-{t}"] = d
 
     return metrics
 
@@ -102,7 +110,8 @@ def run_loops(env: Env,
               agent: PPOAgent,
               num_episodes: int = -1,
               seed: int = 0,
-              reset_cache_state: bool = False) -> StatsDict:
+              reset_cache_state: bool = False,
+              threshold: Union[float, Sequence[float]] = 0.75) -> StatsDict:
     # env.seed(seed)
     env.reset(seed=seed)
     metrics = StatsDict()
@@ -116,14 +125,20 @@ def run_loops(env: Env,
         stop = env.env.victim_address_max + 1 + int(
             env.env._env.allow_empty_victim_access)
         for victim_addr in range(start, stop):
-            cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
+            cur_metrics = run_loop(env,
+                                   agent,
+                                   victim_addr=victim_addr,
+                                   threshold=threshold)
             num_guess += cur_metrics["num_guess"]
             num_correct += cur_metrics["num_correct"]
             tot_length += cur_metrics["episode_length"]
             metrics.extend(cur_metrics)
     else:
         for _ in range(num_episodes):
-            cur_metrics = run_loop(env, agent, victim_addr=-1)
+            cur_metrics = run_loop(env,
+                                   agent,
+                                   victim_addr=-1,
+                                   threshold=threshold)
             num_guess += cur_metrics["num_guess"]
             num_correct += cur_metrics["num_correct"]
             tot_length += cur_metrics["episode_length"]
@@ -152,7 +167,11 @@ def main(cfg):
     agent = PPOAgent(model, deterministic_policy=cfg.deterministic_policy)
 
     # Run loops
-    metrics = run_loops(env, agent, cfg.num_episodes, cfg.seed)
+    metrics = run_loops(env,
+                        agent,
+                        cfg.num_episodes,
+                        cfg.seed,
+                        threshold=cfg.threshold)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
 
 

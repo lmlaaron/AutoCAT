@@ -144,7 +144,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.cache_size = self.configs['cache_1']['blocks']
     self.flush_inst = flush_inst
     self.reset_time = 0
-    self.my_seed = -1
+
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
     
@@ -278,7 +278,7 @@ class CacheGuessingGameEnv(gym.Env):
   set the seed for randomization
   '''
   def seed(self, seed):
-      self.my_seed = seed
+      random.seed(seed)
 
   '''
   remap the victim address range
@@ -647,12 +647,12 @@ class CacheGuessingGameEnv(gym.Env):
   so that we can set the same state for randomization
   '''
   def seed_randomization(self, seed=-1):    
-    return self._randomize_cache(mode="union", seed= seed)
+    return self._randomize_cache(mode="union", seed=seed)
 
   '''
   randomize the cache so that the attacker has to do a prime step
   '''
-  def _randomize_cache(self, mode = "union", seed=-1):
+  def _randomize_cache(self, mode="union", seed=-1):
     # use seed so that we can get identical initialization states
     if seed != -1:
       random.seed(seed)
