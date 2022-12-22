@@ -490,9 +490,10 @@ class brrip_policy(rep_policy):
         return self.candidate_tags[max_index] 
 
 # test for "locking cache" option
-PL_NOTSET = 0
+
 LOCK = 1
 UNLOCK = 0
+TEST = 3
 class lru_lock_policy(rep_policy):
  
     def __init__(self, associativity, block_size, verbose=False):
@@ -500,7 +501,7 @@ class lru_lock_policy(rep_policy):
         self.block_size = block_size
         self.blocks = {}
         self.verbose = verbose
-        self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
+        self.lock_vector_array = [ TEST ] * self.associativity # [0, 0, 0, 0]
         self.vprint(self.lock_vector_array)
         
 
@@ -529,6 +530,7 @@ class lru_lock_policy(rep_policy):
         index = 0
         #set_no = 0
         victim_tag = in_cache[0]
+        print(lock_vector_array)
         #while index < len(lock_vector_array): 
         if self.lock_vector_array[index] == UNLOCK: #UNLOCK: #UNLOCK = 0
             for b in in_cache:
@@ -555,22 +557,14 @@ class lru_lock_policy(rep_policy):
     def set_lock_vector(self, lock_vector_array): 
         #self.lock_bit = lock_bit
         #lock_vector_array = [int(x) for x in str(lock_bit)]
-        print('lock_vector array in set_lock_vector: ', lock_vector_array)
-        print(len(self.lock_vector_array))
+        #print('lock_vector array in set_lock_vector: ', lock_vector_array)
+        
         for i in range(0, len(self.lock_vector_array)):
+            self.lock_vector_array[i] = lock_vector_array[i]
+            i = +i
+            #print('i', i)
+            #print('updated lock_vector_array:', lock_vector_array[i])
+            #lock_opt = lock_vector_array[i]
             
-            print('i', i)
-            print(lock_vector_array[i])
-            lock_opt = lock_vector_array[i]
-        
-        #self.vprint("lock_vector arrays are " + str(lock_vector_array))
-        
-        #self.vprint(index)
-        #while index < len(self.lock_vector_array):
-            if lock_opt == LOCK:
-                self.lock_vector_array[i] = LOCK
-                break
-        #else:
-        #    index +=1
-        #self.lock_vector_array[index] = LOCK
+        return lock_vector_array
         

@@ -387,11 +387,7 @@ class Cache:
 
                     for i in range( 0, len(self.data[index])):
                         if self.data[index][i][0] == victim_tag:
-                            #if domain_id != 'X':
-                            #    if domain_id == self.domain_id_tags[index][i][1] and self.domain_id_tags[index][i][1] != self.domain_id_tags[index][i][0]:
-                            #        cyclic_set_index = int(index,2)  
-                            #        cyclic_way_index = i
-                            #    self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
+                            
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                             break
 
@@ -408,28 +404,17 @@ class Cache:
         return r, way_index
     
     def lock(self, set_no, lock_bit):
-        #for i in range( 0, len(self.data[index]) ):
-        #        if self.data[index][i][0] == INVALID_TAG:
-        index = set_no
-        #index = '0'
-        r = response.Response({self.name:True}, self.lock_time)
-              
-        lock_vector_array = [int(x) for x in str(lock_bit)]
-        print('lock_vector array passed from D op: ', lock_vector_array)
-        #print(lock_vector_array)
 
-        print('original lock_vector_array in rep policy was ', self.set_rep_policy[index].lock_vector_array)
+        index = set_no
+        r = response.Response({self.name:True}, self.lock_time)   
+        lock_vector_array = [int(x) for x in str(lock_bit)]
+        print('lock_vector_array input for op: ', lock_vector_array)
+        print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
-        print('lock_vector array updated after D op: ', self.set_rep_policy[index].lock_vector_array)
-        #index = 0
-        #for i in range(0, len(self.data[index])):
-        #    break
-        #    self.data[index][i][0] = INVALID_TAG
-        
+        print('lock_vector_array output for op: ', self.set_rep_policy[index].lock_vector_array)
+
         return r, lock_vector_array
         
-
-
     def parse_address(self, address):
         #Calculate our address length and convert the address to binary string
         address_size = len(address) * 4
