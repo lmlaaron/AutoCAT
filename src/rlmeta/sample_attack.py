@@ -18,85 +18,38 @@ from rlmeta.utils.stats_dict import StatsDict
 import model_utils
 
 from cache_env_wrapper import CacheEnvWrapperFactory
-
-
-def batch_obs(timestep: TimeStep) -> TimeStep:
-    obs, reward, terminated, truncated, info = timestep
-    return TimeStep(obs.unsqueeze(0), reward, terminated, truncated, info)
-
-
-def unbatch_action(action: Action) -> Action:
-    act, info = action
-    act.squeeze_(0)
-    info = nested_utils.map_nested(lambda x: x.squeeze(0), info)
-    return Action(act, info)
-
-
-def run_loop(env: Env,
-             agent: PPOAgent,
-             victim_addr: int = -1,
-             reset_cache_state: bool = False) -> Dict[str, float]:
-    episode_length = 0
-    episode_return = 0.0
-
-    if victim_addr == -1:
-        timestep = env.reset(reset_cache_state=reset_cache_state)
-    else:
-        timestep = env.reset(victim_address=victim_addr,
-                             reset_cache_state=reset_cache_state)
-
-    agent.observe_init(timestep)
-    while not timestep.terminated or timestep.truncated:
-        # Model server requires a batch_dim, so unsqueeze here for local runs.
-        timestep = batch_obs(timestep)
-        action = agent.act(timestep)
-        # Unbatch the action.
-        action = unbatch_action(action)
-
-        timestep = env.step(action)
-        agent.observe(action, timestep)
-
-        episode_length += 1
-        episode_return += timestep.reward
-
-    # Only correct guess has positive reward.
-    correct_rate = float(episode_return > 0.0)
-
-    metrics = {
-        "episode_length": episode_length,
-        "episode_return": episode_return,
-        "correct_rate": correct_rate,
-    }
-
-    return metrics
-
+from metric_callbacks import MetricCallbacks
+from loop_runner import LoopRunner
 
 def run_loops(env: Env,
               agent: PPOAgent,
               num_episodes: int = -1,
               seed: int = 0,
               reset_cache_state: bool = False) -> StatsDict:
-    # env.seed(seed)
-    env.reset(seed=seed)
-    metrics = StatsDict()
+    metric_callbacks = MetricCallbacks()
+    loop = LoopRunner(env,
+                      agent,
+                      replay_buffer=None,
+                      should_update=False,
+                      seed=seed,
+                      episode_callbacks=metric_callbacks)
 
+    metrics = StatsDict()
     if num_episodes == -1:
         start = env.env.victim_address_min
         stop = env.env.victim_address_max + 1 + int(
             env.env.allow_empty_victim_access)
         for victim_addr in range(start, stop):
-            cur_metrics = run_loop(env,
-                                   agent,
-                                   victim_addr=victim_addr,
+            cur_metrics = loop.run(num_episodes=1,
+                                   victim_address=victim_addr,
                                    reset_cache_state=reset_cache_state)
+            # Only one StatsItem, use mean value should be enough.
+            cur_metrics = {k: v["mean"] for k, v in cur_metrics.dict().items()}
             metrics.extend(cur_metrics)
     else:
-        for _ in range(num_episodes):
-            cur_metrics = run_loop(env,
-                                   agent,
-                                   victim_addr=-1,
-                                   reset_cache_state=reset_cache_state)
-            metrics.extend(cur_metrics)
+        metrics = loop.run(num_episodes=num_episodes,
+                           victim_address=-1,
+                           reset_cache_state=reset_cache_state)
 
     return metrics
 
