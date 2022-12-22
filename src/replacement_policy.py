@@ -490,6 +490,7 @@ class brrip_policy(rep_policy):
         return self.candidate_tags[max_index] 
 
 # test for "locking cache" option
+PL_NOTSET = 0
 LOCK = 1
 UNLOCK = 0
 class lru_lock_policy(rep_policy):
@@ -525,18 +526,19 @@ class lru_lock_policy(rep_policy):
 
     def find_victim(self, lock_vector_array): #modifed to allow lock bit operation
         in_cache = list(self.blocks.keys())
-        #index = 0
+        index = 0
+        #set_no = 0
         victim_tag = in_cache[0]
         #while index < len(lock_vector_array): 
-            #if self.lock_vector_array[index] == 0: #UNLOCK: #UNLOCK = 0
-        for b in in_cache:
-            self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
+        if self.lock_vector_array[index] == UNLOCK: #UNLOCK: #UNLOCK = 0
+            for b in in_cache:
+                    self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
                 victim_tag = b
-        return victim_tag 
-            #else:
+            return victim_tag 
+        else:
             #    index +=1
-            #    return INVALID_TAG
+            return INVALID_TAG
 
 
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
@@ -548,27 +550,27 @@ class lru_lock_policy(rep_policy):
         assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
 
-    
-
-    '''
-    def lock_bit(self, tag, timestamp): # cache block locking scenario
-        assert(tag == LOCK_TAG or tag not in self.blocks)
-        #self.blocks[tag] = block.Block(self.block_size, timestamp, False, 'L')
-        self.blocks[tag] = LOCK_TAG
-    
-    '''
-    def set_lock_vector(self, test):
-    #def set_lock_vector(self, lock_vector_array): # gathers lock vectors per line into the array
-        self.test = test
-        lock_vector_array = [int(x) for x in str(test)]
-
+    # gathers lock vectors per line into the array
+    #def set_lock_vector(self, lock_opt):
+    def set_lock_vector(self, lock_vector_array): 
+        #self.lock_bit = lock_bit
+        #lock_vector_array = [int(x) for x in str(lock_bit)]
+        print('lock_vector array in set_lock_vector: ', lock_vector_array)
+        print(len(self.lock_vector_array))
+        for i in range(0, len(self.lock_vector_array)):
+            
+            print('i', i)
+            print(lock_vector_array[i])
+            lock_opt = lock_vector_array[i]
+        
         #self.vprint("lock_vector arrays are " + str(lock_vector_array))
-        #index = 0
+        
         #self.vprint(index)
-        #while index < len(lock_vector_array)+1:
-        #    if lock_vector_array[index] == 1:
-        #        break
-        #    else:
-        #        index +=1
+        #while index < len(self.lock_vector_array):
+            if lock_opt == LOCK:
+                self.lock_vector_array[i] = LOCK
+                break
+        #else:
+        #    index +=1
         #self.lock_vector_array[index] = LOCK
-        return lock_vector_array
+        

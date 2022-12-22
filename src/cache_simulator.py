@@ -131,19 +131,17 @@ def simulate(hierarchy, trace, logger, result_file=''):
         if len(inst2) == 3:
             set_no = inst2[0]
             op = inst2[1]
-            lock_bit = inst2[2] #i.e., 1110 means lock ways 0,1,2 and unlock way 3
+            lock_bit = inst2[2]  #i.e., 1110 means lock ways 0,1,2 and unlock way 3
+            
 
         #Call read for this address on our memory hierarchy
         if op == 'R' or op == 'R2':
             logger.info(str(current_step) + ':\tReading address ' + address + ' op: ' + op)
-            if len(inst2) ==3:
-                logger.info(str((current_step)) + ':\tprevious lock_bit ' + lock_bit)
             if op == 'R2':
                 l = l1_c2
             else:
                 l = l1
             r, _ = l.read(address, current_step)
-            
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
              
@@ -182,16 +180,29 @@ def simulate(hierarchy, trace, logger, result_file=''):
         elif op == 'D': 
             assert(l1.rep_policy == lru_lock_policy) 
             assert(op == 'D')
-            
+            #print('lock_bit from inst: ', lock_bit)
+            #print('set_no from inst: ',set_no)
+            #print(type(lock_bit))
+            #print(type(set_no))
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
-            set_no = 0
+            #r, _ = l1.lock(set_no, lock_bit)
+            #r, _ = l1.read(address, current_step, lock_opt = LOCK )
+            r, _ = l1.lock( set_no, lock_bit)
+            #lock_bit = for i in lock_array_vector
+            #lock_vector = [str(x) for x in str(lock_bit)]
+            #for i in range(0, len(lock_vector)):
+            #    lock_opt = lock_vector[i]
+            #    if i == LOCK:
+            #        break
+            #    i += i
+            #r, _ = l1.read(address, current_step, lock_opt = LOCK )
             #r, _ = l1.lock(current_step)
-            #r,_ = l1.lock(set_no, current_step)
-            #r, _, _ = l1.lock(set_no, current_step, lock_bit)
-            #r, _, _ = l1.lock(set_no, lock_bit)
-            print(lock_bit)
-            r, _ = l1.lock(lock_bit)
-            #r = None
+            #if lock_opt == 1:
+            #    r,_ = l1.lock(set_no, lock_opt = LOCK)
+                    #r, _ = l1.read(address, current_step, lock_opt = LOCK )
+            #r, _, _ = l1.lock(set_no, lock_opt = LOCK)
+            #r, _ = l1.lock(lock_bit, set_no)
+            
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             '''underscore _ ignore a value when unpacking. www.datacamp.com/tutorial/role-underscore-python '''
 

@@ -1,7 +1,7 @@
 import math, block, response
 import pprint
 from replacement_policy import * 
-import cache_simulator
+
 
 class Cache:
     def __init__(self, name, word_size, block_size, n_blocks, associativity, 
@@ -122,12 +122,11 @@ class Cache:
     def add_same_level_cache(self, cache):
         self.same_level_caches.append(cache)
 
-    # read with prefetcher
-    def read(self, address, current_step, pl_opt= -1):  
-    #def read(self, address, current_step, pl_opt= -1, lock_opt = 0): 
+    # read with prefetcher 
+    def read(self, address, current_step, pl_opt= -1): 
         address = address.zfill(8) 
         if self.prefetcher == "none":
-            return self.read_no_prefetch(address, current_step)#, lock_opt)
+            return self.read_no_prefetch(address, current_step, pl_opt)
             
         elif self.prefetcher == "nextline":
             ret = self.read_no_prefetch(hex(int(address, 16) + 1)[2:], current_step, pl_opt)
@@ -146,7 +145,7 @@ class Cache:
                     pref_addr = entry["second"] + int(address, 16) - entry["first"]
                     # do prefetch
                     if pref_addr >= 0:
-                        self.read_no_prefetch(hex(pref_addr)[2:], current_step, pl_opt)#, lock_opt, lock_id) 
+                        self.read_no_prefetch(hex(pref_addr)[2:], current_step, pl_opt)
                         # update the table
                         self.prefetcher_table[i] = {"first": entry["second"], "second":pref_addr}
                 elif int(address, 16) == entry["first"] + 1 or int(address, 16) == entry["first"] -1 and entry["first"] != -1:
@@ -165,18 +164,10 @@ class Cache:
         else: # prefetchter not known
             assert(False)
 
-    # for cache locking design
-    #   lock_opt = 0: default locking option. read operation no affected 
-    #   regardless of locking options (0 for unlocked and 1 for locked)
-
     def read_no_prefetch(self, address, current_step, pl_opt= -1):
         
         r = None
-        #vec = cache_simulator.lock_vector
-        #vec2 = vec(lock_string=)
-        #lock_vector = [int(x) for x in str(vec)]
-        #lockbits = len(lock_vector)
-        
+
         #Check if this is main memory
         #Main memory is always a hit
         if not self.next_level:
@@ -267,6 +258,7 @@ class Cache:
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
 
+
                 # cache is fully loaded        
                 else:
                     
@@ -302,8 +294,10 @@ class Cache:
                         #print('victim tag ' + victim_tag)
                         self.set_rep_policy[index].invalidate(victim_tag)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
+
                         if pl_opt != -1:
                             self.set_rep_policy[index].setlock(tag, pl_opt)
+
                     else:
                         evict_addr = -1
                 
@@ -314,7 +308,7 @@ class Cache:
     #   pl_opt = -1: normal read
     #   pl_opt = 1: lock the cache line
     #   pl_opt = 2: unlock the cache line
-    def write(self, address, from_cpu, current_step, pl_opt = -1, lock_opt = 0):#, lock_id = 0):
+    def write(self, address, from_cpu, current_step, pl_opt = -1):
 
         address = address.zfill(8) 
         way_index = -1
@@ -408,23 +402,29 @@ class Cache:
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
 
-                    #if lock_opt != -1:
-                    #    self.set_rep_policy[index].set_way_lock(tag, lock_opt)
-
                 if not r:
                     r = response.Response({self.name:False}, self.write_time)
 
         return r, way_index
     
-    def lock(self, lock_bit): #(self, set_no, lock_bit):
-        
+    def lock(self, set_no, lock_bit):
+        #for i in range( 0, len(self.data[index]) ):
+        #        if self.data[index][i][0] == INVALID_TAG:
+        index = set_no
+        #index = '0'
         r = response.Response({self.name:True}, self.lock_time)
-        #self.lock_bit = lock_bit
-        
+              
         lock_vector_array = [int(x) for x in str(lock_bit)]
-        print(lock_vector_array)
+        print('lock_vector array passed from D op: ', lock_vector_array)
+        #print(lock_vector_array)
 
-        lru_lock_policy.set_lock_vector(self, test=lock_bit)
+        print('original lock_vector_array in rep policy was ', self.set_rep_policy[index].lock_vector_array)
+        self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+        print('lock_vector array updated after D op: ', self.set_rep_policy[index].lock_vector_array)
+        #index = 0
+        #for i in range(0, len(self.data[index])):
+        #    break
+        #    self.data[index][i][0] = INVALID_TAG
         
         return r, lock_vector_array
         
