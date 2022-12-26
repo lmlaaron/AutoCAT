@@ -48,6 +48,7 @@ class lru_policy(rep_policy):
         assert(tag == INVALID_TAG or tag not in self.blocks)
         assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+        print('self.blocks[tag] ', self.blocks[tag])
 
     def invalidate(self, tag):
         assert(tag in self.blocks)
@@ -59,7 +60,9 @@ class lru_policy(rep_policy):
 
     def find_victim(self, timestamp):
         in_cache = list(self.blocks.keys())
+        print('in_cache: ', in_cache)
         victim_tag = in_cache[0] 
+        print('victim tag: ', victim_tag)
         for b in in_cache:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
@@ -501,7 +504,7 @@ class lru_lock_policy(rep_policy):
         self.block_size = block_size
         self.blocks = {}
         self.verbose = verbose
-        self.lock_vector_array = [ TEST ] * self.associativity # [0, 0, 0, 0]
+        self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
         self.vprint(self.lock_vector_array)
         
 
@@ -515,7 +518,38 @@ class lru_lock_policy(rep_policy):
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
         assert(tag == INVALID_TAG or tag not in self.blocks)
         assert(len(self.blocks) < self.associativity)
+        #in_cache = list(self.blocks.keys())
+        print('tag ', tag)
+        #print(in_cache)
+        #print('timestamp ', timestamp)
+        for i in range(0, len(self.lock_vector_array)):
+            print(self.lock_vector_array[i])
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+        #    else:
+        #        pass
+
+            #print('self.lock_vector_array[i] = ', self.lock_vector_array[i])
+        #print('self.blocks[tag] : ', self.blocks[tag])
+        #print(type(self.blocks[tag]))
+        #print(in_cache)
+        #        self.blocks[tag] = INVALID_TAG 
+        #        break
+                #print(self.blocks[tag])
+
+        #    else:
+        #        pass
+                #if self.lock_vector_array[i] == LOCK:
+                #    del in_cache[0]
+
+                #else:
+                #    pass 
+            #print('self.blocks[tag] : ', self.blocks[tag])
+            #print('self.blocks ', self.blocks)
+        #return self.blocks[tag]
+
+        
+            
+            
 
     def invalidate(self, tag):
         #assert(tag in self.blocks)
@@ -527,44 +561,30 @@ class lru_lock_policy(rep_policy):
 
     def find_victim(self, lock_vector_array): #modifed to allow lock bit operation
         in_cache = list(self.blocks.keys())
-        index = 0
+        #index = 0
         #set_no = 0
         victim_tag = in_cache[0]
-        print(lock_vector_array)
+        #print(lock_vector_array)
         #while index < len(lock_vector_array): 
-        if self.lock_vector_array[index] == UNLOCK: #UNLOCK: #UNLOCK = 0
-            for b in in_cache:
-                    self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
+        #for i in range(0, len(self.lock_vector_array)):
+            #if self.lock_vector_array[index] == UNLOCK: #UNLOCK: #UNLOCK = 0
+        for b in in_cache:
+            self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
                 victim_tag = b
-            return victim_tag 
-        else:
+        return victim_tag 
+        #else:
             #    index +=1
-            return INVALID_TAG
-
-
-    def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        assert(tag == INVALID_TAG or tag not in self.blocks)
-        assert(len(self.blocks) < self.associativity)
-        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-
-    def invalidate(self, tag):
-        assert(tag in self.blocks)
-        del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
+        #    return INVALID_TAG
 
     # gathers lock vectors per line into the array
-    #def set_lock_vector(self, lock_opt):
     def set_lock_vector(self, lock_vector_array): 
-        #self.lock_bit = lock_bit
-        #lock_vector_array = [int(x) for x in str(lock_bit)]
-        #print('lock_vector array in set_lock_vector: ', lock_vector_array)
         
         for i in range(0, len(self.lock_vector_array)):
             self.lock_vector_array[i] = lock_vector_array[i]
             i = +i
-            #print('i', i)
-            #print('updated lock_vector_array:', lock_vector_array[i])
-            #lock_opt = lock_vector_array[i]
+            #print('lock_vector_array ', lock_vector_array)
+            #print('self.lock_vector_array ', self.lock_vector_array)
             
         return lock_vector_array
         
