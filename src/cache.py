@@ -5,7 +5,7 @@ from replacement_policy import *
 
 class Cache:
     def __init__(self, name, word_size, block_size, n_blocks, associativity, 
-    hit_time, write_time, write_back, logger, next_level=None, rep_policy='', prefetcher="none", verbose=False):
+    hit_time, write_time, write_back, logger, next_level=None, rep_policy='', prefetcher="none", verbose=False ):
         self.name = name
         self.word_size = word_size
         self.block_size = block_size
@@ -45,7 +45,7 @@ class Cache:
                 self.vprint("no rep_policy specified or policy specified not exist")
                 self.vprint("use lru_policy")
         self.vprint("use " + prefetcher + "  prefetcher")
-        
+        #self.lock_vector_array = lock_vectory_array
         
 
         self.prefetcher = prefetcher # prefetcher == "none" "nextline" "stream"
@@ -84,7 +84,9 @@ class Cache:
                     self.data[index].append((INVALID_TAG, block.Block(self.block_size, 0, False, 'x')))
                     '''self.data = {'0':[('--------', 1, 0, False, 'X', 0)]}''' 
                 
-                self.set_rep_policy[index] = self.rep_policy(associativity, block_size) 
+                self.set_rep_policy[index] = self.rep_policy(associativity, block_size)
+                
+        #print(self.lock_vectory_array)
 
     def vprint(self, *args):
         if self.verbose == 1:
@@ -167,6 +169,7 @@ class Cache:
     def read_no_prefetch(self, address, current_step, pl_opt= -1):
         
         r = None
+   
         #Check if this is main memory
         #Main memory is always a hit
         if not self.next_level:
@@ -178,11 +181,34 @@ class Cache:
 
             #Get the tags in this set
             in_cache = []
-            for i in range( 0, len(self.data[index]) ):
-                if self.data[index][i][0] != INVALID_TAG:#'x':
-                    in_cache.append(self.data[index][i][0])
-                    print('self.data[index][i][0] ', self.data[index][i][0])
-                    print('in_cache: ', in_cache)
+
+            if self.rep_policy != lru_lock_policy:
+                for i in range( 0, len(self.data[index]) ):
+                    if self.data[index][i][0] != INVALID_TAG:#'x':
+                        in_cache.append(self.data[index][i][0])
+                        #print('in_cache: ', in_cache)
+
+            if self.rep_policy == lru_lock_policy:
+                in_cache = self.lock_vector_array # the cache is fully loaded w/ given lock_bit
+                #print('in_cache', in_cache)
+                #print(len(in_cache))
+                       
+                for i in range(0, len(in_cache)):                    
+                    for i in range(0, len(self.data[index])):
+
+                        '''if in_cache[i] is unlock, then insert INVALID_TAG so it can be accessed later'''
+                        if in_cache[i] == UNLOCK:
+                            in_cache[i] = self.data[index][i][0] # for now it's INVALID_TAG
+                            print('in_cache after swap: ', in_cache)
+
+                        '''if in_cache[i] is lock, it can't be evicted nor accessed'''
+                        if in_cache[i] == LOCK:
+                            pass
+                            #print('in_cache after swap: ', in_cache)
+                        #    evict_addr = -1
+                        #    r, evict_addr = self.next_level.read(address, current_step, pl_opt)
+                        #self.set_rep_policy[index]
+                        #victim_tag = self.set_rep_policy[index].find_victim(current_step)
 
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
@@ -197,6 +223,11 @@ class Cache:
                 # pl cache
                 if pl_opt != -1: 
                     self.set_rep_policy[index].setlock(tag, pl_opt)
+
+                if self.rep_policy == lru_lock_policy:
+                    pass
+                    #print('lock_vector_array ', self.lock_vector_array)
+
                 r = response.Response({self.name:True}, self.hit_time)
                 evict_addr = -1 #no evition needed
             
@@ -204,7 +235,11 @@ class Cache:
             else: 
                 #Read from the next level of memory
                 r, evict_addr = self.next_level.read(address, current_step, pl_opt)
-                print('evict_addr: ', evict_addr)
+                #print('evict_addr: ', evict_addr)
+                #if self.rep_policy == lru_lock_policy:
+                    #pass
+                #    r, evict_addr = self.next_level.read(address, current_step, pl_opt)
+                    #print('lock_vector_array for ', self.lock_vector_array)
                 
                 # coherent eviction
                 # inclusive eviction (evicting in L1 if evicted by the higher level)
@@ -238,20 +273,32 @@ class Cache:
 
                 # refresh in_cache afeter coherent eviction
                 in_cache = []
-                for i in range( 0, len(self.data[index]) ):
-                    if self.data[index][i][0] != INVALID_TAG:#'x':
-                        in_cache.append(self.data[index][i][0])
-                        print('in_cache ', in_cache)
-                
+
+                if self.rep_policy != lru_lock_policy:
+                    for i in range( 0, len(self.data[index]) ):
+                        if self.data[index][i][0] != INVALID_TAG:#'x':
+                            in_cache.append(self.data[index][i][0])
+                        #print('in_cache ', in_cache)
+
+                if self.rep_policy == lru_lock_policy:
+                    in_cache = self.lock_vector_array
+                    print('in_cache', in_cache)
+
+                    for i in range(0, len(in_cache)):                    
+                        for i in range(0, len(self.data[index])):
+                            if in_cache[i] == UNLOCK:
+                                in_cache[i] = self.data[index][i][0]
+                                print('in_cache after swap: ', in_cache)
+            
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity:
                     
                     for i in range( 0, len(self.data[index])):
                         if self.data[index][i][0] == INVALID_TAG:#'x':
-                            print('in_cache: ', in_cache)
+                            #print('in_cache: ', in_cache)
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
-                            print('INVALID_TAG: ', self.data[index][i][0])
-                            print('in_cache', in_cache)
+                            print('tag loaded when there is space in cache: ', self.data[index][i][0])
+                            #print('in_cache', in_cache)
                             break
                     
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
@@ -267,7 +314,12 @@ class Cache:
                 else:
                     
                     #Find the victim block and replace it
-                    victim_tag = self.set_rep_policy[index].find_victim(current_step)
+                    if self.rep_policy != lru_lock_policy:
+                        victim_tag = self.set_rep_policy[index].find_victim(current_step)
+                    
+                    if self.rep_policy == lru_lock_policy:
+                        victim_tag = self.data[index][i][0] # which is same as INVALID_TAG
+                        print('victim_tag ', victim_tag)
                     
                     
                     # pl cache may find the victim that is partition locked
@@ -295,15 +347,23 @@ class Cache:
 
                         evict_addr = victim_tag  + indexi  + '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
                         #print('index ' + index)
-                        #print('victim tag ' + victim_tag)
+                        print('victim tag ' + victim_tag)
                         self.set_rep_policy[index].invalidate(victim_tag)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
 
                         if pl_opt != -1:
                             self.set_rep_policy[index].setlock(tag, pl_opt)
 
-                    else:
-                        evict_addr = -1
+                    else: # victim tag is INVALID_TAG
+                        if self.rep_policy != lru_lock_policy:
+                            evict_addr = -1
+
+                        if self.rep_policy == lru_lock_policy:
+                            #self.set_rep_policy[index].invalidate(victim_tag)
+                            
+                            self.set_rep_policy[index].instantiate_entry(tag, current_step)
+                            print('evict_addr ', evict_addr)
+                            
                 
         #return r, evict_addr #current_step
         return r, evict_addr
@@ -407,18 +467,22 @@ class Cache:
 
         return r, way_index
     
+   
+
     def lock(self, set_no, lock_bit):
 
         index = set_no
         r = response.Response({self.name:True}, self.lock_time)   
-        lock_vector_array = [int(x) for x in str(lock_bit)]
-        print('lock_vector_array input for op: ', lock_vector_array)
+        self.lock_vector_array = [int(x) for x in str(lock_bit)]
+        print('lock_vector_array input for op: ', self.lock_vector_array)
         print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
-        self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+        self.set_rep_policy[index].set_lock_vector(self.lock_vector_array)
         print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
 
-        return r, lock_vector_array
+        return r, self.lock_vector_array
         
+        
+
     def parse_address(self, address):
         #Calculate our address length and convert the address to binary string
         address_size = len(address) * 4

@@ -48,7 +48,7 @@ class lru_policy(rep_policy):
         assert(tag == INVALID_TAG or tag not in self.blocks)
         assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-        print('self.blocks[tag] ', self.blocks[tag])
+        #print('self.blocks[tag] ', self.blocks[tag])
 
     def invalidate(self, tag):
         assert(tag in self.blocks)
@@ -384,7 +384,7 @@ class plru_pl_policy(rep_policy):
         self.vprint("setlock "+ tag + ' ' + str(lock))
         # find the index
         index = 0
-        self.vprint(index) # self.lockarray = 
+        self.vprint(index)  
         
         while index < len(self.candidate_tags):
             if self.candidate_tags[index] == tag:
@@ -393,6 +393,7 @@ class plru_pl_policy(rep_policy):
                 index += 1
         
         self.lockarray[index] = lock # set / unset lock
+        print('lock ', lock)
         
 
 class brrip_policy(rep_policy):
@@ -516,44 +517,20 @@ class lru_lock_policy(rep_policy):
         return self.touch(tag, timestamp)
 
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        assert(tag == INVALID_TAG or tag not in self.blocks)
-        assert(len(self.blocks) < self.associativity)
+        #assert(tag == INVALID_TAG or tag not in self.blocks)
+        #assert(len(self.blocks) < self.associativity)
         #in_cache = list(self.blocks.keys())
-        print('tag ', tag)
+        print('instantiated tag from rep_policy.instantiate_entry: ', tag)
         #print(in_cache)
         #print('timestamp ', timestamp)
-        for i in range(0, len(self.lock_vector_array)):
-            print(self.lock_vector_array[i])
-        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-        #    else:
-        #        pass
-
-            #print('self.lock_vector_array[i] = ', self.lock_vector_array[i])
-        #print('self.blocks[tag] : ', self.blocks[tag])
-        #print(type(self.blocks[tag]))
-        #print(in_cache)
-        #        self.blocks[tag] = INVALID_TAG 
-        #        break
-                #print(self.blocks[tag])
-
-        #    else:
-        #        pass
-                #if self.lock_vector_array[i] == LOCK:
-                #    del in_cache[0]
-
-                #else:
-                #    pass 
-            #print('self.blocks[tag] : ', self.blocks[tag])
-            #print('self.blocks ', self.blocks)
-        #return self.blocks[tag]
-
-        
-            
-            
+        #for i in range(0, len(self.lock_vector_array)):
+        #    print(self.lock_vector_array[i])
+        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)   
 
     def invalidate(self, tag):
         #assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
+        #del self.blocks[INVALID_TAG]
 
     def invalidate_unsafe(self, tag):
         if tag in self.blocks:
@@ -561,13 +538,17 @@ class lru_lock_policy(rep_policy):
 
     def find_victim(self, lock_vector_array): #modifed to allow lock bit operation
         in_cache = list(self.blocks.keys())
+        #in_cache = self.lock_vector_array
+        print(in_cache)
         #index = 0
         #set_no = 0
+        #if in_cache[i] == self.data[index][i][0]
         victim_tag = in_cache[0]
         #print(lock_vector_array)
         #while index < len(lock_vector_array): 
         #for i in range(0, len(self.lock_vector_array)):
-            #if self.lock_vector_array[index] == UNLOCK: #UNLOCK: #UNLOCK = 0
+        #    if self.lock_vector_array[i] == UNLOCK: #UNLOCK: #UNLOCK = 0
+        #        victim_tag = in_cache[i]
         for b in in_cache:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
@@ -586,5 +567,5 @@ class lru_lock_policy(rep_policy):
             #print('lock_vector_array ', lock_vector_array)
             #print('self.lock_vector_array ', self.lock_vector_array)
             
-        return lock_vector_array
+        return self.lock_vector_array
         

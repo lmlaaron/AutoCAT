@@ -180,10 +180,6 @@ def simulate(hierarchy, trace, logger, result_file=''):
         elif op == 'D': 
             assert(l1.rep_policy == lru_lock_policy) 
             assert(op == 'D')
-            #print('lock_bit from inst: ', lock_bit)
-            #print('set_no from inst: ',set_no)
-            #print(type(lock_bit))
-            #print(type(set_no))
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
             r, _ = l1.lock( set_no, lock_bit)
         
