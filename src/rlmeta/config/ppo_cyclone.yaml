@@ -23,8 +23,7 @@ batch_size: 512
 
 optimizer:
   name: "Adam"
-  args:
-    lr: 1e-4
+  lr: 1e-4
 
 learning_starts: 65536
 model_push_period: 10
@@ -36,8 +35,7 @@ steps_per_epoch: 3000
 
 num_eval_episodes: 100
 
-train_seed: 123
-eval_seed: 456
+seed: null
 
 table_view: false
 

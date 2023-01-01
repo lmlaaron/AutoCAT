@@ -35,9 +35,8 @@ cache_configs:
   mem:
     hit_time: 1000 
 
-window_size: 160
+window_size: 161  # Longer than episode_length to avoid length violation.
 episode_length: 160
-cc_hunter_check_length: 8
 
 cyclone_collect_data: true
 cyclone_malicious_trace: false

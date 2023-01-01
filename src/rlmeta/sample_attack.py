@@ -18,9 +18,58 @@ from rlmeta.utils.stats_dict import StatsDict
 import model_utils
 
 from cache_env_wrapper import CacheEnvWrapperFactory
-from metric_callbacks import MetricCallbacks
-from loop_runner import LoopRunner
 
+
+
+def batch_obs(timestep: TimeStep) -> TimeStep:
+    obs, reward, terminated, truncated, info = timestep
+    return TimeStep(obs.unsqueeze(0), reward, terminated, truncated, info)
+
+
+def unbatch_action(action: Action) -> Action:
+    act, info = action
+    act.squeeze_(0)
+    info = nested_utils.map_nested(lambda x: x.squeeze(0), info)
+    return Action(act, info)
+
+
+def run_loop(env: Env,
+             agent: PPOAgent,
+             victim_addr: int = -1,
+             reset_cache_state: bool = False) -> Dict[str, float]:
+    episode_length = 0
+    episode_return = 0.0
+
+    if victim_addr == -1:
+        timestep = env.reset(reset_cache_state=reset_cache_state)
+    else:
+        timestep = env.reset(victim_address=victim_addr,
+                             reset_cache_state=reset_cache_state)
+
+    agent.observe_init(timestep)
+    while not timestep.terminated or timestep.truncated:
+        # Model server requires a batch_dim, so unsqueeze here for local runs.
+        timestep = batch_obs(timestep)
+        action = agent.act(timestep)
+        # Unbatch the action.
+        action = unbatch_action(action)
+
+        timestep = env.step(action)
+        agent.observe(action, timestep)
+
+        episode_length += 1
+        episode_return += timestep.reward
+
+    # Only correct guess has positive reward.
+    correct_rate = float(episode_return > 0.0)
+
+    metrics = {
+        "episode_length": episode_length,
+        "episode_return": episode_return,
+        "correct_rate": correct_rate,
+    }
+
+    return metrics
 
 def run_loops(env: Env,
               agent: PPOAgent,

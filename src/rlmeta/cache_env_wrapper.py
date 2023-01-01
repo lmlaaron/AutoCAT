@@ -4,7 +4,7 @@ import sys
 from typing import Any, Dict
 
 from rlmeta.envs.env import Env, EnvFactory
-from rlmeta.envs.gym_wrappers import GymWrapper
+from rlmeta.envs.gym_wrapper import GymWrapper
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
