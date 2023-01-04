@@ -123,7 +123,7 @@ def run_loops(env: Env,
     if num_episodes == -1:
         start = env.env.victim_address_min
         stop = env.env.victim_address_max + 1 + int(
-            env.env._env.allow_empty_victim_access)
+            env.env.env.env.allow_empty_victim_access)
         for victim_addr in range(start, stop):
             cur_metrics = run_loop(env,
                                    agent,

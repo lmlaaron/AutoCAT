@@ -26,7 +26,7 @@ from rlmeta.core.types import Action, TimeStep
 from rlmeta.envs.env import Env
 from rlmeta.samplers import UniformSampler
 from rlmeta.storage import TensorCircularBuffer
-from rlmeta.utils.optimizer_utils import get_optimizer
+from rlmeta.utils.optimizer_utils import make_optimizer
 from rlmeta.utils.stats_dict import StatsDict
 
 import model_utils
@@ -48,8 +48,9 @@ def main(cfg):
 
     model = model_utils.get_model(cfg.model_config, cfg.env_config.window_size,
                                   t_env.action_space.n).to(cfg.train_device)
-    optimizer = get_optimizer(cfg.optimizer.name, model.parameters(),
-                              cfg.optimizer.args)
+    optimizer = make_optimizer(model.parameters(), **cfg.optimizer)
+                            #model.parameters(),
+                            #  cfg.optimizer.args)
     replay_buffer = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
                                  UniformSampler())
     # A dummy Controller.
@@ -73,13 +74,13 @@ def main(cfg):
                         t_agent,
                         replay_buffer,
                         should_update=True,
-                        seed=cfg.train_seed,
+                        #seed=cfg.train_seed,
                         episode_callbacks=metric_callbacks)
     e_loop = LoopRunner(e_env,
                         e_agent,
                         replay_buffer=None,
                         should_update=False,
-                        seed=cfg.eval_seed,
+                        #seed=cfg.eval_seed,
                         episode_callbacks=metric_callbacks)
 
     start_time = time.perf_counter()

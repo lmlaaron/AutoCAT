@@ -19,6 +19,7 @@ class LoopRunner:
                  seed: Optional[int] = None,
                  episode_callbacks: Optional[EpisodeCallbacks] = None) -> None:
         self._env = env
+        self.env = self._env
         self._agent = agent
         self._replay_buffer = replay_buffer
         self._should_update = should_update
