@@ -167,7 +167,7 @@ class Cache:
         else: # prefetchter not known
             assert(False)
 
-    def read_no_prefetch(self, address, current_step, pl_opt= -1):
+    def read_no_prefetch(self, address, current_step, lock_vector_array, pl_opt= -1):
         
         r = None
    
@@ -182,7 +182,11 @@ class Cache:
 
             #Get the tags in this set
             in_cache = []
-       
+            
+            for i in range( 0, len(self.data[index]) ):
+                if self.data[index][i][0] != INVALID_TAG:#'x':
+                    in_cache.append(self.data[index][i][0])
+
             #C. If this tag exists in the set, this is a hit
             if tag in in_cache:
                 for i in range( 0, len(self.data[index])):
@@ -262,21 +266,13 @@ class Cache:
                     
                     #Find the victim block and replace it
                     if self.rep_policy == lru_lock_policy:
-
-                        # choose the victim_tag when the element of the lock_array is unlock bit
-                        for i in range(0, len(self.lock_vector_array)):
-                            if self.lock_vector_array[i] == UNLOCK:
-                                victim_tag = self.set_rep_policy[index].find_victim(current_step)
-                            else:
-                                #victim_tag = LOCKED_TAG
-                                evict_addr = -1
+                        Is_evict, victim_tag = self.set_rep_policy[index].find_victim(current_step)
                     
                     else: #elif self.rep_policy != lru_lock_policy:
                         victim_tag = self.set_rep_policy[index].find_victim(current_step)
 
-                    if victim_tag != INVALID_TAG:# or victim_tag !=LOCKED_TAG: 
-                        #if victim_tag == LOCKED_TAG:
-                        #    evict_addr = -1
+                    if victim_tag != INVALID_TAG or (self.rep_policy == lru_lock_policy and Is_evict): 
+
                         # Write the block back down if it's dirty and we're using write back
                         if self.write_back:
                             for i in range( 0, len(self.data[index])):
@@ -307,10 +303,10 @@ class Cache:
                         if pl_opt != -1:
                             self.set_rep_policy[index].setlock(tag, pl_opt)
 
-                        #  I. victim tag is INVALID_TAG
+                    #  I. victim tag is INVALID_TAG
                     else: 
                         evict_addr = -1
-     
+        print('evict_addr: ', evict_addr)
         return r, evict_addr
 
     # pl_opt: indicates the PL cache option
@@ -418,13 +414,13 @@ class Cache:
 
         index = set_no
         r = response.Response({self.name:True}, self.lock_time)   
-        self.lock_vector_array = [int(x) for x in str(lock_bit)]
+        lock_vector_array = [int(x) for x in str(lock_bit)]
         #print('lock_vector_array input for op: ', self.lock_vector_array)
-        #print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
-        self.set_rep_policy[index].set_lock_vector(self.lock_vector_array)
+        print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
+        self.set_rep_policy[index].set_lock_vector(lock_vector_array)
         print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
 
-        return r, self.lock_vector_array
+        return r, lock_vector_array
         
         
 

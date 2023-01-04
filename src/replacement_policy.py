@@ -7,6 +7,7 @@ Usage: defines various replacement policy to be used in AutoCAT
 import block
 import random
 INVALID_TAG = '--------'
+LOCKED_TAG = 'L'
 
 # interface for cache replacement policy per set
 class rep_policy:
@@ -45,14 +46,16 @@ class lru_policy(rep_policy):
         return self.touch(tag, timestamp)
 
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        assert(tag == INVALID_TAG or tag not in self.blocks)
+        #assert(tag == INVALID_TAG or tag not in self.blocks)
         assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-        #print('self.blocks[tag] ', self.blocks[tag])
+        
+        p#rint('self.blocks[tag] ', self.blocks[tag])
 
     def invalidate(self, tag):
         assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
+        
 
     def invalidate_unsafe(self, tag):
         if tag in self.blocks:
@@ -60,9 +63,9 @@ class lru_policy(rep_policy):
 
     def find_victim(self, timestamp):
         in_cache = list(self.blocks.keys())
-        print('in_cache: ', in_cache)
+        #print('in_cache in find_victim: ', in_cache)
         victim_tag = in_cache[0] 
-        print('victim tag: ', victim_tag)
+        #print('victim tag in find_victim: ', victim_tag)
         for b in in_cache:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
@@ -188,7 +191,7 @@ class tree_plru_policy(rep_policy):
                 tree_index = self.left_subtree_index(tree_index)
             
         victim_tag = self.candidate_tags[tree_index - (self.num_leaves - 1) ]
-        print('victim_tag: ', victim_tag)
+        #print('victim_tag: ', victim_tag)
         return victim_tag 
 
     def instantiate_entry(self, tag, timestamp):
@@ -199,7 +202,7 @@ class tree_plru_policy(rep_policy):
                 break
             index += 1
         assert(self.candidate_tags[index] == INVALID_TAG) # this does not always hold for tree-plru
-        print('candiate_tag: ', tag)
+        #print('candiate_tag: ', tag)
         self.candidate_tags[index] = tag
 
         # touch the entry
@@ -512,6 +515,7 @@ class lru_lock_policy(rep_policy):
     def touch(self, tag, timestamp): #if it is hit you still need to update the replacement policy
         assert(tag in self.blocks)
         self.blocks[tag].last_accessed = timestamp
+        #print('timestamp: ', timestamp)
 
     def reset(self, tag, timestamp): # touch 
         return self.touch(tag, timestamp)
@@ -520,12 +524,13 @@ class lru_lock_policy(rep_policy):
         #assert(tag == INVALID_TAG or tag not in self.blocks)
         #assert(len(self.blocks) < self.associativity)
         #in_cache = list(self.blocks.keys())
-        print('instantiated tag from rep_policy.instantiate_entry: ', tag)
+        #print('instantiated tag from rep_policy.instantiate_entry: ', tag)
         #print(in_cache)
         #print('timestamp ', timestamp)
         #for i in range(0, len(self.lock_vector_array)):
         #    print(self.lock_vector_array[i])
-        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)   
+        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+        print('timestamp: ', timestamp)  
 
     def invalidate(self, tag):
         #assert(tag in self.blocks)
@@ -536,27 +541,32 @@ class lru_lock_policy(rep_policy):
         if tag in self.blocks:
             del self.blocks[tag]
 
-    def find_victim(self, lock_vector_array): #modifed to allow lock bit operation
-        in_cache = list(self.blocks.keys())
-        #in_cache = self.lock_vector_array
-        print(in_cache)
-        #index = 0
-        #set_no = 0
-        #if in_cache[i] == self.data[index][i][0]
-        victim_tag = in_cache[0]
+    def find_victim(self, victim_tag): #modifed to allow lock bit operation
+        tag_array = list(self.blocks.keys())
+        Is_evict = False
+        victim_tag = INVALID_TAG
+
+        for b in tag_array:
+            #print("tag array")
+            print("tag array", b + ' '+ 'timestamp ' + str(self.blocks[b].last_accessed))
+ 
+        for i in range(0, len(self.lock_vector_array)):
+            if self.lock_vector_array[i] == UNLOCK:
+                victim_tag = tag_array[i]
+                Is_evict = True
+                break
         #print(lock_vector_array)
         #while index < len(lock_vector_array): 
         #for i in range(0, len(self.lock_vector_array)):
         #    if self.lock_vector_array[i] == UNLOCK: #UNLOCK: #UNLOCK = 0
         #        victim_tag = in_cache[i]
-        for b in in_cache:
+
+        '''for b in tag_array:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
-                victim_tag = b
-        return victim_tag 
-        #else:
-            #    index +=1
-        #    return INVALID_TAG
+                victim_tag = b'''
+        print('Is_evict:', Is_evict, '\n','self.lock_vector_array: ', self.lock_vector_array,'\n', '\n', 'victim_tag ', victim_tag)
+        return Is_evict, victim_tag 
 
     # gathers lock vectors per line into the array
     def set_lock_vector(self, lock_vector_array): 
