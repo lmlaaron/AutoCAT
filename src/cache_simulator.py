@@ -84,25 +84,38 @@ def print_cache(cache):
                 temp_way = ["Set " + str(s)]
                 for w in range(0, cache.associativity):
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
+
                 sets.append(temp_way)
-            
+
             for i in range(3):
                 temp_way = ['.']
                 for w in range(cache.associativity):
                     temp_way.append('')
                 sets.append(temp_way)
-            
+
             ##set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
             temp_way = ['Set ' + str(len(set_indexes) - 1)]
             for w in range(0, cache.associativity):
                 temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w][1].address)
             sets.append(temp_way)
+            
+
         else: 
             for s in range(len(set_indexes)):
                 temp_way = ["Set " + str(s)]
                 for w in range(0, cache.associativity):
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
+
+                # add additional rows only if the replacement policy = lru_lock_policy
+                if cache.rep_policy == lru_lock_policy:
+                    lock_info = ["Lock bit"]
+                    
+                    sets.append(lock_info)
+
+                    timestamp = ["Timestamp"]
+
+                    sets.append(timestamp)
 
         table = UnixTable(sets)
         table.title = cache.name
@@ -188,6 +201,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
 
             responses.append(r)
             
+
         else:
             raise InvalidOpError
         

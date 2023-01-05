@@ -537,29 +537,41 @@ class lru_lock_policy(rep_policy):
         if tag in self.blocks:
             del self.blocks[tag]
 
-    def find_victim(self, victim_tag): #modifed to allow lock bit operation
+    def find_victim(self, victim_tag): #tag_array
+        
+        '''0. this method is invoked when the cache is fully loaded.
+           1. get the tags in the cache from the previous step. 
+           2. get the values for timestamp, lock_bits for each tag
+           3. if the lock_bit is UNLOCK, then choose the tag with
+              the lowest value of timestamp. assign this tag is the victim_tag 
+           4. if there is no lock_bits of UNLOCK, no eviction.
+              Is_evict is False, and assign INVALID_TAG to victim_tag  '''
+            
         tag_array = list(self.blocks.keys())
         Is_evict = False
         victim_tag = INVALID_TAG
 
+        last_accessed = []
         for i in tag_array:
-            print(i, self.blocks[i].last_accessed)
-   
-        '''self.blocks[tag].last_accessed = timestamp
-            self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-        '''    
-        victim_tags_dict = {k: v for k, v in zip(tag_array, self.lock_vector_array)}
-       
-        print('victim_tags with lockbit: ', victim_tags_dict)
-
-        for i in range(0, len(self.lock_vector_array)):
-            if self.lock_vector_array[i] == UNLOCK:
-                    #if self.lock_vector_array[i] == min(self.blocks.last_accessed):
-                victim_tag = tag_array[i]
-                Is_evict = True
-                break
+            #print(i, self.blocks[i].last_accessed)
+            last_accessed.append(self.blocks[i].last_accessed)
         
-        print('Is_evict:', Is_evict, '\n','self.lock_vector_array: ', self.lock_vector_array,'\n', 'victim_tag ', victim_tag)
+        #print(tag_array)
+        #print(self.lock_vector_array)
+        victim_tags = [[last_accessed[i], tag_array[i]] for i in range(self.associativity) if self.lock_vector_array[i] == UNLOCK]
+        #print(victim_tags)
+        victim_tags.sort()
+        
+        if len(victim_tags) == 0:
+            Is_evict = False
+            victim_tag = INVALID_TAG
+        else:
+            victim_tag = victim_tags[0][1]
+            Is_evict = True
+
+        #print('self.lock_vector_array: ', self.lock_vector_array)
+        #print('victim_tag: ', victim_tag)
+        #print('Is_evict:', Is_evict)
         
         return Is_evict, victim_tag 
 
@@ -569,8 +581,6 @@ class lru_lock_policy(rep_policy):
         for i in range(0, len(self.lock_vector_array)):
             self.lock_vector_array[i] = lock_vector_array[i]
             i = +i
-            #print('lock_vector_array ', lock_vector_array)
-            #print('self.lock_vector_array ', self.lock_vector_array)
             
         return self.lock_vector_array
         

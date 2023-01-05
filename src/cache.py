@@ -266,8 +266,11 @@ class Cache:
                     
                     #Find the victim block and replace it
                     if self.rep_policy == lru_lock_policy:
-                        Is_evict, victim_tag = self.set_rep_policy[index].find_victim(current_step)
-                    
+                        Is_evict, victim_tag = self.set_rep_policy[index].find_victim(current_step)#, tag_array)
+                        #tag_array = []
+                        #for i in range(0,len(self.data[index][i])):
+                        #    tag_array.append(self.data[index][i][0])
+
                     else: #elif self.rep_policy != lru_lock_policy:
                         victim_tag = self.set_rep_policy[index].find_victim(current_step)
 
