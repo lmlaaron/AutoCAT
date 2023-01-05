@@ -306,7 +306,7 @@ class Cache:
                     #  I. victim tag is INVALID_TAG
                     else: 
                         evict_addr = -1
-        print('evict_addr: ', evict_addr)
+        #print('evict_addr: ', evict_addr)
         return r, evict_addr
 
     # pl_opt: indicates the PL cache option

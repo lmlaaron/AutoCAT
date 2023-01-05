@@ -50,7 +50,7 @@ class lru_policy(rep_policy):
         assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
         
-        p#rint('self.blocks[tag] ', self.blocks[tag])
+        #rint('self.blocks[tag] ', self.blocks[tag])
 
     def invalidate(self, tag):
         assert(tag in self.blocks)
@@ -68,8 +68,10 @@ class lru_policy(rep_policy):
         #print('victim tag in find_victim: ', victim_tag)
         for b in in_cache:
             self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
+            
             if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
                 victim_tag = b
+                print("victim_tag", b + ' ' + str(self.blocks[b].last_accessed))
         return victim_tag 
 
 # random replacement policy
@@ -523,14 +525,8 @@ class lru_lock_policy(rep_policy):
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
         #assert(tag == INVALID_TAG or tag not in self.blocks)
         #assert(len(self.blocks) < self.associativity)
-        #in_cache = list(self.blocks.keys())
-        #print('instantiated tag from rep_policy.instantiate_entry: ', tag)
-        #print(in_cache)
-        #print('timestamp ', timestamp)
-        #for i in range(0, len(self.lock_vector_array)):
-        #    print(self.lock_vector_array[i])
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-        print('timestamp: ', timestamp)  
+        #print('timestamp: ', timestamp)  
 
     def invalidate(self, tag):
         #assert(tag in self.blocks)
@@ -546,26 +542,25 @@ class lru_lock_policy(rep_policy):
         Is_evict = False
         victim_tag = INVALID_TAG
 
-        for b in tag_array:
-            #print("tag array")
-            print("tag array", b + ' '+ 'timestamp ' + str(self.blocks[b].last_accessed))
- 
+        for i in tag_array:
+            print(i, self.blocks[i].last_accessed)
+   
+        '''self.blocks[tag].last_accessed = timestamp
+            self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+        '''    
+        victim_tags_dict = {k: v for k, v in zip(tag_array, self.lock_vector_array)}
+       
+        print('victim_tags with lockbit: ', victim_tags_dict)
+
         for i in range(0, len(self.lock_vector_array)):
             if self.lock_vector_array[i] == UNLOCK:
+                    #if self.lock_vector_array[i] == min(self.blocks.last_accessed):
                 victim_tag = tag_array[i]
                 Is_evict = True
                 break
-        #print(lock_vector_array)
-        #while index < len(lock_vector_array): 
-        #for i in range(0, len(self.lock_vector_array)):
-        #    if self.lock_vector_array[i] == UNLOCK: #UNLOCK: #UNLOCK = 0
-        #        victim_tag = in_cache[i]
-
-        '''for b in tag_array:
-            self.vprint(b + ' '+ str(self.blocks[b].last_accessed))
-            if self.blocks[b].last_accessed < self.blocks[victim_tag].last_accessed:
-                victim_tag = b'''
-        print('Is_evict:', Is_evict, '\n','self.lock_vector_array: ', self.lock_vector_array,'\n', '\n', 'victim_tag ', victim_tag)
+        
+        print('Is_evict:', Is_evict, '\n','self.lock_vector_array: ', self.lock_vector_array,'\n', 'victim_tag ', victim_tag)
+        
         return Is_evict, victim_tag 
 
     # gathers lock vectors per line into the array
