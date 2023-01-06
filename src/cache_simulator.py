@@ -54,12 +54,13 @@ def main():
     trace = [item for item in trace if not item.startswith('#')]
     logger.info('Loaded tracefile ' + arguments['trace_file'])
     logger.info('Begin simulation!')
-    simulate(hierarchy, trace, logger, result_file = result_file)
+    simulate(hierarchy, trace, logger, result_file = result_file )
     if arguments['draw_cache']:
         for cache in hierarchy:
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
     
+
 #Print the contents of a cache as a table
 #If the table is too long, it will print the first few sets,
 #break, and then print the last set
@@ -102,8 +103,7 @@ def print_cache(cache):
                 temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w][1].address)
             sets.append(temp_way)
             
-
-        else: 
+        else: # no of sets are equal or less than 8
             for s in range(len(set_indexes)):
                 temp_way = ["Set " + str(s)]
                 for w in range(0, cache.associativity): # set_indexes = ['0']
@@ -113,19 +113,12 @@ def print_cache(cache):
                 # add additional rows only if the replacement policy = lru_lock_policy
                 if cache.rep_policy == lru_lock_policy:
                     lock_info = ["Lock bit"]
-                    #for w in range(0, cache.associativity):
-                    #lock_vector_array = lru_lock_policy(associativity = cache.associativity, block_size = cache.block_size)
-                    #a = lru_lock_policy(rep_policy)
-                    #aa = a.set_lock_vector
-                
-                    #lru_lock_policy.lock_vector_array
-                    #aa = a.lock
-                    #b = lock_bit
-                    #print(a)
-                    #print(aa)
-                    #print(b)
-                    #lock_info.append(aa)
-                    #self.set_rep_policy[index] = self.rep_policy(associativity, block_size)
+                    lock_vector_array = cache.lock_bits # get the lock_vector_array
+                    #print(lock_vector_array)
+                    for w in range(0, len(lock_vector_array)): 
+                        # TODO: use list comprehension for lock_vector_array 
+                        lock_info.append(lock_vector_array[w])
+                        
                     sets.append(lock_info)
 
                     timestamp = ["Timestamp"]
@@ -212,14 +205,10 @@ def simulate(hierarchy, trace, logger, result_file=''):
             assert(l1.rep_policy == lru_lock_policy) 
             assert(op == 'D')
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
-            r, _ = l1.lock(set_no, lock_bit)
-        
+            r, _ = l1.lock(set_no, lock_bit) #underscore _ ignores a value when unpacking
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
-            '''underscore _ ignore a value when unpacking '''
-
             responses.append(r)
             
-
         else:
             raise InvalidOpError
         

@@ -546,20 +546,21 @@ class lru_lock_policy(rep_policy):
            4. if there is no lock_bits of UNLOCK, no eviction.
               Is_evict is False, and assign INVALID_TAG to victim_tag  '''
 
-        ''' FIXME: tag_array should be the list of current tags in each block '''
+        # FIXME: tag_array should be the list of current tags in each block
         tag_array = list(self.blocks.keys())
+        #tag_array = cache.data[i]
         #new_array = list(self.blocks.values())
         Is_evict = False
         victim_tag = INVALID_TAG
 
         last_accessed = []
         for i in tag_array:
-            print(i, self.blocks[i].last_accessed, self.blocks[i].address)
+            #print(i, self.blocks[i].last_accessed, self.blocks[i].address)
             last_accessed.append(self.blocks[i].last_accessed)
             
         #print(tag_array)
         #print(self.lock_vector_array)
-        ''' FIXME: explicitly indicate to sort the victim_tags '''
+        # FIXME: explicitly indicate to sort the victim_tags 
         victim_tags = [[last_accessed[i], tag_array[i]] for i in range(self.associativity) if self.lock_vector_array[i] == UNLOCK]
         #print(victim_tags)
         victim_tags.sort()

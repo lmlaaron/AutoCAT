@@ -64,7 +64,7 @@ class Cache:
         #Dictionary that holds the actual cache data
         self.data = {}
         self.set = {}
- 
+        self.lock_bits = []
         #Pointer to the next lowest level of memory
         #Main memory gets the default None value
         self.next_level = next_level
@@ -420,11 +420,16 @@ class Cache:
         index = set_no
         r = response.Response({self.name:True}, self.lock_time)   
         lock_vector_array = [int(x) for x in str(lock_bit)]
+        
         #self.lock_vector_array = lock_vector_array
         #print('lock_vector_array input for op: ', self.lock_vector_array)
         #print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
-        print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
+
+        # use this object to pass the updated lock_vector_array to cache_simulator
+        self.lock_bits = self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+
+        #print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
 
         return r, lock_vector_array
         
