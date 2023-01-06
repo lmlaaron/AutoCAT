@@ -5,7 +5,7 @@ from replacement_policy import *
 
 class Cache:
     def __init__(self, name, word_size, block_size, n_blocks, associativity, 
-    hit_time, write_time, write_back, logger, next_level=None, rep_policy='', prefetcher="none", verbose=False ):
+    hit_time, write_time, write_back, logger, next_level=None, rep_policy='',  prefetcher="none", verbose=False ):
         self.name = name
         self.word_size = word_size
         self.block_size = block_size
@@ -21,6 +21,7 @@ class Cache:
         self.logger.disabled = False#True
         self.set_rep_policy = {}
         self.verbose = verbose
+
         if rep_policy == 'lru':
             self.vprint("use lru") 
             self.rep_policy = lru_policy
@@ -45,7 +46,8 @@ class Cache:
                 self.vprint("no rep_policy specified or policy specified not exist")
                 self.vprint("use lru_policy")
         self.vprint("use " + prefetcher + "  prefetcher")
-        #self.lock_vector_array = lock_vectory_array
+
+        
         
 
         self.prefetcher = prefetcher # prefetcher == "none" "nextline" "stream"
@@ -418,8 +420,9 @@ class Cache:
         index = set_no
         r = response.Response({self.name:True}, self.lock_time)   
         lock_vector_array = [int(x) for x in str(lock_bit)]
+        #self.lock_vector_array = lock_vector_array
         #print('lock_vector_array input for op: ', self.lock_vector_array)
-        print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
+        #print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
         print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
 

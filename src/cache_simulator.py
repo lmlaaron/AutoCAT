@@ -67,9 +67,12 @@ def print_cache(cache):
     table_size = 5
     ways = [""]
     sets = []
-    set_indexes = sorted(cache.data.keys())
+    set_indexes = sorted(cache.data.keys()) # set_indexes = ['0']
+    #print(cache.data.keys())
+    #print(set_indexes)
     if len(cache.data.keys()) > 0:
-        first_key = list(cache.data.keys())[0]
+        first_key = list(cache.data.keys())[0] #first_key = 0
+        #print(first_key)
         way_no = 0
         
         #Label the columns
@@ -103,18 +106,31 @@ def print_cache(cache):
         else: 
             for s in range(len(set_indexes)):
                 temp_way = ["Set " + str(s)]
-                for w in range(0, cache.associativity):
+                for w in range(0, cache.associativity): # set_indexes = ['0']
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
-
+                
                 # add additional rows only if the replacement policy = lru_lock_policy
                 if cache.rep_policy == lru_lock_policy:
                     lock_info = ["Lock bit"]
-                    
+                    #for w in range(0, cache.associativity):
+                    #lock_vector_array = lru_lock_policy(associativity = cache.associativity, block_size = cache.block_size)
+                    #a = lru_lock_policy(rep_policy)
+                    #aa = a.set_lock_vector
+                
+                    #lru_lock_policy.lock_vector_array
+                    #aa = a.lock
+                    #b = lock_bit
+                    #print(a)
+                    #print(aa)
+                    #print(b)
+                    #lock_info.append(aa)
+                    #self.set_rep_policy[index] = self.rep_policy(associativity, block_size)
                     sets.append(lock_info)
 
                     timestamp = ["Timestamp"]
-
+                    for w in range(0, cache.associativity):
+                        timestamp.append(cache.data[set_indexes[s]][w][1].last_accessed)
                     sets.append(timestamp)
 
         table = UnixTable(sets)
@@ -133,10 +149,12 @@ def simulate(hierarchy, trace, logger, result_file=''):
     l1 = hierarchy['cache_1']
     if 'cache_1_core_2' in hierarchy:
         l1_c2 = hierarchy['cache_1_core_2']
+
     for current_step in range(len(trace)):
         instruction = trace[current_step]
 
-        inst2 = instruction.split() # added to indicate third argument('locking') which designates which ways to lock/unlock
+        # added to indicate third argument('locking') which designates which ways to lock/unlock
+        inst2 = instruction.split() 
         if len(inst2) == 2:
             address = inst2[0]
             op = inst2[1]
@@ -194,10 +212,10 @@ def simulate(hierarchy, trace, logger, result_file=''):
             assert(l1.rep_policy == lru_lock_policy) 
             assert(op == 'D')
             logger.info(str(current_step) + ':\tLock_bit: '  + lock_bit + ' op: ' + op)
-            r, _ = l1.lock( set_no, lock_bit)
+            r, _ = l1.lock(set_no, lock_bit)
         
-            #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
-            '''underscore _ ignore a value when unpacking. www.datacamp.com/tutorial/role-underscore-python '''
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            '''underscore _ ignore a value when unpacking '''
 
             responses.append(r)
             
@@ -214,6 +232,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
     
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
+    #return lock_bit
 
 def analyze_results(hierarchy, responses, logger): #Parse all the responses from the simulation
     n_instructions = len(responses)

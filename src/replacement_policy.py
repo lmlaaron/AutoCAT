@@ -512,7 +512,6 @@ class lru_lock_policy(rep_policy):
         self.verbose = verbose
         self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
         self.vprint(self.lock_vector_array)
-        
 
     def touch(self, tag, timestamp): #if it is hit you still need to update the replacement policy
         assert(tag in self.blocks)
@@ -546,18 +545,21 @@ class lru_lock_policy(rep_policy):
               the lowest value of timestamp. assign this tag is the victim_tag 
            4. if there is no lock_bits of UNLOCK, no eviction.
               Is_evict is False, and assign INVALID_TAG to victim_tag  '''
-            
+
+        ''' FIXME: tag_array should be the list of current tags in each block '''
         tag_array = list(self.blocks.keys())
+        #new_array = list(self.blocks.values())
         Is_evict = False
         victim_tag = INVALID_TAG
 
         last_accessed = []
         for i in tag_array:
-            #print(i, self.blocks[i].last_accessed)
+            print(i, self.blocks[i].last_accessed, self.blocks[i].address)
             last_accessed.append(self.blocks[i].last_accessed)
-        
+            
         #print(tag_array)
         #print(self.lock_vector_array)
+        ''' FIXME: explicitly indicate to sort the victim_tags '''
         victim_tags = [[last_accessed[i], tag_array[i]] for i in range(self.associativity) if self.lock_vector_array[i] == UNLOCK]
         #print(victim_tags)
         victim_tags.sort()
@@ -570,7 +572,8 @@ class lru_lock_policy(rep_policy):
             Is_evict = True
 
         #print('self.lock_vector_array: ', self.lock_vector_array)
-        #print('victim_tag: ', victim_tag)
+        #print(new_array)
+        print('victim_tag: ', victim_tag)
         #print('Is_evict:', Is_evict)
         
         return Is_evict, victim_tag 
