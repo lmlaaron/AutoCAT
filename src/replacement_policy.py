@@ -6,6 +6,7 @@ Usage: defines various replacement policy to be used in AutoCAT
 
 import block
 import random
+import cache
 INVALID_TAG = '--------'
 LOCKED_TAG = 'L'
 
@@ -193,11 +194,17 @@ class tree_plru_policy(rep_policy):
                 tree_index = self.left_subtree_index(tree_index)
             
         victim_tag = self.candidate_tags[tree_index - (self.num_leaves - 1) ]
-        #print('victim_tag: ', victim_tag)
+        for i in range(0, self.associativity):
+            print(self.candidate_tags[i])
+            #print(self.candidate_tags[i].last_accessed)
+
+            #print('victim_tag: ', victim_tag)
+
         return victim_tag 
 
     def instantiate_entry(self, tag, timestamp):
         # find a tag that can be invalidated
+        print(self.candidate_tags)
         index = 0
         while index < len(self.candidate_tags):
             if self.candidate_tags[index] == INVALID_TAG:
@@ -516,67 +523,46 @@ class lru_lock_policy(rep_policy):
     def touch(self, tag, timestamp): #if it is hit you still need to update the replacement policy
         assert(tag in self.blocks)
         self.blocks[tag].last_accessed = timestamp
-        #print('timestamp: ', timestamp)
-
+  
     def reset(self, tag, timestamp): # touch 
         return self.touch(tag, timestamp)
 
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        #assert(tag == INVALID_TAG or tag not in self.blocks)
-        #assert(len(self.blocks) < self.associativity)
+        assert(tag == INVALID_TAG or tag not in self.blocks)
+        assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-        #print('timestamp: ', timestamp)  
-
+        
     def invalidate(self, tag):
-        #assert(tag in self.blocks)
+        assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
-        #del self.blocks[INVALID_TAG]
-
+        
     def invalidate_unsafe(self, tag):
         if tag in self.blocks:
             del self.blocks[tag]
 
-    def find_victim(self, victim_tag): #tag_array
+    def find_victim(self, tag, current_step, cache_set_data): 
         
-        '''0. this method is invoked when the cache is fully loaded.
-           1. get the tags in the cache from the previous step. 
-           2. get the values for timestamp, lock_bits for each tag
-           3. if the lock_bit is UNLOCK, then choose the tag with
-              the lowest value of timestamp. assign this tag is the victim_tag 
-           4. if there is no lock_bits of UNLOCK, no eviction.
-              Is_evict is False, and assign INVALID_TAG to victim_tag  '''
-
-        # FIXME: tag_array should be the list of current tags in each block
-        tag_array = list(self.blocks.keys())
-        #tag_array = cache.data[i]
-        #new_array = list(self.blocks.values())
+        '''current modification'''
+        #for element in cache_set_data:
+        #    print(element, element[1].last_accessed)
         Is_evict = False
         victim_tag = INVALID_TAG
 
-        last_accessed = []
-        for i in tag_array:
-            #print(i, self.blocks[i].last_accessed, self.blocks[i].address)
-            last_accessed.append(self.blocks[i].last_accessed)
-            
-        #print(tag_array)
-        #print(self.lock_vector_array)
-        # FIXME: explicitly indicate to sort the victim_tags 
-        victim_tags = [[last_accessed[i], tag_array[i]] for i in range(self.associativity) if self.lock_vector_array[i] == UNLOCK]
-        #print(victim_tags)
-        victim_tags.sort()
-        
-        if len(victim_tags) == 0:
-            Is_evict = False
-            victim_tag = INVALID_TAG
-        else:
-            victim_tag = victim_tags[0][1]
-            Is_evict = True
+        candidate_tags = []
+        for i in range(self.associativity):
+            if self.lock_vector_array[i] == UNLOCK:
+                candidate_tags.append(cache_set_data[i])
 
-        #print('self.lock_vector_array: ', self.lock_vector_array)
-        #print(new_array)
+                if len(candidate_tags) == 0:
+                    Is_evict = False
+                    victim_tag = INVALID_TAG
+                    
+                else:
+                    min_timestamp = min(self.blocks[item[0]].last_accessed for item in candidate_tags)
+                    victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
+                    Is_evict = True
+
         print('victim_tag: ', victim_tag)
-        #print('Is_evict:', Is_evict)
-        
         return Is_evict, victim_tag 
 
     # gathers lock vectors per line into the array

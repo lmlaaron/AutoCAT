@@ -47,9 +47,6 @@ class Cache:
                 self.vprint("use lru_policy")
         self.vprint("use " + prefetcher + "  prefetcher")
 
-        
-        
-
         self.prefetcher = prefetcher # prefetcher == "none" "nextline" "stream"
         if self.prefetcher == "stream":
             self.prefetcher_table =[]
@@ -64,7 +61,7 @@ class Cache:
         #Dictionary that holds the actual cache data
         self.data = {}
         self.set = {}
-        self.lock_bits = []
+
         #Pointer to the next lowest level of memory
         #Main memory gets the default None value
         self.next_level = next_level
@@ -112,7 +109,7 @@ class Cache:
         #If this tag exists in the set, this is a hit
         if tag in in_cache:
             for i in range( 0, len(self.data[index])):
-                if self.data[index][i][0] == tag:# and self.data[index][i][5] == LOCK_TAG: 
+                if self.data[index][i][0] == tag:
                     self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
                     break
             self.set_rep_policy[index].invalidate(tag)
@@ -268,11 +265,8 @@ class Cache:
                     
                     #Find the victim block and replace it
                     if self.rep_policy == lru_lock_policy:
-                        Is_evict, victim_tag = self.set_rep_policy[index].find_victim(current_step)#, tag_array)
-                        #tag_array = []
-                        #for i in range(0,len(self.data[index][i])):
-                        #    tag_array.append(self.data[index][i][0])
-
+                        Is_evict, victim_tag = self.set_rep_policy[index].find_victim(tag, current_step, self.data[index])
+                    
                     else: #elif self.rep_policy != lru_lock_policy:
                         victim_tag = self.set_rep_policy[index].find_victim(current_step)
 
@@ -427,7 +421,7 @@ class Cache:
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
 
         # use this object to pass the updated lock_vector_array to cache_simulator
-        self.lock_bits = self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+        #self.lock_bits = self.set_rep_policy[index].set_lock_vector(lock_vector_array)
 
         #print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
 

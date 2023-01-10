@@ -59,8 +59,7 @@ def main():
         for cache in hierarchy:
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
-    
-
+     
 #Print the contents of a cache as a table
 #If the table is too long, it will print the first few sets,
 #break, and then print the last set
@@ -90,13 +89,13 @@ def print_cache(cache):
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
 
                 sets.append(temp_way)
-
+                
             for i in range(3):
                 temp_way = ['.']
                 for w in range(cache.associativity):
                     temp_way.append('')
                 sets.append(temp_way)
-
+            
             ##set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
             temp_way = ['Set ' + str(len(set_indexes) - 1)]
             for w in range(0, cache.associativity):
@@ -109,23 +108,24 @@ def print_cache(cache):
                 for w in range(0, cache.associativity): # set_indexes = ['0']
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
-                
+                print(temp_way)
                 # add additional rows only if the replacement policy = lru_lock_policy
                 if cache.rep_policy == lru_lock_policy:
                     lock_info = ["Lock bit"]
-                    lock_vector_array = cache.lock_bits # get the lock_vector_array
-                    #print(lock_vector_array)
-                    for w in range(0, len(lock_vector_array)): 
-                        # TODO: use list comprehension for lock_vector_array 
+                    lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
+                    for w in range(0, len(lock_vector_array)):  
                         lock_info.append(lock_vector_array[w])
-                        
                     sets.append(lock_info)
-
+                print(lock_info)
+                if cache.rep_policy == lru_policy or lru_lock_policy:
                     timestamp = ["Timestamp"]
                     for w in range(0, cache.associativity):
-                        timestamp.append(cache.data[set_indexes[s]][w][1].last_accessed)
+                        #timestamp.append(cache.data[set_indexes[s]][w][1].last_accessed)
+                        #timestamp.append()
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                             timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
                     sets.append(timestamp)
-
+                print(timestamp)
         table = UnixTable(sets)
         table.title = cache.name
         table.inner_row_border = True
@@ -221,7 +221,6 @@ def simulate(hierarchy, trace, logger, result_file=''):
     
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
-    #return lock_bit
 
 def analyze_results(hierarchy, responses, logger): #Parse all the responses from the simulation
     n_instructions = len(responses)
