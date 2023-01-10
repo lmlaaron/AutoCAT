@@ -5,5 +5,5 @@ if diff -u "$1/result.txt" "$1/expected_result.txt" ; then
     echo "$1 test passed! "
 else
     echo "$1 test failed!" 
-    : 
-fi
+    :
+fi 

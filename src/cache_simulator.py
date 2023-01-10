@@ -108,7 +108,7 @@ def print_cache(cache):
                 for w in range(0, cache.associativity): # set_indexes = ['0']
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
-                print(temp_way)
+                #print(temp_way)
                 # add additional rows only if the replacement policy = lru_lock_policy
                 if cache.rep_policy == lru_lock_policy:
                     lock_info = ["Lock bit"]
@@ -116,7 +116,7 @@ def print_cache(cache):
                     for w in range(0, len(lock_vector_array)):  
                         lock_info.append(lock_vector_array[w])
                     sets.append(lock_info)
-                print(lock_info)
+                #print(lock_info)
                 if cache.rep_policy == lru_policy or lru_lock_policy:
                     timestamp = ["Timestamp"]
                     for w in range(0, cache.associativity):
@@ -125,7 +125,7 @@ def print_cache(cache):
                         if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
                              timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
                     sets.append(timestamp)
-                print(timestamp)
+                #print(timestamp)
         table = UnixTable(sets)
         table.title = cache.name
         table.inner_row_border = True
