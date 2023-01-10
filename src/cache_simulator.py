@@ -214,7 +214,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
         
         #if result_file != '':
         # print the trace 
-        #print(address + ' ' + str(r.time), file = f )
+        print(address + ' ' + str(r.time), file = f )
         for cache in hierarchy:
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
