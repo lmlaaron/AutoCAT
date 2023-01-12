@@ -36,8 +36,6 @@ class CachePPOModel(PPOModel):
                  num_blocks: int = 1) -> None:
         super().__init__()
 
-<<<<<<< HEAD
-=======
         self.latency_dim = latency_dim
         self.victim_acc_dim = victim_acc_dim
         self.action_dim = action_dim
@@ -49,7 +47,6 @@ class CachePPOModel(PPOModel):
         self.input_dim = (self.latency_dim + self.victim_acc_dim +
                           self.action_embed_dim +
                           self.step_embed_dim) * self.window_size
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.backbone = CacheBackbone(latency_dim, victim_acc_dim, action_dim,

@@ -145,26 +145,11 @@ class CacheGuessingGameEnv(gym.Env):
     self.reset_time = 0
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
-<<<<<<< HEAD
-    
-    if 'cache_1_core_2' in self.configs:
-      if "rep_policy" not in self.configs['cache_1_core_2']:
-        self.configs['cache_1_core_2']['rep_policy'] = 'lru'
-      self.configs['cache_1_core_2']['prefetcher'] = self.prefetcher
-
-    #with open_dict(self.configs):
-    self.configs['cache_1']['prefetcher'] = self.prefetcher
-
-
-    '''
-    check window size
-=======
     '''
     with open_dict(self.configs):
         self.configs['cache_1']['prefetcher'] = self.prefetcher
     print(self.prefetcher)
     #assert(False)
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
     '''
     if window_size == 0:
       self.window_size = self.cache_size * 8 + 8 #10 
@@ -329,24 +314,10 @@ class CacheGuessingGameEnv(gym.Env):
     is_guess = action[1]                                              # check whether to guess or not
     is_victim = action[2]                                             # check whether to invoke victim
     is_flush = action[3]                                              # check whether to flush
-<<<<<<< HEAD
-    victim_addr = hex(action[4] + self.victim_address_min)[2:]        # victim address
-    
-    '''
-    The actual stepping logic
-
-    1. first cehcking if the length is over the window_size, if not, go to 2, otherwise terminate
-    2. second checking if it is a victim access, if so go to 3, if not, go to 4
-    3. check if the victim can be accessed according to these options, if so make the access, if not terminate
-    4. check if it is a guess, if so, evaluate the guess, if not go to 5. if not, terminate
-    5. do the access, first check if it is a flush, if so do flush, if not, do normal access
-    '''
-=======
     victim_addr = hex(action[4] + self.victim_address_min)[2:]            # victim address
     is_victim_random = action[5]
     info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min
 
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
     victim_latency = None
     # if self.current_step > self.window_size : # if current_step is too long, terminate
     if self.step_count >= self.window_size - 1:
@@ -363,12 +334,6 @@ class CacheGuessingGameEnv(gym.Env):
           self.victim_accessed = True
 
           if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
-<<<<<<< HEAD
-            if self.victim_address <= self.victim_address_max:
-              self.vprint("victim access (hex) %x " % self.victim_address)
-              t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
-              t = t.time # do not need to lock again
-=======
             if is_victim_random == True:
                 victim_random = random.randint(self.victim_address_min, self.victim_address_max)
                 self.vprint("victim random access %d " % victim_random)
@@ -379,7 +344,6 @@ class CacheGuessingGameEnv(gym.Env):
                 self.vprint("victim access %d " % self.victim_address)
                 t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
                 t = t.time # do not need to lock again
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
             else:
                 self.vprint("victim make a empty access!") # do not need to actually do something
                 t = 1 # empty access will be treated as HIT??? does that make sense???
@@ -437,11 +401,7 @@ class CacheGuessingGameEnv(gym.Env):
           lat, cyclic_set_index, cyclic_way_index, _ = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
-<<<<<<< HEAD
-            self.vprint("access (hex) " + address + " miss")
-=======
             self.vprint("access " + address + " miss")
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
             r = 1 # cache miss
           else:
             self.vprint("access (hex) " + address + " hit"  )
@@ -476,11 +436,6 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       victim_accessed = 0
     
-<<<<<<< HEAD
-    '''
-    append the current observation to the sliding window
-    '''
-=======
 
     #TODO remove the temporary test
     if is_victim or is_victim_random:
@@ -494,7 +449,6 @@ class CacheGuessingGameEnv(gym.Env):
     #Xiaomeng
     # self.state = [r, victim_accessed, original_action, current_step ] + self.state  
     # self.state = self.state[0:len(self.state)-4]
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
     self.state.append([r, victim_accessed, original_action, self.step_count])
     self.state.popleft()
 
@@ -770,10 +724,6 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         is_guess = 1
         victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
-<<<<<<< HEAD
-    return [ address, is_guess, is_victim, is_flush, victim_addr ] 
- 
-=======
         
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
@@ -787,4 +737,3 @@ if __name__ == '__main__':
         i+=1
         obs, reward, done, info = env.step(np.random.randint(9))
         print("step ", i, ":", obs, reward, done, info) 
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2

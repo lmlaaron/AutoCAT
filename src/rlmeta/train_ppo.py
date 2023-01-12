@@ -27,12 +27,7 @@ from metric_callbacks import MetricCallbacks
 
 from utils.wandb_logger import WandbLogger
 
-<<<<<<< HEAD
-
-@hydra.main(config_path="./config", config_name="ppo_lru_8way")
-=======
 @hydra.main(config_path="./config", config_name="ppo_resnet")
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
 def main(cfg):
     wandb_logger = WandbLogger(project="rl4cache", config=cfg)
     my_callbacks = MetricCallbacks()
