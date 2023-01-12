@@ -1,7 +1,7 @@
 num_episodes: 10
 seed: 1234
 
-checkpoint: ""
+checkpoint: "/private/home/jxcui/CacheSimulator/src/rlmeta/outputs/2022-07-25/16-12-55/ppo_agent-649.pth"
 deterministic_policy: true
 
 defaults:
@@ -12,6 +12,7 @@ defaults:
   # - env_config: config_exp_ceaser
   # - env_config: config_exp_13
   # - env_config: config_exp_13_nextline
-  - env_config: config_exp_14
+  # - env_config: config_exp_14
+  - env_config: config_exp61
   # - env_config: config_exp_14_nextline
   - model_config: experiments

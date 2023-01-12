@@ -19,10 +19,10 @@ from rlmeta.core.server import Server
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models.backbone import CacheBackbone
+from models.dnn import DNNEncoder
 
 
-class CachePPOModel(PPOModel):
+class CachePPOLSTMModel(PPOModel):
     def __init__(self,
                  latency_dim: int,
                  victim_acc_dim: int,
@@ -36,8 +36,6 @@ class CachePPOModel(PPOModel):
                  num_blocks: int = 1) -> None:
         super().__init__()
 
-<<<<<<< HEAD
-=======
         self.latency_dim = latency_dim
         self.victim_acc_dim = victim_acc_dim
         self.action_dim = action_dim
@@ -46,26 +44,71 @@ class CachePPOModel(PPOModel):
         assert self.window_size == 64
         self.action_embed_dim = action_embed_dim
         self.step_embed_dim = step_embed_dim
+        #self.input_dim = (self.latency_dim + self.victim_acc_dim +
+        #                  self.action_embed_dim +
+        #                  self.step_embed_dim) * self.window_size
         self.input_dim = (self.latency_dim + self.victim_acc_dim +
                           self.action_embed_dim +
-                          self.step_embed_dim) * self.window_size
->>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
+                          self.step_embed_dim)
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
-        self.backbone = CacheBackbone(latency_dim, victim_acc_dim, action_dim,
-                                      step_dim, window_size, action_embed_dim,
-                                      step_embed_dim, hidden_dim, num_blocks)
+        self.num_blocks = num_blocks
 
-        self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
-        self.linear_v = nn.Linear(self.hidden_dim, 1)
-
+        self.action_embed = nn.Embedding(self.action_dim,
+                                         self.action_embed_dim)
+        self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
+        self.linear_a = nn.Linear(2*self.hidden_dim, self.output_dim)
+        self.linear_v = nn.Linear(2*self.hidden_dim, 1)
+        self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
+        self.encoder = nn.LSTM(
+                self.hidden_dim, 
+                self.hidden_dim, 
+                num_layers=1, 
+                bias=False,
+                bidirectional=False)
         self._device = None
 
+    def make_one_hot(self, src: torch.Tensor,
+                     num_classes: int) -> torch.Tensor:
+        mask = (src == -1)
+        src = src.masked_fill(mask, 0)
+        ret = F.one_hot(src, num_classes)
+        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+
+    def make_embedding(self, src: torch.Tensor,
+                       embed: nn.Embedding) -> torch.Tensor:
+        mask = (src == -1)
+        src = src.masked_fill(mask, 0)
+        ret = embed(src)
+        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        h = self.backbone(obs)
+        obs = torch.flip(obs, (1,))
+        obs = obs.to(torch.int64)
+        assert obs.dim() == 3
+
+        batch_size = obs.size(0)
+        (l, v, act, step) = torch.unbind(obs, dim=-1)
+
+        l = self.make_one_hot(l, self.latency_dim)
+        v = self.make_one_hot(v, self.victim_acc_dim)
+        act = self.make_embedding(act, self.action_embed)
+        step = self.make_embedding(step, self.step_embed)
+
+        x = torch.cat((l, v, act, step), dim=-1)
+        x = self.linear_i(x)
+        x = x.transpose(0,1).contiguous()
+
+        _, (h, c) = self.encoder(x)
+        h = h.mean(dim=0)
+        c = c.mean(dim=0)
+        
+        h = torch.cat((h,c), dim=-1)
+        
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)
         v = self.linear_v(h)
+
         return logpi, v
 
     @remote.remote_method(batch_size=128)
@@ -88,7 +131,7 @@ class CachePPOModel(PPOModel):
             return action.cpu(), logpi.cpu(), v.cpu()
 
 
-class CachePPOModelPool(CachePPOModel):
+class CachePPOLSTMModelPool(CachePPOLSTMModel):
     def __init__(self,
                  latency_dim: int,
                  victim_acc_dim: int,

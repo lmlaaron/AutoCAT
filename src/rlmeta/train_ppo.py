@@ -25,10 +25,16 @@ from cache_env_wrapper import CacheEnvWrapperFactory
 from cache_ppo_model import CachePPOModel
 from metric_callbacks import MetricCallbacks
 
+from utils.wandb_logger import WandbLogger
 
+<<<<<<< HEAD
 
 @hydra.main(config_path="./config", config_name="ppo_lru_8way")
+=======
+@hydra.main(config_path="./config", config_name="ppo_resnet")
+>>>>>>> f2af102955f759ca6632a376772ec51d4e587cf2
 def main(cfg):
+    wandb_logger = WandbLogger(project="rl4cache", config=cfg)
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
@@ -39,9 +45,12 @@ def main(cfg):
     cfg.model_config["output_dim"] = env.action_space.n
 
     train_model = CachePPOModel(**cfg.model_config).to(cfg.train_device)
+    total_trainable_params = sum(p.numel() for p in train_model.parameters() if p.requires_grad)
+    print("total_num_parameters:",total_trainable_params)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
+    infer_model.eval()
 
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
@@ -71,6 +80,7 @@ def main(cfg):
                      optimizer=optimizer,
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
+                     entropy_coeff=cfg.get("entropy_coeff", 0.01),
                      push_every_n_steps=cfg.push_every_n_steps)
     t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
@@ -100,7 +110,7 @@ def main(cfg):
     servers.start()
     loops.start()
     agent.connect()
-
+    
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
         stats = agent.train(cfg.steps_per_epoch)
@@ -111,8 +121,9 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
+        train_stats = stats
         time.sleep(1)
-
+        
         stats = agent.eval(cfg.num_eval_episodes)
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
@@ -121,7 +132,10 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
+        eval_stats = stats
         time.sleep(1)
+        
+        wandb_logger.log(train_stats, eval_stats)
 
         torch.save(train_model.state_dict(), f"ppo_agent-{epoch}.pth")
 

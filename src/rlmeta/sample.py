@@ -33,7 +33,7 @@ def run_loop(env: Env, agent: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         timestep = env.reset()
     else:
         timestep = env.reset(victim_address=victim_addr)
-    
+    print("victim address: ", env.env.victim_address ) 
     agent.observe_init(timestep)
     while not timestep.done:
         # Model server requires a batch_dim, so unsqueeze here for local runs.
