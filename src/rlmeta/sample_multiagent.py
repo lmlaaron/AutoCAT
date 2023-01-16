@@ -222,7 +222,8 @@ def main(cfg):
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    #spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/home/geunbae/data/remix3.txt', 'r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
