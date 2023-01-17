@@ -124,7 +124,8 @@ def tournament(env,
     
     attacker_list = cfg.attackers
     detector_list = cfg.detectors
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    #spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/home/geunbae/data/remix3.txt', 'r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
@@ -223,7 +224,7 @@ def main(cfg):
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
     #spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
-    spec_trace_f = open('/home/geunbae/data/remix3.txt', 'r')
+    spec_trace_f = open('/home/geunbae/data/remix3.txt', 'r') 
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
