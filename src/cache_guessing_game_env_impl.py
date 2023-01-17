@@ -93,6 +93,8 @@ class CacheGuessingGameEnv(gym.Env):
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
 
+    self.allow_victim_access = env_config["allow_victim_access"] if "allow_victim_access" in env_config else True
+
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
@@ -168,6 +170,12 @@ class CacheGuessingGameEnv(gym.Env):
     self.victim_address_space = range(self.victim_address_min,
                                 self.victim_address_max + 1)  #
 
+
+    self.victim_secret_min = self.victim_address_min
+    self.victim_secret_max = self.victim_address_max
+
+    self.victim_secret = random.randint(self.victim_secret_min, self.victim_secret_max)
+
     # for randomized mapping rerandomization
     #perm = permutations(list(range(self.victim_address_min, self.victim_address_max + 1 )))
     if self.rerandomize_victim == True:
@@ -202,7 +210,12 @@ class CacheGuessingGameEnv(gym.Env):
     # using tightened action space
     if self.flush_inst == False:
       # one-hot encoding
-      if self.allow_empty_victim_access == True:
+      if self.allow_victim_access == False:
+        # |attacker_addr | victim_guess_addr |
+        self.action_space = spaces.Discrete(
+          len(self.attacker_address_space) + len(self.victim_address_space)  
+        )
+      elif self.allow_empty_victim_access == True:
         # | attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
           len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
@@ -214,7 +227,12 @@ class CacheGuessingGameEnv(gym.Env):
         )
     else:
       # one-hot encoding
-      if self.allow_empty_victim_access == True:
+      if self.allow_victim_access == False:
+        # |attacker_addr| flush_attacker_addr | victim_guess_addr |
+        self.action_space = spaces.Discrete(
+          2 * len(self.attacker_address_space) + len(self.victim_address_space)  
+        )
+      elif self.allow_empty_victim_access == True:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
         self.action_space = spaces.Discrete(
           2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
@@ -285,6 +303,13 @@ class CacheGuessingGameEnv(gym.Env):
       # return self.mapping_func(addr)
       return self.perm[addr]
 
+
+  def sender_step(self, sender_action):
+      sender_addr = sender_action + self.victim_address_min
+      t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(sender_addr))[2:], self.current_step, domain_id='v')
+    # sender has no observation now except for the secret
+    #return np.array(list(reversed(self.state))), reward, done, info
+
   def step(self, action):
 
     cyclic_set_index = -1
@@ -292,6 +317,7 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.vprint('Step ', self.step_count)
     info = {}
+    info["victim_secret"] = self.victim_secret
     if isinstance(action, np.ndarray):
         action = action.item()
 
@@ -580,6 +606,8 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       self.vprint("victim has empty access")
     
+    # reset the secret for covert channel
+    self.victim_secret = random.randint(self.victim_secret_min, self.victim_secret_max)
 
   def render(self, mode='human'):
     return 
@@ -649,28 +677,52 @@ class CacheGuessingGameEnv(gym.Env):
     is_flush = 0
     victim_addr = 0
     is_victim_random = 0
-    if self.flush_inst == False:
-      if action < len(self.attacker_address_space):
-        address = action
-      elif action == len(self.attacker_address_space):
-        is_victim = 1
-      elif action == len(self.attacker_address_space)+1:
-        is_victim_random = 1
+    if self.allow_victim_access == True:
+      if self.flush_inst == False:
+        if action < len(self.attacker_address_space):
+          address = action
+        elif action == len(self.attacker_address_space):
+          is_victim = 1
+        elif action == len(self.attacker_address_space)+1:
+          is_victim_random = 1
+        else:
+          is_guess = 1
+          victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) # becuase the one that assigned to the is_victim_random is at the attacker address space+1  
       else:
-        is_guess = 1
-        victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) # becuase the one that assigned to the is_victim_random is at the attacker address space+1  
+        if action < len(self.attacker_address_space):
+          address = action
+        elif action < 2 * len(self.attacker_address_space):
+          is_flush = 1
+          address = action - len(self.attacker_address_space) 
+          is_flush = 1
+        elif action == 2 * len(self.attacker_address_space):
+          is_victim = 1
+        else:
+          is_guess = 1
+          victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
     else:
-      if action < len(self.attacker_address_space):
-        address = action
-      elif action < 2 * len(self.attacker_address_space):
-        is_flush = 1
-        address = action - len(self.attacker_address_space) 
-        is_flush = 1
-      elif action == 2 * len(self.attacker_address_space):
-        is_victim = 1
+       if self.flush_inst == False:
+        if action < len(self.attacker_address_space):
+          address = action
+        ##elif action == len(self.attacker_address_space):
+        ##  is_victim = 1
+        ##elif action == len(self.attacker_address_space)+1:
+        ##  is_victim_random = 1
+        else:
+          is_guess = 1
+          victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) # becuase the one that assigned to the is_victim_random is at the attacker address space+1  
       else:
-        is_guess = 1
-        victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
+        if action < len(self.attacker_address_space):
+          address = action
+        elif action < 2 * len(self.attacker_address_space):
+          is_flush = 1
+          address = action - len(self.attacker_address_space) 
+          is_flush = 1
+        ##elif action == 2 * len(self.attacker_address_space):
+        ##  is_victim = 1
+        else:
+          is_guess = 1
+          victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
         
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
