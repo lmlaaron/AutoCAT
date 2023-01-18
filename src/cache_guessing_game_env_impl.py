@@ -711,7 +711,7 @@ class CacheGuessingGameEnv(gym.Env):
         else:
           is_guess = 1
           victim_addr = action - ( len(self.attacker_address_space) + 1 + 1) # becuase the one that assigned to the is_victim_random is at the attacker address space+1  
-      else:
+       else:
         if action < len(self.attacker_address_space):
           address = action
         elif action < 2 * len(self.attacker_address_space):

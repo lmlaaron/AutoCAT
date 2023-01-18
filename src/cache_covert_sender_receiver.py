@@ -8,13 +8,14 @@ import pandas as pd
 import numpy as np
 import random
 import gym
+from gym import spaces
 
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
 
 
 
 #class CacheAttackerDetectorEnv(gym.Env):
-class CacheCovertSender(gym.Env)
+class CacheCovertSenderReceiverEnv(gym.Env):
     def __init__(self,
                  env_config: Dict[str, Any],
                  keep_latency: bool = True,
@@ -31,17 +32,21 @@ class CacheCovertSender(gym.Env)
         self.validation_env = CacheGuessingGameEnv(env_config)
         self.observation_space = self._env.observation_space
         #self.action_space = self._env.action_space
-        self.action_space = spaces.Discrete(self._env.victim_address_space)
+        #print(self._env.victim_address_space)
+        #assert(-1)
 
         self.victim_address_min = self._env.victim_address_min
         self.victim_address_max = self._env.victim_address_max
         self.attacker_address_max = self._env.attacker_address_max
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
+
+        self.action_space = spaces.Discrete(self.victim_address_max - self.victim_address_min + 1)
+
         #self.opponent_weights = env_config.get("opponent_weights", [0.5,0.5]) 
         #self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         #self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
-        self.action_mask = { 'sender': True, 'receiver': self.receiver_agent}
+        self.action_mask = { 'sender': True, 'receiver': True} #self.receiver_agent}
         self.step_count = 0
         self.max_step = 64
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
@@ -53,8 +58,8 @@ class CacheCovertSender(gym.Env)
         """
         returned obs = { agent_name : obs }
         """
-        self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
-        self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
+        #####self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
+        self.action_mask = {'sender': True, 'receiver': True} #{'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
         opponent_obs = self._env.reset(victim_address=victim_address,
                                        reset_cache_state=True)
@@ -62,9 +67,11 @@ class CacheCovertSender(gym.Env)
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         obs = {}
-        obs['detector'] = np.array(list(reversed(self.detector_obs)))
-        obs['attacker'] = opponent_obs
-        obs['benign'] = opponent_obs
+        #obs['detector'] = np.array(list(reversed(self.detector_obs)))
+        #obs['attacker'] = opponent_obs
+        #obs['benign'] = opponent_obs
+        obs['sender'] = np.array(list(reversed(self.detector_obs)))
+        obs['receiver'] = opponent_obs
         return obs
 
 
@@ -227,7 +234,7 @@ class CacheCovertSender(gym.Env)
 
 if __name__ == '__main__':
     env = CacheAttackerDetectorEnv({})
-    env.opponent_weights = [0,1]
+    ####env.opponent_weights = [0,1]
     action_space = env.action_space
     obs = env.reset()
     done = {'__all__':False}

@@ -12,6 +12,8 @@ from cache_guessing_game_env_impl import CacheGuessingGameEnv
 from cchunter_wrapper import CCHunterWrapper
 from cyclone_wrapper import CycloneWrapper
 from cache_attacker_detector import CacheAttackerDetectorEnv
+from cache_covert_sender_receiver import CacheCovertSenderReceiverEnv
+
 
 class CacheEnvWrapperFactory(EnvFactory):
     def __init__(self, env_config: Dict[str, Any]) -> None:
@@ -69,3 +71,15 @@ class CacheAttackerDetectorEnvFactory(EnvFactory):
         env = MAGymWrapper(env)
         return env
 
+class CacheCovertSenderReceiverEnvFactory(EnvFactory):
+    def __init__(self, env_config: Dict[str, Any]) -> None:
+        self._env_config = env_config
+
+    @property
+    def env_config(self) -> Dict[str, Any]:
+        return self._env_config
+
+    def __call__(self, index: int, *args, **kwargs) -> Env:
+        env = CacheCovertSenderReceiverEnv(self.env_config)
+        env = MAGymWrapper(env)
+        return env
