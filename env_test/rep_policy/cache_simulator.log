@@ -1,0 +1,189 @@
+[32mLoading config...[0m
+[32mMemory hierarchy built.[0m
+[32mLoading tracefile...[0m
+[32mLoaded tracefile lru_lock/test_nolock.txt[0m
+[32mBegin simulation![0m
+[32m0:	Reading address 00000001 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m1:	Reading address 00000002 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m2:	Reading address 00000003 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m3:	Reading address 00000004 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m4:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m5:	Reading address 00000000 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m6:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m7:	Reading address 00000001 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m8:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m9:	Reading address 00000002 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m10:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m11:	Reading address 00000003 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m12:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m13:	Reading address 00000004 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m14:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m15:	Reading address 00000000 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m16:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m17:	Reading address 00000004 op: R[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m18:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m19:	Reading address 00000003 op: R[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m20:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m21:	Reading address 00000002 op: R[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m22:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m23:	Reading address 00000001 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m24:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m25:	Reading address 00000000 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m26:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m27:	Reading address 00000004 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m28:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m29:	Reading address 00000003 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m30:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m31:	Reading address 00000002 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m32:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m33:	Reading address 00000001 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m34:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m35:	Reading address 00000006 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m36:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m37:	Reading address 00000007 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m38:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m39:	Reading address 00000008 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m40:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m41:	Reading address 00000009 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m42:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m43:	Reading address 00000001 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m44:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m45:	Reading address 00000002 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m46:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m47:	Reading address 00000003 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m48:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m49:	Reading address 00000004 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m50:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m51:	Reading address 00000000 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32m52:	Lock_bit: 0000 op: D[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m53:	Reading address 00000004 op: R[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m54:	Reading address 00000003 op: R[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m55:	Reading address 00000002 op: R[0m
+[33m	hit_list: {'cache_1': True}	time: 1
+[0m
+[32m56:	Reading address 00000001 op: R[0m
+[33m	hit_list: {'cache_1': False, 'mem': True}	time: 1001
+[0m
+[32mSimulation complete[0m
+[32m
+Number of instructions: 57[0m
+[32m
+Total cycles taken: 26057
+[0m
+[32mcache_1[0m
+[32m	Number of accesses: 57[0m
+[32m	Number of hits: 31[0m
+[32m	Number of misses: 26[0m
+[32m
+AMATs:
+{'cache_1': 457.14035087719293, 'mem': 1000}[0m
