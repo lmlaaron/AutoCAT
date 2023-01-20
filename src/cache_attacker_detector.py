@@ -1,4 +1,4 @@
-import copy # how it works here? https://docs.python.org/3/library/copy.html
+import copy # NOTE: how it works here? https://docs.python.org/3/library/copy.html
 
 # provide support for type hints
 # https://typing.readthedocs.io/en/latest/source/libraries.html#why-provide-type-annotations
@@ -25,12 +25,12 @@ class CacheAttackerDetectorEnv(gym.Env):
         #env_config["cache_state_reset"] = False
 
         self.reset_observation = env_config.get("reset_observation", False)
-        self.keep_latency = keep_latency
+        self.keep_latency = keep_latency # NOTE: purpose of this parameter? 
         self.env_config = env_config
         self.episode_length = env_config.get("episode_length", 80)
         self.threshold = env_config.get("threshold", 0.8)
 
-        ''' NOTE: why use '_' expression here? '''
+        # NOTE: why use underbar expression here? 
         self._env = CacheGuessingGameEnv(env_config)
         
         self.validation_env = CacheGuessingGameEnv(env_config)
@@ -55,7 +55,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         # If the self.opponent_agent is 'attacker' then value for 'attacker' key will be True
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 64
+        self.max_step = 10
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         self.detector_reward_scale = 0.1 #1.0
@@ -87,7 +87,7 @@ class CacheAttackerDetectorEnv(gym.Env):
     
     def get_detector_obs(self, opponent_obs, opponent_info):
         
-        '''NOTE: copy the first element of opponent_obs using deepcopy???'''
+        # NOTE: copy the first element of opponent_obs using deepcopy?
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
         
         # np.any() returns True if at least one element of an array is True 
@@ -192,11 +192,13 @@ class CacheAttackerDetectorEnv(gym.Env):
                 self._env.set_victim(benign_victim_addr) 
                 self.victim_address = self._env.victim_address
                 
-        #TODO: Need to check with _env
+        #NOTE: Need to check with _env
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
         if opponent_done:
             opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
+            
+            # NOTE: why reducing the step_count here?
             self.step_count -= 1 # The reset/guess step should not be counted
         if self.step_count >= self.max_step:
             detector_done = True
@@ -239,10 +241,11 @@ class CacheAttackerDetectorEnv(gym.Env):
         #print(obs["detector"])
         return obs, reward, done, info
 
+# to indicate that following lines should only be executed 
+# if the script is run directly, and not imported as a module into another script.
 if __name__ == '__main__':
     env = CacheAttackerDetectorEnv({})
-    env.opponent_weights = [0,1]
-    
+    env.opponent_weights = [0.5, 0.5] #[0,1]
     
     action_space = env.action_space 
     obs = env.reset()
@@ -256,14 +259,15 @@ if __name__ == '__main__':
                   'detector':np.random.randint(low=0, high=1)}
         obs, reward, done, info = env.step(action)
         print("step: ", i)
-        print("obs: ", obs['detector'])
+        print("observation of detector: ", obs['detector'])
         print("action: ", action)
         print("victim: ", env.victim_address, env._env.victim_address)
         #print("done:", done)
         print("reward:", reward)
-        print(env.victim_address_min, env.victim_address_max)
+        print('env.victim_address_min, max: ', env.victim_address_min, env.victim_address_max)
+        
         #print("info:", info )
         if info['attacker'].get('invoke_victim'):
-            print(info['attacker'])
+            print('info[attacker]: ', info['attacker'])
       obs = env.reset()
       done = {'__all__':False}

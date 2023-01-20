@@ -2,7 +2,6 @@
 # date 2021.12.3
 # description: environment for study RL for side channel attack
 from collections import deque
-
 import numpy as np
 import random
 import os
@@ -10,12 +9,9 @@ import yaml, logging
 import sys
 import replacement_policy
 from itertools import permutations
-
 import gym
 from gym import spaces
-
 from omegaconf.omegaconf import open_dict
-
 from cache_simulator import *
 
 class CacheGuessingGameEnv(gym.Env):
@@ -24,7 +20,7 @@ class CacheGuessingGameEnv(gym.Env):
     A L1 cache with total_size, num_ways 
     assume cache_line_size == 1B
   
-  Observation:
+  Attacker's observation:
     # let's book keep all obvious information in the observation space 
     # since the agent is dumb
     self.observation_space = spaces.MultiDiscrete(
@@ -33,7 +29,7 @@ class CacheGuessingGameEnv(gym.Env):
       2,                  #whether the victim has accessed yet
       ]
 
-  Actions:
+  Attacker's actions:
     # action step contains four values
     # 1. access address
     # 2. whether to end and make a guess now?
@@ -146,7 +142,8 @@ class CacheGuessingGameEnv(gym.Env):
     #assert(False)
     '''
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 
+      self.window_size = self.cache_size * 8 + 8 # for 4s1w -> 40
+      # print(self.window_size) 
       #self.window_size = self.cache_size * 4 + 8 #10 
     else:
       self.window_size = window_size
@@ -161,12 +158,13 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.attacker_address_min = attacker_addr_s
     self.attacker_address_max = attacker_addr_e
-    self.attacker_address_space = range(self.attacker_address_min,
-                                  self.attacker_address_max + 1)  # start with one attacker cache line
+    
+    # start with one attacker cache line. range(4, 8)
+    self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max + 1)  
+    
     self.victim_address_min = victim_addr_s
     self.victim_address_max = victim_addr_e
-    self.victim_address_space = range(self.victim_address_min,
-                                self.victim_address_max + 1)  #
+    self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1) #(0, 4)
 
     # for randomized mapping rerandomization
     #perm = permutations(list(range(self.victim_address_min, self.victim_address_max + 1 )))
@@ -203,24 +201,30 @@ class CacheGuessingGameEnv(gym.Env):
     if self.flush_inst == False:
       # one-hot encoding
       if self.allow_empty_victim_access == True:
+        
         # | attacker_addr | v | victim_guess_addr | guess victim not access |
+        # attacker's action space is (0, 12) (5 + 2 + 5 + 1 = 13)
         self.action_space = spaces.Discrete(
           len(self.attacker_address_space) + 2 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | v | victim_guess_addr | 
+        # attacker's action space is (0, 11) (5 + 2 + 5 = 12)
         self.action_space = spaces.Discrete(
           len(self.attacker_address_space) + 2 + len(self.victim_address_space)
         )
     else:
       # one-hot encoding
       if self.allow_empty_victim_access == True:
+        
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
+        # attacker's action space is (0, 16) (2 * 5 + 1 + 5 + 1 = 17)
         self.action_space = spaces.Discrete(
           2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
         )
       else:
         # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
+        # attacker's action space is (0, 15) (2 * 5 + 1 + 5  = 16)
         self.action_space = spaces.Discrete(
           2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
         )
@@ -236,7 +240,13 @@ class CacheGuessingGameEnv(gym.Env):
     #    #2,                                          # whether it is a cflush
     #  ] * self.window_size
     #)
+    
+    # self.max_box_value = max(40+2, 2*5 +1 +5) = 42
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
+    
+    # observation_space is in shape (40, 4), w/ lower bound -1 and upper bound 42. 
+    # observation that an agent can make in the environment is a 2D matrix of 40 rows and 4 columns 
+    # where each element is a number between -1 and 42
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
 
     
@@ -245,8 +255,8 @@ class CacheGuessingGameEnv(gym.Env):
     self.current_step = 0
     self.victim_accessed = False
     if self.allow_empty_victim_access == True:
-      #self.victim_address = random.randint(self.victim_address_max +1, self.)
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
+      
     else:
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max)
     self._randomize_cache()
@@ -259,7 +269,7 @@ class CacheGuessingGameEnv(gym.Env):
     # internal guessing buffer
     # does not change after reset
     self.guess_buffer_size = 100
-    self.guess_buffer = [False] * self.guess_buffer_size
+    self.guess_buffer = [False] * self.guess_buffer_size # [False, False, ... False]
     #return
 
     self.last_state = None
@@ -294,7 +304,7 @@ class CacheGuessingGameEnv(gym.Env):
     info = {}
     if isinstance(action, np.ndarray):
         action = action.item()
-
+        print('action: ', action)
     original_action = action
     action = self.parse_action(original_action) #, self.flush_inst)
 
@@ -460,6 +470,7 @@ class CacheGuessingGameEnv(gym.Env):
         if self.last_state is None:
             cache_state_change = None
         else:
+            # bitwise XOR operation
             cache_state_change = victim_latency ^ self.last_state
         self.last_state = victim_latency
 
