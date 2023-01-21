@@ -491,3 +491,64 @@ class brrip_policy(rep_policy):
         self.vprint(self.rrpv)
 
         return self.candidate_tags[max_index] 
+    
+LOCK = 1
+UNLOCK = 0
+class lru_lock_policy(rep_policy):
+    
+    def __init__(self, associativity, block_size, verbose=False):
+        self.associativity = associativity
+        self.block_size = block_size
+        self.blocks = {}
+        self.verbose = verbose
+        self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
+        self.vprint(self.lock_vector_array)
+        
+    def touch(self, tag, timestamp): 
+        assert(tag in self.blocks)
+        self.blocks[tag].last_accessed = timestamp
+        
+    def reset(self, tag, timestamp): # touch 
+        return self.touch(tag, timestamp)
+    
+    def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
+        assert(tag == INVALID_TAG or tag not in self.blocks)
+        assert(len(self.blocks) < self.associativity)
+        self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+        
+    def invalidate(self, tag):
+        assert(tag in self.blocks)
+        del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
+        
+    def invalidate_unsafe(self, tag):
+        if tag in self.blocks:
+            del self.blocks[tag]
+            
+    def find_victim(self, tag, current_step, cache_set_data): 
+        Is_evict = False
+        victim_tag = INVALID_TAG
+        candidate_tags = []
+        for i in range(self.associativity):
+            if self.lock_vector_array[i] == UNLOCK:
+                candidate_tags.append(cache_set_data[i])
+
+                if len(candidate_tags) == 0:
+                    Is_evict = False
+                    victim_tag = INVALID_TAG
+                    
+                else:
+                    min_timestamp = min(self.blocks[item[0]].last_accessed for item in candidate_tags)
+                    victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
+                    Is_evict = True
+
+        print('victim_tag: ', victim_tag)
+        return Is_evict, victim_tag
+    
+    # gathers lock vectors per line into the array
+    def set_lock_vector(self, lock_vector_array): 
+        
+        for i in range(0, len(self.lock_vector_array)):
+            self.lock_vector_array[i] = lock_vector_array[i]
+            i = +i
+            
+        return self.lock_vector_array

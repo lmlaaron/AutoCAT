@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+'''above line ensures the used interpreter is the first one on your environment's $PATH
+If there are several versions of Python installed'''
 
 import yaml, cache, argparse, logging, pprint
 from terminaltables.other_tables import UnixTable
@@ -21,7 +23,7 @@ def main():
     if arguments['log_file']:
         log_filename = arguments['log_file']
 
-    result_file = ''
+    result_file = 'result.txt'
     if arguments['result_file']:
         result_file = arguments['result_file']
     #print(result_file)
@@ -71,9 +73,9 @@ def print_cache(cache):
     table_size = 5
     ways = [""]
     sets = []
-    set_indexes = sorted(cache.data.keys())
+    set_indexes = sorted(cache.data.keys()) # set_indexes = ['0'] for 1s 4w 
     if len(cache.data.keys()) > 0:
-        first_key = list(cache.data.keys())[0]
+        first_key = list(cache.data.keys())[0] #first_key = 0
         way_no = 0
         
         #Label the columns
@@ -111,9 +113,25 @@ def print_cache(cache):
             for s in range(len(set_indexes)):
                 #set_ways = cache.data[set_indexes[s]].keys()
                 temp_way = ["Set " + str(s)]
-                for w in range(0, cache.associativity):
+                for w in range(0, cache.associativity): # set_indexes = ['0']
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
+                
+                #print(temp_way)
+                # add additional rows only if the replacement policy = lru_lock_policy
+                if cache.rep_policy == lru_lock_policy:
+                   lock_info = ["Lock bit"]
+                   lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
+                   for w in range(0, len(lock_vector_array)):  
+                       lock_info.append(lock_vector_array[w])
+                   sets.append(lock_info)
+                
+                if cache.rep_policy == lru_policy or lru_lock_policy:
+                    timestamp = ["Timestamp"]
+                    for w in range(0, cache.associativity):
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                            timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                    sets.append(timestamp)
 
         table = UnixTable(sets)
         table.title = cache.name
@@ -131,38 +149,70 @@ def simulate(hierarchy, trace, logger, result_file=''):
     #We only interface directly with L1. Reads and writes will automatically
     #interact with lower levels of the hierarchy
     l1 = hierarchy['cache_1']
+    if 'cache_1_core_2' in hierarchy:
+        l1_c2 = hierarchy['cache_1_core_2']
+        
     for current_step in range(len(trace)):
         instruction = trace[current_step]
-        address, op = instruction.split()
+        #address, op = instruction.split()
+        inst2 = instruction.split()
+        if len(inst2) == 2:
+            address = inst2[0]
+            op = inst2[1]
+            
+        if len(inst2) == 3:
+            set_no = inst2[0]
+            op = inst2[1]
+            lock_bit = inst2[2]
+        
         #Call read for this address on our memory hierarchy
-        if op == 'R':
-            logger.info(str(current_step) + ':\tReading ' + address)
-            r, _, _ = l1.read(address, current_step)
+        if op == 'R' or op == 'R2':
+            logger.info(str(current_step) + ':\tReading ' + address + ' op: ' + op)
+            if op == 'R2':
+                l = l1_c2
+            else:
+                l = l1
+            r, _ = l.read(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RL':      # pl cache lock cacheline
+            
+        elif op == 'RL' or op == 'RL2': # pl cache lock cacheline, multicore not implented
             assert(l1.rep_policy == plru_pl_policy) # must be pl cache 
-            logger.info(str(current_step) + ':\tReading ' + address)
-            r, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
+            r, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RU':      # pl cache unlock cacheline
+            
+        elif op == 'RU' or op == 'RU2':      # pl cache unlock cacheline
             assert(l1.rep_policy == plru_pl_policy)
-            logger.info(str(current_step) + ':\tReading ' + address)
-            r, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
+            r, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
+            
         #Call write
-        elif op == 'W':
-            logger.info(str(current_step) + ':\tWriting ' + address)
+        elif op == 'W' or op == 'W2':
+            assert(op == 'W')
+            logger.info(str(current_step) + ':\tWriting ' + address + ' ' +op)
             r, _, _ = l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
+            
         #Call cflush
-        elif op == 'F':
-            logger.info(str(current_step) + ':\tFlushing ' + address)
+        elif op == 'F' or op == 'F2':
+            logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
             r, _, _ = l1.cflush(address, current_step)
-            #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
+            #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            
+        #Call lock
+        elif op == 'D':
+            assert(l1.rep_policy == lru_lock_policy)
+            assert(op == 'D')
+            logger.info(str(current_step) + ':\tLock_bit ' + lock_bit + 'op: ' + op)
+            r, _ = l1.lock(set_no, lock_bit) #underscore _ ignores a value when unpacking
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            responses.append(r)
+        
         else:
             raise InvalidOpError
         
@@ -269,8 +319,15 @@ def build_hierarchy(configs, logger):
         cache_2 = build_cache(configs, 'cache_2', prev_level, logger)
         prev_level = cache_2
         hierarchy['cache_2'] = cache_2
+    if 'cache_1_core_2' in configs.keys():
+        cache_1_core_2 = build_cache(configs, 'cache_1_core_2', prev_level, logger)
+        prev_level = cache_2
+        hierarchy['cache_1_core_2'] = cache_1_core_2
     #Cache_1 is required
     cache_1 = build_cache(configs, 'cache_1', prev_level, logger)
+    if 'cache_1_core_2' in configs.keys():
+        cache_1.add_same_level_cache(cache_1_core_2)
+        cache_1_core_2.add_same_level_cache(cache_1)
     hierarchy['cache_1'] = cache_1
     return hierarchy
 
