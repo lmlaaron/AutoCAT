@@ -31,7 +31,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self._env = CacheGuessingGameEnv(env_config)
         self.validation_env = CacheGuessingGameEnv(env_config)
         self.observation_space = self._env.observation_space
-        #self.action_space = self._env.action_space
+        self.action_space = self._env.action_space
         #print(self._env.victim_address_space)
         #assert(-1)
 
@@ -41,7 +41,9 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
 
-        self.action_space = spaces.Discrete(self.victim_address_max - self.victim_address_min + 1)
+        self.sender_action_space = spaces.Discrete(self.victim_address_max - self.victim_address_min + 1)
+        #self.receiver_action_space = self._env.action_space
+        #self.action_space = self._env.action_space
 
         #self.opponent_weights = env_config.get("opponent_weights", [0.5,0.5]) 
         #self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
@@ -70,7 +72,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #obs['detector'] = np.array(list(reversed(self.detector_obs)))
         #obs['attacker'] = opponent_obs
         #obs['benign'] = opponent_obs
-        obs['sender'] = np.array(list(reversed(self.detector_obs)))
+        obs['sender'] = opponent_obs  #np.array(list(reversed(self.detector_obs)))
         obs['receiver'] = opponent_obs
         return obs
 
@@ -102,14 +104,14 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         action_receiver = action['receiver']
 
         receiver_reward = reward['receiver']
-        sender_reward = reward['sender']
+        sender_reward = 0 #reward['sender']
 
         rew = {}
         rew['sender'] = sender_reward #* self.detector_reward_scale
         rew['receiver'] = receiver_reward
 
         info = {}
-        info['guess_correct'] = detector_correct
+        info['guess_correct'] = True #detector_correct
         return rew, info
     ##    action_detector = action['detector']
     ##    action_attacker = action['attacker']
@@ -164,7 +166,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
     def step(self, action):
 
         # sender does a step
-        self._env.sender_step(action)
+        self._env.sender_step(action['sender'])
         # added something in the middle
         #return obs, reward, done, info
 
@@ -185,7 +187,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         ######        self.victim_address = self._env.victim_address
 
         ##### receiver does a step
-        receiver_obs, receiver_reward, receiver_done, receiver_info = self._env.step(action[self.opponent_agent])
+        receiver_obs, receiver_reward, receiver_done, receiver_info = self._env.step(action['receiver'])#self.opponent_agent])
         if receiver_done:
             receiver_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
@@ -210,18 +212,18 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         ######reward['benign'] = opponent_reward
         ######done['benign'] = detector_done #Figure out correctness
         ######info['benign'] = opponent_info
-        ######opponent_attack_success = opponent_info.get('guess_correct', False)
+        receiver_attack_success = receiver_info.get('guess_correct', False)
 
         # obs, reward, done, info 
-        updated_reward, updated_info = self.compute_reward(action, reward, opponent_done, opponent_attack_success)
+        updated_reward, updated_info = self.compute_reward(action, reward, receiver_done, receiver_attack_success)
         reward['receiver'] = updated_reward['receiver']
         reward['sender'] = updated_reward['sender']
-        obs['sender'] = self.get_sender_obs(receiver_obs, receiver_info) 
-        done['sender'] = sender_done
-        info['sender'] = {"guess_correct":updated_info["guess_correct"], "is_guess":bool(action['detector'])}
+        obs['sender'] = receiver_obs#self.get_sender_obs(receiver_obs, receiver_info) 
+        done['sender'] = receiver_done #sender_done
+        info['sender'] = {"guess_correct":updated_info["guess_correct"], "is_guess":bool(action['sender'])}
         info['sender'].update(receiver_info)
         # Change the criteria to determine wether the game is done
-        if detector_done:
+        if sender_done or receiver_done:
             done['__all__'] = True
         #from IPython import embed; embed()
 

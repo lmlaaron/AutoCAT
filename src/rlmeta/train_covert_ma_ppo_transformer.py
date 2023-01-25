@@ -24,7 +24,8 @@ from rlmeta.core.types import Action, TimeStep
 from cache_env_wrapper import CacheCovertSenderReceiverEnvFactory #CacheAttackerDetectorEnvFactory
 from cache_ppo_transformer_model import CachePPOTransformerModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
-from metric_callbacks import MACallbacks
+#from metric_callbacks import MACallbacks
+from metric_callbacks import MACovertCallbacks
 
 from utils.wandb_logger import WandbLogger, stats_filter
 
@@ -41,7 +42,7 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
     wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
-    my_callbacks = MACallbacks()
+    my_callbacks = MACovertCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
     #### Define env factory
@@ -59,8 +60,9 @@ def main(cfg):
     #### Define model
     # =========================================================================
     env = env_fac(0)
-    #### attacker
+    #### receiver
     cfg.model_config["output_dim"] = env.action_space.n
+     
     train_model = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device)
     attacker_checkpoint = '' #cfg.attacker_checkpoint
@@ -74,8 +76,10 @@ def main(cfg):
 
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
-    #### detector 
-    cfg.model_config["output_dim"] = 2
+    #### sender
+    cfg.model_config["output_dim"] = 2 #env.sender_action_space.n
+    #cfg.model_config["latency_"] = 
+    
     cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device_d)
@@ -181,14 +185,14 @@ def main(cfg):
                      push_every_n_steps=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
-    ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
-    ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
+    ##ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
+    ##ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list 
     ta_ma_fac = {"receiver": ta_d_fac, "sender": ta_agent_fac } ###{"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
     td_ma_fac = {"receiver": td_d_fac, "sender": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
-    ea_ma_fac = {"receiver": ea_d_fac, "sender": ea_agent_fac } ###{"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
-    ed_ma_fac = {"receiver": ed_d_fac, "sender": ed_agent_fac } ###{"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
+    ##ea_ma_fac = {"receiver": ea_d_fac, "sender": ea_agent_fac } ###{"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
+    ##ed_ma_fac = {"receiver": ed_d_fac, "sender": ed_agent_fac } ###{"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
 
     ta_loop = MAParallelLoop(env_fac,
                           ta_ma_fac,

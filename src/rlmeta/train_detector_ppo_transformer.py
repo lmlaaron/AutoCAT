@@ -62,7 +62,7 @@ def main(cfg):
     cfg.model_config["output_dim"] = env.action_space.n
     train_model = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device)
-    attacker_checkpoint = cfg.attacker_checkpoint
+    attacker_checkpoint = ''#cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
         attacker_params = torch.load(cfg.attacker_checkpoint, map_location=cfg.train_device)
         train_model.load_state_dict(attacker_params)
@@ -148,7 +148,7 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/home/mulong/AutoCAT/src/rlmeta/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:100000]
     y = []
     for line in spec_trace:
