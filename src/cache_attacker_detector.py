@@ -55,7 +55,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         # If the self.opponent_agent is 'attacker' then value for 'attacker' key will be True
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 10
+        self.max_step = 64
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         self.detector_reward_scale = 0.1 #1.0
@@ -194,6 +194,7 @@ class CacheAttackerDetectorEnv(gym.Env):
                 
         #NOTE: Need to check with _env
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
+        
         if opponent_done:
             opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
