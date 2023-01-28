@@ -22,7 +22,7 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
 from cache_env_wrapper import CacheCovertSenderReceiverEnvFactory #CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
+from cache_ppo_transformer_model import CachePPOTransformerModel, CachePPOTransformerSenderModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 #from metric_callbacks import MACallbacks
 from metric_callbacks import MACovertCallbacks
@@ -77,12 +77,15 @@ def main(cfg):
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### sender
-    cfg.model_config["output_dim"] = 2 #env.sender_action_space.n
+    cfg.sender_model_config["output_dim"] = 2 #env.sender_action_space.n
     #cfg.model_config["latency_"] = 
-    
-    cfg.model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
+    cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min 
+    cfg.sender_model_config["step_dim"] += 2
+    train_model_d = CachePPOTransformerModel(**cfg.sender_model_config).to(
         cfg.train_device_d)
+    
+    #CachePPOTransformerModel(**cfg.model_config).to(
+    #    cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
