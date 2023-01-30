@@ -40,18 +40,15 @@ def main():
     sh = logging.StreamHandler()
     logger.addHandler(fh)
     logger.addHandler(sh)
-
     fh_format = logging.Formatter('%(message)s')
     fh.setFormatter(fh_format)
     sh.setFormatter(fh_format)
     logger.setLevel(logging.INFO)
-    
     logger.info('Loading config...')
     config_file = open(arguments['config_file'])
     configs = yaml.full_load(config_file)
     hierarchy = build_hierarchy(configs, logger)
     logger.info('Memory hierarchy built.')
-
     logger.info('Loading tracefile...')
     trace_file = open(arguments['trace_file'])
     trace = trace_file.read().splitlines()
@@ -207,7 +204,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
         #Call lock
         elif op == 'D':
             assert(l1.rep_policy == lru_lock_policy)
-            assert(op == 'D')
+            #assert(op == 'D')
             logger.info(str(current_step) + ':\tLock_bit ' + lock_bit + 'op: ' + op)
             r, _ = l1.lock(set_no, lock_bit) #underscore _ ignores a value when unpacking
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')

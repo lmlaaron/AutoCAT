@@ -58,10 +58,10 @@ class CacheGuessingGameEnv(gym.Env):
    "wrong_reward":-9999,
    "step_reward":-1,
    "window_size":0,
-   "attacker_addr_s":4,
-   "attacker_addr_e":7,
+   "attacker_addr_s":1,
+   "attacker_addr_e":4,
    "victim_addr_s":0,
-   "victim_addr_e":3,
+   "victim_addr_e":0,
    "flush_inst": False,
    "allow_victim_multi_access": True,
    "verbose":0,
@@ -84,7 +84,6 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
-    # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
@@ -123,7 +122,7 @@ class CacheGuessingGameEnv(gym.Env):
     if "cache_configs" in env_config:
       #self.logger.info('Load config from JSON')
       self.configs = env_config["cache_configs"]
-    else:
+    else: 
       self.config_file_name = os.path.dirname(os.path.abspath(__file__))+'/../configs/config_simple_L1'
       self.config_file = open(self.config_file_name)
       self.logger.info('Loading config from file ' + self.config_file_name)
@@ -133,8 +132,11 @@ class CacheGuessingGameEnv(gym.Env):
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
     
+    #self.policy = env_config['cache_1']['rep_policy']
+    
     if "rep_policy" not in self.configs['cache_1']:
-      self.configs['cache_1']['rep_policy'] = 'lru'
+      self.configs['cache_1']['rep_policy'] = 'lru_lock_polcy'
+      #self.repl_policy = self.configs['cache_1']['rep_policy']
       
     if 'cache_1_core_2' in self.configs:
       if "rep_policy" not in self.configs['cache_1_core_2']:
@@ -217,8 +219,6 @@ class CacheGuessingGameEnv(gym.Env):
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
     
     # observation_space is in shape (40, 4), w/ lower bound -1 and upper bound 42. 
-    # observation that an agent can make in the environment is a 2D matrix of 40 rows and 4 columns 
-    # where each element is a number between -1 and 42
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
 
     #print('Initializing...')
@@ -235,6 +235,10 @@ class CacheGuessingGameEnv(gym.Env):
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
       self.vprint("[init] victim access %d locked cache line" % self.victim_address_max)
       self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
+
+    #TODO: locking operation is implented in lru_lock_policy
+    if self.configs['cache_1']['rep_policy'] == 'lru_lock_policy':
+      pass
 
     # internal guessing buffer. does not change after reset
     self.guess_buffer_size = 100
@@ -274,8 +278,6 @@ class CacheGuessingGameEnv(gym.Env):
     self.vprint('Step ', self.step_count)
     info = {}
     
-    # check if the argument "action" is a NumPy array. 
-    # If yes, then proceed to extract the single scalar value from array using the item() method
     if isinstance(action, np.ndarray):
         action = action.item()
         print('attacker\'s action: ', action)
@@ -317,6 +319,9 @@ class CacheGuessingGameEnv(gym.Env):
                 victim_random = random.randint(self.victim_address_min, self.victim_address_max)
                 self.vprint("victim random access %d " % victim_random)
                 #t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
+                
+                #TODO: locking operation is implented in lru_lock_policy
+                
                 t, _ = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step)#, domain_id='v')
                 t = t.time 
                 info['victim_address'] = victim_random
@@ -324,6 +329,9 @@ class CacheGuessingGameEnv(gym.Env):
             elif self.victim_address <= self.victim_address_max:
                 self.vprint("victim access %d " % self.victim_address)
                 #t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
+                
+                #TODO: locking operation is implented in lru_lock_policy
+                
                 t, _ = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step)#, domain_id='v')
                 t = t.time # do not need to lock again
                 
@@ -384,6 +392,9 @@ class CacheGuessingGameEnv(gym.Env):
               done = True
         elif is_flush == False or self.flush_inst == False:
           #lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step)#, domain_id='a')
+          
+          #TODO: locking operation is implented in lru_lock_policy
+          
           lat, _ = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step)#, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
@@ -513,6 +524,8 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("[reset] victim access %d locked cache line" % self.victim_address_max)
       lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
 
+    #TODO: locking operation is implented in lru_lock_policy
+
     self.last_state = None
 
     return np.array(list(reversed(self.state)))
@@ -593,6 +606,9 @@ class CacheGuessingGameEnv(gym.Env):
       random.seed(seed)
   
     if mode == "attacker":
+      
+      #TODO: locking operation is implented in lru_lock_policy
+      
       self.l1.read(hex(self.ceaser_mapping(0))[2:], -2, domain_id='X')
       self.l1.read(hex(self.ceaser_mapping(1))[2:], -1, domain_id='X')
       return
@@ -611,6 +627,8 @@ class CacheGuessingGameEnv(gym.Env):
         addr = random.randint(0, sys.maxsize)
       else:
         raise RuntimeError from None
+      
+      #TODO: locking operation is implented in lru_lock_policy
       
       self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step)#, domain_id='X')
       self.current_step += 1
@@ -674,137 +692,12 @@ if __name__ == '__main__':
     env = CacheGuessingGameEnv()
     obs = env.reset()
     done = False
+    policy = env.repl_policy
     i=0
     while not done:
         i+=1
         obs, reward, done, info = env.step(np.random.randint(9))
+        print('rep_policy ', policy)
         print("step ", i, ":", obs, reward, done, info) 
-               
-              
-class Defender(gym.Env):
-  '''
-  Defender's observation:  
-    self.observation_space = spaces.Discrete(
-      [3, # cache_latency (for victim's if invoke_victm, otherwise attaker's)
-      20, # domain_id
-      2,  # victim_address( if invoke_victim) or attacker_address
-      3,  # step_count
-      4]  # defender's action
-    )
-  
-  Defender's actions:
-    No of actions matches with the lockbits for n-ways 
-    1. unlock a set using lock_bit == 0000, means all way_no are unlocked
-    2. lock a set using lock_bit == 0001, means lock way_no = 3
-    3. lock a set using lock_bit == 0010, means lock way_no = 2
-    ...
-    15. lock a set using lock_bit == 1110, means lock way_no = 0,1,2
-    16. lcok a set using lock_bit == 1111, means lock way_no = 0,1,2,3
-
-  Reward:
-   Gets reward if attacker makes a wrong guess
-   Gets reward if attacker attacker fails to make a guess in episode
-   Gets penalty if attacker succeed to guess a victim's secret
-   Gets penalty if attacker succeed to guess a victim no access 
-
-  Starting state:
-    fresh cache with nolines
-  
-  Episode termination:
-    when the attacker make a guess
-    when there is length violation
-    when there is guess before victim violation
-    episode terminates
-  
-  '''
-  #metadata = {'render.modes': ['human']}
-  
-  def __init__(self, env_config: Dict[str, Any]) -> None:
-    
-    self.reset_observation = env_config.get("reset_observation", False)
-    self.env_config = env_config
-    self.episode_length = env_config.get("episode_length", 80)
-    
-    self._env = CacheGuessingGameEnv(env_config) 
-    self.window_size = self._env.window_size
-    #self.max_box_value = self._env.max_box_value
-    self.feature_size = 5
-    self.def_state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
-    self.step_count = 0
-   
-    '''needs to be of Gym's class "spaces" '''
-    self.action_space = spaces.Discrete(16)
-    
-    '''needs to be of Gym's class "spaces" '''
-    self.observation_space = self._env.observation_space
-    
-    self.max_step = 64
-    
-    self.step_count = 0
-    # self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
-    
-    self.hierarchy = build_hierarchy(self.configs, self.logger)
-    self.l1 = self.hierarchy['cache_1']
-  
-
-  def step(self, action):
-    
-    '''
-    Defender's actions:
-     No of actions matches with the lockbits for n-ways 
-     1. unlock a set using lock_bit == 0000, means all way_no are unlocked
-     2. lock a set using lock_bit == 0001, means lock way_no = 3
-     3. lock a set using lock_bit == 0010, means lock way_no = 2
-     ...
-     16. lock a set using lock_bit == 1111, means lock way_no = 0,1,2,3
-    '''
-    info = {}
-    reward = {}
-    done = {'__all__':False}
-    action_info = action.get('info')
-    set_no = 0
-    
-    # each action from actions will get a specific lock_bit value
-    actions = {0:'0000',1:'0001',2:'0010',3:'0011',4:'0100',5:'0101',6:'0110',7:'0111',
-            8:'1000',9:'1001',10:'1010',11:'1011',12:'1100',13:'1101',14:'1110',15:'1111'}
-    
-    # locking operation is only allowed for lru_lock_policy
-    if self.configs['cache_1']['rep_policy'] == 'lru_lock_policy':
-      for k, v in actions.items():
-        if k == 0:
-          action = k
-          lock_bit = v
-          
-        elif k == 1:
-          action = k
-          lock_bit = v
         
-        # keep incldue for other action and lock_bit
-          
-        self.l1.lock(self, set_no, lock_bit)
-        reward = 10
-          
-        
-
-      info['defender_action'] = k
-    
-    # first four elements are for opponent's observation, add action of defener as 5th
-    #self.def_state.append([r, victim_accessed, original_action, self.step_count, action])
-    #self.def_state.popleft()
-    self.step_count += 1
-
-    # specify condition to complete the defender's action
-    done = True
-    
-    return np.array(list(reversed(self.def_state))), reward, done, info
-  
-  def reset(self):
-    return 
-
-  def defender_obs(self):
-    return
-  
-  def defender_reward(self):
-    return
-  
 
