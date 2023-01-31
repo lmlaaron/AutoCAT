@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import random
+import hydra
 import gym
 
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
@@ -192,30 +193,36 @@ class CacheAttackerDetectorEnv(gym.Env):
         #print(obs["detector"])
         return obs, reward, done, info
 
-if __name__ == '__main__':
-    env = CacheAttackerDetectorEnv({})
+@hydra.main(config_path="./rlmeta/config", config_name="ppo_exp")
+def main(cfg):
+    env = CacheAttackerDetectorEnv(cfg.env_config)
     env.opponent_weights = [0,1]
     action_space = env.action_space
     obs = env.reset()
     done = {'__all__':False}
-    i = 0
+    prev_a = 10
     for k in range(2):
-      while not done['__all__']:
-        i += 1
-        action = {'attacker':np.random.randint(low=3, high=6),
-                  'benign':np.random.randint(low=2, high=5),
-                  'detector':np.random.randint(low=0, high=1)}
-        obs, reward, done, info = env.step(action)
-        print("step: ", i)
-        print("obs: ", obs['detector'])
-        print("action: ", action)
-        print("victim: ", env.victim_address, env._env.victim_address)
+        i = 0
+        while not done['__all__']:
+            i += 1
+            print("step: ", i)
+            action = {'attacker':9 if (prev_a==10 or i<64) else 10, #np.random.randint(low=9, high=11),
+                      'benign':np.random.randint(low=2, high=5),
+                      'detector':np.random.randint(low=0, high=1)}
+            prev_a = action['attacker']
+            obs, reward, done, info = env.step(action)
+            #print("obs: ", obs['detector'])
+            print("action: ", action)
+            print("victim: ", env.victim_address, env._env.victim_address)
 
-        #print("done:", done)
-        print("reward:", reward)
-        print(env.victim_address_min, env.victim_address_max)
-        #print("info:", info )
-        if info['attacker'].get('invoke_victim'):
-            print(info['attacker'])
-      obs = env.reset()
-      done = {'__all__':False}
+            #print("done:", done)
+            print("reward:", reward)
+            #print(env.victim_address_min, env.victim_address_max)
+            #print("info:", info )
+            if info['attacker'].get('invoke_victim') or info['attacker'].get('is_guess')==True:
+                print(info['attacker'])
+        obs = env.reset()
+        done = {'__all__':False}
+
+if __name__ == "__main__":
+    main()
