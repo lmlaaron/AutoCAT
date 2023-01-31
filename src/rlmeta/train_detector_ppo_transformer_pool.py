@@ -13,7 +13,9 @@ import rlmeta.utils.remote_utils as remote_utils
 
 from rlmeta.agents.agent import AgentFactory
 #TODO from rlmeta.agents.ppo.ppo_agent import PPOAgent
-from rlmeta.core.controller import Phase, Controller, DummyController
+#from rlmeta.core.controller import Phase, Controller, DummyController
+from utils.controller import Phase, Controller, DummyController
+#from rlmeta.core.maloop import LoopList, MAParallelLoop
 from rlmeta.core.maloop import LoopList, MAParallelLoop
 #TODO from rlmeta.core.model import wrap_downstream_model
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
@@ -148,8 +150,8 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:1000000]
+    spec_trace_f = open('/u/jxcui/remix3.txt','r')
+    spec_trace = spec_trace_f.read().split('\n')[:100]
     y = []
     for line in spec_trace:
         line = line.split()

@@ -26,8 +26,8 @@ num_train_workers: 24  #24
 num_eval_rollouts: 12 #2
 num_eval_workers: 4 #2
 
-attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
-#attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
+#attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
+attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
 #attacker_checkpoint: ""
 
 # replay_buffer_size: 262144
