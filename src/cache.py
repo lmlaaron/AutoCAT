@@ -5,7 +5,6 @@ from replacement_policy import *
 class Cache:
     def __init__(self, name, word_size, block_size, n_blocks, associativity,
                  hit_time, write_time, write_back, logger, next_level=None, rep_policy='', prefetcher="none", verbose=False):
-        #Parameters configured by the user
         self.name = name
         self.word_size = word_size
         self.block_size = block_size
@@ -44,8 +43,6 @@ class Cache:
             if name == 'cache_1':
                 self.vprint("no rep_policy specified or policy specified not exist")
                 self.vprint("use lru_policy")
-                
-
         self.vprint("use " + prefetcher + "  prefetcher")
 
         # prefetcher == "none" "nextline" "stream"
@@ -86,11 +83,9 @@ class Cache:
                     # isntantiate with empty tags
                     self.data[index].append((INVALID_TAG, block.Block(self.block_size, 0, False, 'x')))
                     '''self.data = {'0':[('--------', 1, 0, False, 'X', 0)]}'''
-                    
                     self.domain_id_tags[index].append(('X','X')) # for cyclone
 
-                self.set_rep_policy[index] = self.rep_policy(associativity, block_size) 
-                
+                self.set_rep_policy[index] = self.rep_policy(associativity, block_size)         
 
     def vprint(self, *args):
         if self.verbose == 1:
@@ -110,12 +105,10 @@ class Cache:
         block_offset, index, tag = self.parse_address(address)
  
         #Get the tags in this set
-        
         in_cache = []
         for i in range( 0, len(self.data[index]) ):
             if self.data[index][i][0] != INVALID_TAG:#'x':
                 in_cache.append(self.data[index][i][0])
-
 
         #If this tag exists in the set, this is a hit
         if tag in in_cache:
@@ -166,7 +159,6 @@ class Cache:
                         # update the table
                         self.prefetcher_table[i] = {"first": entry["second"], "second":pref_addr}
 
-
                 elif int(address, 16) == entry["first"] + 1 or int(address, 16) == entry["first"] -1 and entry["first"] != -1:
                     # second search if it is second access
                     self.prefetcher_table[i]["second"] = int(address, 16)
@@ -196,7 +188,6 @@ class Cache:
         r = None
         #Check if this is main memory
         #Main memory is always a hit
-        
         if not self.next_level:
             r = response.Response({self.name:True}, self.hit_time)
             evict_addr = -1
@@ -322,7 +313,6 @@ class Cache:
                                 #    self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                                 self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                                 break
-                        
                         
                         if int(self.n_blocks/ self.associativity) == 1:
                             indexi = ''
@@ -463,17 +453,13 @@ class Cache:
     
     def lock(self, set_no, lock_bit):
         
-        index = set_no
+        index = str(set_no)
         r = response.Response({self.name:True}, self.lock_time)   
         lock_vector_array = [int(x) for x in str(lock_bit)]
-        #self.lock_vector_array = lock_vector_array
         #print('lock_vector_array input for op: ', self.lock_vector_array)
         #print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
-        # use this object to pass the updated lock_vector_array to cache_simulator
-        #self.lock_bits = self.set_rep_policy[index].set_lock_vector(lock_vector_array)
-        #print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
-
+        print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
         return r, lock_vector_array
 
     def parse_address(self, address):

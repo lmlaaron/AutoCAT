@@ -541,7 +541,7 @@ class lru_lock_policy(rep_policy):
                     victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
                     Is_evict = True
 
-        print('victim_tag: ', victim_tag)
+        #print('victim_tag: ', victim_tag)
         return Is_evict, victim_tag
     
     # gathers lock vectors per line into the array

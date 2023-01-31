@@ -61,8 +61,6 @@ def main():
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
     
-    
-
 #Print the contents of a cache as a table
 #If the table is too long, it will print the first few sets,
 #break, and then print the last set
@@ -114,11 +112,13 @@ def print_cache(cache):
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
                 
-                #print(temp_way)
                 # add additional rows only if the replacement policy = lru_lock_policy
                 if cache.rep_policy == lru_lock_policy:
                    lock_info = ["Lock bit"]
+                   
                    lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
+                   print(lock_vector_array)
+                   print(set_indexes[s])
                    for w in range(0, len(lock_vector_array)):  
                        lock_info.append(lock_vector_array[w])
                    sets.append(lock_info)
@@ -142,7 +142,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
     responses = []
     if result_file != '':
         f = open(result_file, 'w')
-    #print(result_file)
+    
     #We only interface directly with L1. Reads and writes will automatically
     #interact with lower levels of the hierarchy
     l1 = hierarchy['cache_1']
@@ -151,7 +151,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
         
     for current_step in range(len(trace)):
         instruction = trace[current_step]
-        #address, op = instruction.split()
+        
         inst2 = instruction.split()
         if len(inst2) == 2:
             address = inst2[0]
@@ -213,8 +213,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
         else:
             raise InvalidOpError
         
-        #if result_file != '':
-        # print the trace 
+        #if result_file != '': print the trace 
         print(address + ' ' + str(r.time), file = f )
         for cache in hierarchy:
             if hierarchy[cache].next_level:
@@ -300,9 +299,8 @@ def compute_amat(level, responses, logger, results={}):
         logger.info('\tNumber of misses: ' + str(n_miss))
     return results
 
-
 def build_hierarchy(configs, logger):
-    #Build the cache hierarchy with the given configuration
+    
     hierarchy = {}
     #Main memory is required
     main_memory = build_cache(configs, 'mem', None, logger)
@@ -347,7 +345,6 @@ def build_cache(configs, name, next_level_cache, logger):
                 rep_policy = configs[name]['rep_policy'] if 'rep_policy' in configs[name] else '',
                 prefetcher = configs[name]['prefetcher'] if 'prefetcher' in configs[name] else "none",
                 verbose = configs['verbose'] if 'verbose' in configs else 'False' )
-
 
 if __name__ == '__main__':
     main()

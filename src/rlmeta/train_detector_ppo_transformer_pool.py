@@ -1,16 +1,12 @@
 import copy
 import logging
 import time
-
 import hydra
-
 import torch
 import torch.multiprocessing as mp
-
 import rlmeta.envs.gym_wrappers as gym_wrappers
 import rlmeta.utils.hydra_utils as hydra_utils
 import rlmeta.utils.remote_utils as remote_utils
-
 from rlmeta.agents.agent import AgentFactory
 #TODO from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from rlmeta.core.controller import Phase, Controller, DummyController
@@ -20,14 +16,11 @@ from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
-
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
 from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model #CachePPOTransformerModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 from metric_callbacks import MACallbacks
-
 from utils.wandb_logger import WandbLogger, stats_filter
-
 from agents.random_agent import RandomAgent
 from agents.benign_agent import BenignAgent
 from agents.spec_agent import SpecAgent
@@ -36,11 +29,12 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
 # @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-@hydra.main(config_path="./config", config_name="ppo_exp")
+@hydra.main(config_path="./config", config_name="ppo_lock")
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
-    wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    #wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="cache_attack_defense", config=cfg)
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 

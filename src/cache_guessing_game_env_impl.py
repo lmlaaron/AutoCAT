@@ -132,20 +132,14 @@ class CacheGuessingGameEnv(gym.Env):
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
     
-    #self.policy = env_config['cache_1']['rep_policy']
-    
     if "rep_policy" not in self.configs['cache_1']:
-      self.configs['cache_1']['rep_policy'] = 'lru_lock_polcy'
-      #self.repl_policy = self.configs['cache_1']['rep_policy']
+      self.configs['cache_1']['rep_policy'] = 'lru'
       
     if 'cache_1_core_2' in self.configs:
       if "rep_policy" not in self.configs['cache_1_core_2']:
         self.configs['cache_1_core_2']['rep_policy'] = 'lru'
       self.configs['cache_1_core_2']['prefetcher'] = self.prefetcher
       
-    #with open_dict(self.configs):
-    #    self.configs['cache_1']['prefetcher'] = self.prefetcher
-    
     # check window size
     if window_size == 0:
       self.window_size = self.cache_size * 8 + 8 # for 4s1w -> 40
@@ -236,20 +230,14 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("[init] victim access %d locked cache line" % self.victim_address_max)
       self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
 
-    #TODO: locking operation is implented in lru_lock_policy
-    if self.configs['cache_1']['rep_policy'] == 'lru_lock_policy':
-      pass
-
     # internal guessing buffer. does not change after reset
     self.guess_buffer_size = 100
     self.guess_buffer = [False] * self.guess_buffer_size # [False, False, ... False]
     self.last_state = None
     
-
   def clear_guess_buffer_history(self):
     self.guess_buffer = [False] * self.guess_buffer_size
     
-
   # remap the victim address range
   def remap(self):
     if self.rerandomize_victim == False:
@@ -257,7 +245,6 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       self.vprint("doing remapping!")
       random.shuffle(self.perm)
-
 
   # ceasar remapping
   # addr is integer not string
@@ -269,7 +256,6 @@ class CacheGuessingGameEnv(gym.Env):
       # return self.mapping_func(addr)
       return self.perm[addr]
 
-  # TODO: update read method to use for lru_lock_policy
   def step(self, action):
 
     cyclic_set_index = -1
@@ -319,9 +305,6 @@ class CacheGuessingGameEnv(gym.Env):
                 victim_random = random.randint(self.victim_address_min, self.victim_address_max)
                 self.vprint("victim random access %d " % victim_random)
                 #t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
-                
-                #TODO: locking operation is implented in lru_lock_policy
-                
                 t, _ = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step)#, domain_id='v')
                 t = t.time 
                 info['victim_address'] = victim_random
@@ -329,9 +312,6 @@ class CacheGuessingGameEnv(gym.Env):
             elif self.victim_address <= self.victim_address_max:
                 self.vprint("victim access %d " % self.victim_address)
                 #t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
-                
-                #TODO: locking operation is implented in lru_lock_policy
-                
                 t, _ = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step)#, domain_id='v')
                 t = t.time # do not need to lock again
                 
@@ -392,9 +372,6 @@ class CacheGuessingGameEnv(gym.Env):
               done = True
         elif is_flush == False or self.flush_inst == False:
           #lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step)#, domain_id='a')
-          
-          #TODO: locking operation is implented in lru_lock_policy
-          
           lat, _ = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step)#, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
@@ -524,17 +501,13 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("[reset] victim access %d locked cache line" % self.victim_address_max)
       lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
 
-    #TODO: locking operation is implented in lru_lock_policy
-
     self.last_state = None
 
     return np.array(list(reversed(self.state)))
 
-  
   '''function to calculate the correctness rate'''
   def calc_correct_rate(self):
     return self.guess_buffer.count(True) / len(self.guess_buffer)
-
   
   '''evluate the correctness of an action sequence (action+ latency) 
   action_buffer: list [(action, latency)]'''
@@ -607,8 +580,6 @@ class CacheGuessingGameEnv(gym.Env):
   
     if mode == "attacker":
       
-      #TODO: locking operation is implented in lru_lock_policy
-      
       self.l1.read(hex(self.ceaser_mapping(0))[2:], -2, domain_id='X')
       self.l1.read(hex(self.ceaser_mapping(1))[2:], -1, domain_id='X')
       return
@@ -627,8 +598,6 @@ class CacheGuessingGameEnv(gym.Env):
         addr = random.randint(0, sys.maxsize)
       else:
         raise RuntimeError from None
-      
-      #TODO: locking operation is implented in lru_lock_policy
       
       self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step)#, domain_id='X')
       self.current_step += 1
@@ -687,17 +656,14 @@ class CacheGuessingGameEnv(gym.Env):
         
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
-
 if __name__ == '__main__':
     env = CacheGuessingGameEnv()
     obs = env.reset()
     done = False
-    policy = env.repl_policy
     i=0
     while not done:
         i+=1
         obs, reward, done, info = env.step(np.random.randint(9))
-        print('rep_policy ', policy)
         print("step ", i, ":", obs, reward, done, info) 
         
 
