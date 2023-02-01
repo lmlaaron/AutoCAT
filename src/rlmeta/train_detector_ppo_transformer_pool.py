@@ -22,7 +22,7 @@ from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downs
 from metric_callbacks import MACallbacks
 
 from utils.wandb_logger import WandbLogger, stats_filter
-from utils.controller import Phase, Controller, DummyController
+from utils.controller import Phase, Controller
 from utils.maloop import LoopList, MAParallelLoop
 
 from agents.random_agent import RandomAgent
