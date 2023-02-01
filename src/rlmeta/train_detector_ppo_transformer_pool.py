@@ -12,35 +12,25 @@ import rlmeta.utils.hydra_utils as hydra_utils
 import rlmeta.utils.remote_utils as remote_utils
 
 from rlmeta.agents.agent import AgentFactory
-#TODO from rlmeta.agents.ppo.ppo_agent import PPOAgent
-#from rlmeta.core.controller import Phase, Controller, DummyController
-from utils.controller import Phase, Controller, DummyController
-#from rlmeta.core.maloop import LoopList, MAParallelLoop
-from rlmeta.core.maloop import LoopList, MAParallelLoop
-#TODO from rlmeta.core.model import wrap_downstream_model
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
 from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model #CachePPOTransformerModel
-# from cache_ppo_transformer_model_pe import CachePPOTransformerModel
+from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model
 from metric_callbacks import MACallbacks
 
 from utils.wandb_logger import WandbLogger, stats_filter
+from utils.controller import Phase, Controller, DummyController
+from utils.maloop import LoopList, MAParallelLoop
 
 from agents.random_agent import RandomAgent
 from agents.benign_agent import BenignAgent
 from agents.spec_agent import SpecAgent
 from agents.ppo_agent import PPOAgent
-# @hydra.main(config_path="./config", config_name="ppo_lru_8way")
-# @hydra.main(config_path="./config", config_name="ppo_2way_2set")
-# @hydra.main(config_path="./config", config_name="ppo_4way_4set")
-# @hydra.main(config_path="./config", config_name="ppo_8way_8set")
+
 @hydra.main(config_path="./config", config_name="ppo_exp")
-# @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
-# @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
     wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
     my_callbacks = MACallbacks()
@@ -48,10 +38,13 @@ def main(cfg):
 
     #### Define env factory
     # =========================================================================
+    # 50% benign, 50% attacker, for detector training
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
+    # 0% benign, 100% attacker, for attacker training and evaluation
     unbalanced_env_config = copy.deepcopy(cfg.env_config)
     unbalanced_env_config["opponent_weights"] = [0,1]
     env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)
+    # 100% benign, 0% attacker, for detector evaluation (false positive)
     benign_env_config = copy.deepcopy(cfg.env_config)
     benign_env_config["opponent_weights"] = [1,0]
     env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)
@@ -85,7 +78,6 @@ def main(cfg):
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
     infer_model_d.eval()
     
-    ctrl_d = DummyController()
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
     # =========================================================================
     
@@ -99,11 +91,9 @@ def main(cfg):
     c_server.add_service(ctrl)
     md_server = Server(cfg.md_server_name, cfg.md_server_addr)
     rd_server = Server(cfg.rd_server_name, cfg.rd_server_addr)
-    cd_server = Server(cfg.cd_server_name, cfg.cd_server_addr)
     md_server.add_service(infer_model_d)
     rd_server.add_service(rb_d)
-    cd_server.add_service(ctrl_d)
-    servers = ServerList([m_server, r_server, c_server, md_server, rd_server, cd_server])
+    servers = ServerList([m_server, r_server, c_server, md_server, rd_server])
     # =========================================================================
 
     #### Define remote model and control
@@ -157,7 +147,6 @@ def main(cfg):
         line = line.split()
         y.append(line)
     spec_trace = y
-    #spec_trace = '/private/home/jxcui/remix3.txt'
     benign = SpecAgent(cfg.env_config, spec_trace)
     t_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
     e_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
@@ -194,7 +183,7 @@ def main(cfg):
 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
-                          ta_ctrl, #TODO 
+                          ta_ctrl, 
                           running_phase=Phase.TRAIN_ATTACKER,
                           should_update=True,
                           num_rollouts=cfg.num_train_rollouts,
@@ -203,7 +192,7 @@ def main(cfg):
                           episode_callbacks=my_callbacks)
     td_loop = MAParallelLoop(env_fac,
                           td_ma_fac,
-                          td_ctrl, #TODO 
+                          td_ctrl, 
                           running_phase=Phase.TRAIN_DETECTOR,
                           should_update=True,
                           num_rollouts=cfg.num_train_rollouts,
@@ -212,7 +201,7 @@ def main(cfg):
                           episode_callbacks=my_callbacks)
     ea_loop = MAParallelLoop(env_fac_unbalanced,
                           ea_ma_fac,
-                          ea_ctrl, #TODO
+                          ea_ctrl,
                           running_phase=Phase.EVAL_ATTACKER,
                           should_update=False,
                           num_rollouts=cfg.num_eval_rollouts,
@@ -221,7 +210,7 @@ def main(cfg):
                           episode_callbacks=my_callbacks)
     ed_loop = MAParallelLoop(env_fac_benign,
                           ed_ma_fac,
-                          ed_ctrl, #TODO
+                          ed_ctrl,
                           running_phase=Phase.EVAL_DETECTOR,
                           should_update=False,
                           num_rollouts=cfg.num_eval_rollouts,
@@ -296,7 +285,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        eval_stats = {"attacker":a_stats, "detector":d_stats} # TODO: think about how to deal with this
+        eval_stats = {"attacker":a_stats, "detector":d_stats}
         time.sleep(1)
         
         wandb_logger.log(train_stats, eval_stats)

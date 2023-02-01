@@ -4,8 +4,6 @@ import sys
 from typing import Any, Dict
 
 from rlmeta.envs.env import Env, EnvFactory
-#from rlmeta.envs.gym_wrappers import GymWrapper, MAGymWrapper
-from utils.gym_wrappers import GymWrapper, MAGymWrapper
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -13,6 +11,8 @@ from cache_guessing_game_env_impl import CacheGuessingGameEnv
 from cchunter_wrapper import CCHunterWrapper
 from cyclone_wrapper import CycloneWrapper
 from cache_attacker_detector import CacheAttackerDetectorEnv
+
+from utils.gym_wrappers import GymWrapper, MAGymWrapper
 
 class CacheEnvWrapperFactory(EnvFactory):
     def __init__(self, env_config: Dict[str, Any]) -> None:
