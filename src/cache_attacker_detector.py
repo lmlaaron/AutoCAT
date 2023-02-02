@@ -177,7 +177,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         info = {}
         
         # Attacker update
-        # if the value of key 'info' is not exist in dict "action" returns None
         action_info = action.get('info')
         #if self.opponent_agent == 'benign':
         
@@ -185,6 +184,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
             benign_victim_addr = action_info.get('victim_addr', None)
+            
             if self.opponent_agent == 'benign' and benign_reset_victim:
                 
                 # assign benign_victim_addr to victim_address 
@@ -192,7 +192,6 @@ class CacheAttackerDetectorEnv(gym.Env):
                 self._env.set_victim(benign_victim_addr) 
                 self.victim_address = self._env.victim_address
                 
-        #NOTE: Need to check with _env
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
         
         if opponent_done:
@@ -210,6 +209,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             
         # attacker
         obs['attacker'] = opponent_obs
+        #print('obs_attacker ', obs['attacker'])
         reward['attacker'] = opponent_reward
         done['attacker'] = detector_done #Figure out correctness
         info['attacker'] = opponent_info

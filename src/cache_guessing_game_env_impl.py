@@ -266,7 +266,7 @@ class CacheGuessingGameEnv(gym.Env):
     
     if isinstance(action, np.ndarray):
         action = action.item()
-        print('attacker\'s action: ', action)
+    print('attacker\'s action: ', action)
     original_action = action
     action = self.parse_action(original_action) #, self.flush_inst)
 

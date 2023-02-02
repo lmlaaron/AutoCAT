@@ -117,8 +117,8 @@ def print_cache(cache):
                    lock_info = ["Lock bit"]
                    
                    lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
-                   print(lock_vector_array)
-                   print(set_indexes[s])
+                   #print(lock_vector_array)
+                   #print(set_indexes[s])
                    for w in range(0, len(lock_vector_array)):  
                        lock_info.append(lock_vector_array[w])
                    sets.append(lock_info)

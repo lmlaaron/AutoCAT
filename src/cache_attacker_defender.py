@@ -28,7 +28,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 5
+        self.max_step = 10
         self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1]) # Returns a random element from the given sequence
         self.defender_reward_scale = 0.1 
@@ -36,25 +36,27 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.repl_policy = env_config.get('rep_policy', 'lru_lock_policy')
         self.l1 = self._env.l1
 
-    def reset(self, victim_address=-1):
-        # TODO: include termination term
+    #def reset(self, victim_address=-1, reset_obs = True):
+    def reset(self, victim_address=-1):  
+       
         """ returned obs = { agent_name : obs } """
-        '''Episode termination:
-            when the attacker make a guess NOTE: multiple guesses per episode implented in _env
-            when there is length violation
-            when there is guess before victim violation
-            episode terminates '''
+        '''Episode termination: when there is length violation '''
         
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
-        self.step_count = 0
         opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=True)
         self.victim_address = self._env.victim_address
-        self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
+        
+        #if reset_obs:
+        #if opponent_obs.any():
+        self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
+        self.step_count = 0
+        
         obs = {}
         obs['defender'] = np.array(list(reversed(self.defender_obs)))
         obs['attacker'] = opponent_obs
+        #print('obs_attacker ', obs['attacker'])
         obs['benign'] = opponent_obs
         return obs
     
@@ -135,9 +137,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         
         ''' Defender's actions: No of actions matches with the lockbits for n-ways 
             1. unlock a set using lock_bit == 0000, means all way_no are unlocked
-            2. lock a set using lock_bit == 0001, means lock way_no = 3
-            3. lock a set using lock_bit == 0010, means lock way_no = 2, ...,
-            16. lcok a set using lock_bit == 1111, means lock way_no = 0,1,2,3 '''
+            2. or lock a set using lock_bit == 0001, means lock way_no = 3 '''
         
         self.step_count += 1
         obs = {}
@@ -145,6 +145,15 @@ class CacheAttackerDefenderEnv(gym.Env):
         done = {'__all__':False} 
         info = {}
         action_info = action.get('info')
+        
+        if isinstance(action, np.ndarray):
+            action = action.item()
+        #print('agents action ', action)
+        print('defender\'s action: ', action['defender'])
+        set_no = 0
+        lock_bit = bin(action['defender'])[2:].zfill(4)
+        self.l1.lock(set_no, lock_bit)
+        #print_cache(self.l1)
         
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
@@ -163,24 +172,9 @@ class CacheAttackerDefenderEnv(gym.Env):
             self.step_count -= 1 # The reset/guess step should not be counted
             
         if self.step_count >= self.max_step:
-            defender_done = True
+            defender_done = True # will not terminate the episode
         else:
             defender_done = False
-        
-        actions = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 ,15)
-        
-        if self.repl_policy == 'lru_lock_policy':
-            
-            set_no = 0
-            if action['defender'] in actions:
-                lock_bit = bin(action['defender'])[2:].zfill(4)
-                #print(action['defender'])
-                #print(lock_bit)
-                #print_cache(self.l1)
-                self.l1.lock(set_no, lock_bit)
-                print(lock_bit)
-                print_cache(self.l1)
-            defender_done = False # will not terminate the episode
             
         # attacker
         obs['attacker'] = opponent_obs
@@ -207,7 +201,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         
         # Change the criteria to determine wether the game is done
         if defender_done:
-            print('defender_done', defender_done)
+            #print('defender_done', defender_done)
             done['__all__'] = True
 
         info['__all__'] = {'action_mask':self.action_mask}
@@ -219,36 +213,55 @@ class CacheAttackerDefenderEnv(gym.Env):
  
 @hydra.main(config_path="./rlmeta/config", config_name="ppo_lock")
 def main(cfg):
-    #TODO: update action for each agent
+    
     env = CacheAttackerDefenderEnv(cfg.env_config)
     env.opponent_weights = [0.5, 0.5] #[0,1]
     action_space = env.action_space 
     obs = env.reset()
+    #opponent_info = env.step(action[env.opponent_agent])
     done = {'__all__':False}
+    
+    #print(opponent_info)
     
     i = 0
     for k in range(2):
-      while not done['__all__']:
-        i += 1
-        action = {'attacker':np.random.randint(low=3, high=6),
-                  'benign':np.random.randint(low=2, high=5),
-                  'defender':np.random.randint(low=0, high=15)} 
-        obs, reward, done, info = env.step(action)
-        #lock_bit = bin(action['defender'])[2:].zfill(4)
-        #print('lock_bit ', lock_bit)
-        #env.l1.lock(set_no, lock_bit)
-        #print_cache(env.l1)
+        # TODO: specify action of agents as a nested list of dictionary
+        actions =[{'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
+                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
+                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
+                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
+                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 }]
+        for i in actions:
+            i = 0
+            action = actions[i]
+            i += 1
+        
+        while not done['__all__']:
+            i += 1
+            #for i in actions:
+            #    action = actions[i]
+        #opponent_
+        #cur_opponent_obs[2]
+        #action = {'attacker':cur_opponent_obs[2],
+        #          'benign':np.random.randint(low=2, high=5),
+        #          'defender':np.random.randint(low=0, high=15)} 
+            #action = {'attacker':np.random.randint(low=3, high=6),
+            #      'benign':np.random.randint(low=2, high=5),
+            #      'defender':np.random.randint(low=0, high=15)} 
+            
+            obs, reward, done, info = env.step(action)
+       
         print("step: ", i)
         print("observation of defender: ", '\n', obs['defender'])
         print("action: ", action)
         print("reward:", reward)
         print('attackers info:', info['attacker'])
-        #print('benigns info:', info['benign'])
+        print('benigns info:', info['benign'])
         print('defenders info:', info['defender'])
         #if info['attacker'].get('invoke_victim'):
         #    print('info[attacker]: ', info['attacker'])
-      obs = env.reset()
-      done = {'__all__':False}
+        obs = env.reset()
+        done = {'__all__':False}
 
 if __name__ == "__main__":
     #mp.set_start_method("spawn")
