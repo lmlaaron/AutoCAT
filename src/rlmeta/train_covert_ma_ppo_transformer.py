@@ -62,28 +62,22 @@ def main(cfg):
     env = env_fac(0)
     #### receiver
     cfg.model_config["output_dim"] = env.action_space.n
-     
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(
-        cfg.train_device)
+    train_model = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device)
     attacker_checkpoint = '' #cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
         attacker_params = torch.load(cfg.attacker_checkpoint, map_location=cfg.train_device)
         train_model.load_state_dict(attacker_params)
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
-
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
     infer_model.eval()
-
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
+    
     #### sender
     cfg.sender_model_config["output_dim"] = 2 #env.sender_action_space.n
-    #cfg.model_config["latency_"] = 
-    cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min 
+    cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
     cfg.sender_model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerModel(**cfg.sender_model_config).to(
-        cfg.train_device_d)
-    
+    train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
     #CachePPOTransformerModel(**cfg.model_config).to(
     #    cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
@@ -140,8 +134,8 @@ def main(cfg):
                      push_every_n_steps=cfg.push_every_n_steps)
     ta_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
-    ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
-    ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
+    #ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
+    #ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
     #### random detector 
     '''
     detector = RandomAgent(2)
@@ -167,8 +161,6 @@ def main(cfg):
     ####t_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
     ####e_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
     
-    
-
     #### detector agent
     a_model_d = wrap_downstream_model(train_model_d, md_server)
     t_model_d = remote_utils.make_remote(infer_model_d, md_server)
@@ -192,8 +184,8 @@ def main(cfg):
     ##ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list 
-    ta_ma_fac = {"receiver": ta_d_fac, "sender": ta_agent_fac } ###{"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
-    td_ma_fac = {"receiver": td_d_fac, "sender": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
+    ta_ma_fac = {"sender": ta_d_fac, "receiver": ta_agent_fac } ###{"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
+    #td_ma_fac = {"receiver": td_d_fac, "sender": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
     ##ea_ma_fac = {"receiver": ea_d_fac, "sender": ea_agent_fac } ###{"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
     ##ed_ma_fac = {"receiver": ed_d_fac, "sender": ed_agent_fac } ###{"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
 
@@ -206,15 +198,15 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    td_loop = MAParallelLoop(env_fac,
-                          td_ma_fac,
-                          td_ctrl, #TODO 
-                          running_phase=Phase.TRAIN_DETECTOR,
-                          should_update=True,
-                          num_rollouts=cfg.num_train_rollouts,
-                          num_workers=cfg.num_train_workers,
-                          seed=cfg.train_seed,
-                          episode_callbacks=my_callbacks)
+    ########td_loop = MAParallelLoop(env_fac,
+    ########                      td_ma_fac,
+    ########                      td_ctrl, #TODO 
+    ########                      running_phase=Phase.TRAIN_DETECTOR,
+    ########                      should_update=True,
+    ########                      num_rollouts=cfg.num_train_rollouts,
+    ########                      num_workers=cfg.num_train_workers,
+    ########                      seed=cfg.train_seed,
+    ########                      episode_callbacks=my_callbacks)
     #####ea_loop = MAParallelLoop(env_fac,
     #####                      ea_ma_fac,
     #####                      ea_ctrl, #TODO
@@ -234,7 +226,7 @@ def main(cfg):
     #####                      seed=cfg.eval_seed,
     #####                      episode_callbacks=my_callbacks)
 
-    loops = LoopList([ta_loop, td_loop]) #, ea_loop, ed_loop])
+    loops = LoopList([ta_loop])#, td_loop]) #, ea_loop, ed_loop])
 
     servers.start()
     loops.start()

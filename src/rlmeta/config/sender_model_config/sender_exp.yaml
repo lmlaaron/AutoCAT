@@ -1,0 +1,4 @@
+step_dim: 64
+hidden_dim: 128
+input_dim: 8
+output_dim: -1

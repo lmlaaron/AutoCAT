@@ -6,6 +6,9 @@ from typing import Dict, List, Tuple, Optional, Union
 import gym
 import random
 
+from typing import Sequence
+#from rlmeta.model.utils import MLP
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -82,13 +85,13 @@ class CachePPOTransformerModel(PPOModel):
         ######assert obs.dim() == 3
 
         # batch_size = obs.size(0)
-        ##l, v, act, stp = torch.unbind(obs, dim=-1)
-        ##l = self.make_one_hot(l, self.latency_dim)
-        ##v = self.make_one_hot(v, self.victim_acc_dim)
-        ##act = self.make_embedding(act, self.action_embed)
-        ##stp = self.make_embedding(stp, self.step_embed)
+        l, v, act, stp = torch.unbind(obs, dim=-1)
+        l = self.make_one_hot(l, self.latency_dim)
+        v = self.make_one_hot(v, self.victim_acc_dim)
+        act = self.make_embedding(act, self.action_embed)
+        stp = self.make_embedding(stp, self.step_embed)
 
-        x = obs #torch.cat((l, v, act, stp), dim=-1)
+        x = torch.cat((l, v, act, stp), dim=-1)
         x = self.linear_i(x)
         x = x.transpose(0, 1).contiguous()
         h = self.encoder(x)
@@ -123,8 +126,7 @@ class CachePPOTransformerModel(PPOModel):
 
 
 
-class MLP(nn.Module):
-
+class myMLP(nn.Module):
     def __init__(self,
                  input_size: int,
                  hidden_sizes: Sequence[int],
@@ -147,6 +149,7 @@ class MLP(nn.Module):
         self._layers = nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        #print("forwad")
         return self._layers(x)
 
 
@@ -154,30 +157,57 @@ class CachePPOTransformerSenderModel(PPOModel):
     def __init__(self,
                 input_dim: int,
                 hidden_dim: int,
-                step_dim = step_dim
+                step_dim: int,
                 output_dim: int
                 ):
+        super().__init__()
         self.input_dim = input_dim
         self.step_dim = step_dim
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
-        self.mlp = MLP(input_dim + step_dim, hidden_sizes=[hidden_dim, hidden_dim])
+        hidden_dims = [hidden_dim]
+        #self.mlp = nn.Linear(input_dim + step_dim, self.hidden_dim)
+        self.mlp = myMLP(input_dim + step_dim, [*hidden_dims])
+        
         self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
         self.linear_v = nn.Linear(self.hidden_dim, 1)
+        self._device = None
+
+    def make_one_hot(self, src: torch.Tensor,
+                     num_classes: int) -> torch.Tensor:
+        mask = (src == -1)
+        src = src.masked_fill(mask, 0)
+        ret = F.one_hot(src, num_classes)
+        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
     #def forward(self, )
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        obs = obs.to(torch.int64)
-        x, s = torch.unbind(obs, dim=-1)
         
-        x = F.one_hot(x, self.input_dim)
-        s = F.one_hot(s, self.step_dim)
-        x= torch.cat((x, s), dim=-1) 
+        print('obs')
+        print(obs)
+        obs = obs.to(torch.int64)
+        ##print(obs)
+        x, s = torch.unbind(obs, dim=-1)
+        ##print(x)
+        ##print(s)
+        print('input_Dim')
+        print(self.input_dim)
+        print('step_dim')
+        print(self.step_dim)
+        x = self.make_one_hot(x, self.input_dim)
+        s = self.make_one_hot(s, self.step_dim)
+        #####x = F.one_hot(x, self.input_dim).float()
+        #####s = F.one_hot(s, self.step_dim).float()
+        x= torch.cat((x, s), dim=-1)
+        x=x.to(torch.float) * 1.0
+        #print(x.dtype)
+        print('torch.cat')
+        print(x)
+        #x = x.to(torch.float) 
         h = self.mlp(x)
         p = self.linear_a(h)
         logpi = F.log_softmax(p, dim=-1)
         v = self.linear_v(h)
-
         return logpi, v
 
     @remote.remote_method(batch_size=128)
@@ -190,14 +220,25 @@ class CachePPOTransformerSenderModel(PPOModel):
         with torch.no_grad():
             #print(obs)
             x = obs.to(self._device)
+            print("x")
+            print(x)
             d = deterministic_policy.to(self._device)
+            
             logpi, v = self.forward(x)
+
+            print(logpi)
+            print(v)
 
             greedy_action = logpi.argmax(-1, keepdim=True)
             sample_action = logpi.exp().multinomial(1, replacement=True)
             action = torch.where(d, greedy_action, sample_action)
+            print("reedy_action")
+            print(greedy_action)
+            print(sample_action)
             logpi = logpi.gather(dim=-1, index=action)
-
+            print(logpi)
+            print(action)
+            print(v)
             return action.cpu(), logpi.cpu(), v.cpu()
 
 #    
