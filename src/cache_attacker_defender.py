@@ -28,10 +28,10 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 10
+        self.max_step = 5
         self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1]) # Returns a random element from the given sequence
-        self.defender_reward_scale = 0.1 
+        self.defender_reward_scale = 1 #0.1 
         
         self.repl_policy = env_config.get('rep_policy', 'lru_lock_policy')
         self.l1 = self._env.l1
@@ -70,18 +70,21 @@ class CacheAttackerDefenderEnv(gym.Env):
           4])  # defender's action'''
              
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
-        #print('cur_opponent_obs: ', cur_opponent_obs)
         
         if not np.any(cur_opponent_obs==-1):
             
             if opponent_info.get('invoke_victim'):
                 cur_opponent_obs[0] = opponent_info['victim_latency']
+                print('victims latency: ', cur_opponent_obs[0])
                 cur_opponent_obs[1] = self.random_domain #1
                 cur_opponent_obs[2] = opponent_info['victim_address']
+                print('victim_address: ', cur_opponent_obs[2])
             else:
+                print('attackers latency: ', cur_opponent_obs[0])
                 cur_opponent_obs[1] = 1-self.random_domain#0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
-            cur_opponent_obs[3] = self.step_count #0#self.step_count
+                print('attacker_address: ', cur_opponent_obs[2])
+            cur_opponent_obs[3] = self.step_count 
             cur_opponent_obs[4] = action['defender']
             self.defender_obs.append(cur_opponent_obs)
             self.defender_obs.popleft()
@@ -164,6 +167,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 self.victim_address = self._env.victim_address
                 
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
+        print_cache(self.l1)
         
         if opponent_done:
             opponent_obs = self._env.reset(reset_cache_state=True)
@@ -213,53 +217,41 @@ class CacheAttackerDefenderEnv(gym.Env):
  
 @hydra.main(config_path="./rlmeta/config", config_name="ppo_lock")
 def main(cfg):
-    
     env = CacheAttackerDefenderEnv(cfg.env_config)
-    env.opponent_weights = [0.5, 0.5] #[0,1]
+    env.opponent_weights = [0, 1] #[0.5, 0.5] #[0,1]
     action_space = env.action_space 
-    obs = env.reset()
-    #opponent_info = env.step(action[env.opponent_agent])
+    obs = env.reset(victim_address=5)
     done = {'__all__':False}
-    
-    #print(opponent_info)
-    
     i = 0
+    actions =[{'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':1, 'defender':0 },
+                {'attacker':1, 'benign':2, 'defender':0 }, {'attacker':2, 'benign':3, 'defender':0 },
+                {'attacker':3, 'benign':0, 'defender':0 }, {'attacker':4, 'benign':1, 'defender':0 },
+                {'attacker':0, 'benign':2, 'defender':0 }, {'attacker':1, 'benign':3, 'defender':0 },
+                {'attacker':2, 'benign':15, 'defender':0 }, {'attacker':3, 'benign':2, 'defender':0 },
+                {'attacker':7, 'benign':4, 'defender':0 }, {'attacker':0, 'benign':2, 'defender':15 },
+                ]
+    
     for k in range(2):
-        # TODO: specify action of agents as a nested list of dictionary
-        actions =[{'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
-                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
-                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
-                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 },
-                  {'attacker':0, 'benign':0, 'defender':0 }, {'attacker':0, 'benign':0, 'defender':0 }]
-        for i in actions:
-            i = 0
-            action = actions[i]
-            i += 1
-        
         while not done['__all__']:
             i += 1
-            #for i in actions:
-            #    action = actions[i]
-        #opponent_
-        #cur_opponent_obs[2]
-        #action = {'attacker':cur_opponent_obs[2],
-        #          'benign':np.random.randint(low=2, high=5),
-        #          'defender':np.random.randint(low=0, high=15)} 
-            #action = {'attacker':np.random.randint(low=3, high=6),
-            #      'benign':np.random.randint(low=2, high=5),
+            action = actions[i]
+            #action = {'attacker': 3, #np.random.randint(low=3, high=6),
+            #      'benign': 2, #np.random.randint(low=2, high=5),
             #      'defender':np.random.randint(low=0, high=15)} 
-            
             obs, reward, done, info = env.step(action)
-       
-        print("step: ", i)
-        print("observation of defender: ", '\n', obs['defender'])
-        print("action: ", action)
-        print("reward:", reward)
-        print('attackers info:', info['attacker'])
-        print('benigns info:', info['benign'])
-        print('defenders info:', info['defender'])
-        #if info['attacker'].get('invoke_victim'):
-        #    print('info[attacker]: ', info['attacker'])
+            print("step: ", i)
+            print("observation of defender: ", '\n', obs['defender'])
+            #print("action: ", action)
+            print('attackers action: ', action['attacker'])
+            #print("victim: ", env.victim_address, env._env.victim_address)
+            #print("reward:", reward)
+            print('attackers reward', reward['attacker'])
+            print('defenders reward', reward['defender'])
+            print('attackers info:', info['attacker'])
+            #print('benigns info:', info['benign'])
+            print('defenders info:', info['defender'], '\n')
+            #if info['attacker'].get('invoke_victim'):
+            #    print('info[attacker]: ', info['attacker'])
         obs = env.reset()
         done = {'__all__':False}
 
