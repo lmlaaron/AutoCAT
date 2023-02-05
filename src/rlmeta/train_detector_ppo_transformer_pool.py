@@ -30,6 +30,7 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
 # @hydra.main(config_path="./config", config_name="ppo_8way_8set")
 @hydra.main(config_path="./config", config_name="ppo_lock")
+# @hydra.main(config_path="./config", config_name="ppo_exp")
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):

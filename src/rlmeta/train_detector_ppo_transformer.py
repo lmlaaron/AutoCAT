@@ -148,8 +148,9 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:100000]
+    #spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/home/geunbae/data/remix3.txt','r')
+    spec_trace = spec_trace_f.read().split('\n')[:100]#[:1000000]#[:100000]
     y = []
     for line in spec_trace:
         line = line.split()

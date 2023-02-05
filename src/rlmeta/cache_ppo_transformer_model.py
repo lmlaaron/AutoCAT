@@ -78,9 +78,12 @@ class CachePPOTransformerModel(PPOModel):
 
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         obs = obs.to(torch.int64)
+        print(obs)
         assert obs.dim() == 3
 
         # batch_size = obs.size(0)
+        x = torch.unbind(obs, dim=-1)
+        print(x.shape)
         l, v, act, stp = torch.unbind(obs, dim=-1)
         l = self.make_one_hot(l, self.latency_dim)
         v = self.make_one_hot(v, self.victim_acc_dim)
