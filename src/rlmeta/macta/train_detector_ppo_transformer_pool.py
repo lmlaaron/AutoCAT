@@ -1,6 +1,7 @@
 import copy
 import logging
 import time
+import sys
 
 import hydra
 
@@ -17,22 +18,24 @@ from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
-from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model
+from transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
+from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
 from metric_callbacks import MACallbacks
 
 from utils.wandb_logger import WandbLogger, stats_filter
 from utils.controller import Phase, Controller
 from utils.maloop import LoopList, MAParallelLoop
 
+from utils.trace_parser import load_trace
+
 from agents.random_agent import RandomAgent
 from agents.benign_agent import BenignAgent
 from agents.spec_agent import SpecAgent
 from agents.ppo_agent import PPOAgent
 
-@hydra.main(config_path="./config", config_name="ppo_exp")
+@hydra.main(config_path="./config", config_name="macta_ppo")
 def main(cfg):
-    wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
@@ -68,7 +71,7 @@ def main(cfg):
 
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
-    #### detector 
+    #### detector
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
@@ -77,10 +80,10 @@ def main(cfg):
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
     infer_model_d.eval()
-    
+
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
     # =========================================================================
-    
+
     #### start server
     # =========================================================================
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
@@ -126,7 +129,7 @@ def main(cfg):
     td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
     ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
     ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
-    #### random detector 
+    #### random detector
     '''
     detector = RandomAgent(2)
     t_d_fac = AgentFactory(RandomAgent, 2)
@@ -140,18 +143,33 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    spec_trace_f = open('/u/jxcui/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:100]
-    y = []
-    for line in spec_trace:
-        line = line.split()
-        y.append(line)
-    spec_trace = y
-    benign = SpecAgent(cfg.env_config, spec_trace)
-    t_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
-    e_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
-    
-    
+    # spec_trace_f = open('/u/jxcui/remix3.txt','r')
+    # spec_trace_f = open('/checkpoint/yangxm/cache/ICLR2023/remix3.txt', 'r')
+    # spec_trace = spec_trace_f.read().split('\n')[:1000000]
+    # y = []
+    # for line in spec_trace:
+    #     line = line.split()
+    #     y.append(line)
+    # spec_trace = y
+    # print(f"trace_size = {sys.getsizeof(spec_trace)}")
+
+    spec_trace = load_trace(cfg.trace_file,
+                            limit=cfg.trace_limit,
+                            legacy_trace_format=cfg.legacy_trace_format)
+
+    benign = SpecAgent(cfg.env_config,
+                       spec_trace,
+                       legacy_trace_format=cfg.legacy_trace_format)
+    t_b_fac = AgentFactory(SpecAgent,
+                           cfg.env_config,
+                           spec_trace,
+                           legacy_trace_format=cfg.legacy_trace_format)
+    e_b_fac = AgentFactory(SpecAgent,
+                           cfg.env_config,
+                           spec_trace,
+                           legacy_trace_format=cfg.legacy_trace_format)
+
+
 
     #### detector agent
     a_model_d = wrap_downstream_model(train_model_d, md_server)
@@ -175,7 +193,7 @@ def main(cfg):
     ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
-    #### create agent list 
+    #### create agent list
     ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
     td_ma_fac = {"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
     ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
@@ -183,7 +201,7 @@ def main(cfg):
 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
-                          ta_ctrl, 
+                          ta_ctrl,
                           running_phase=Phase.TRAIN_ATTACKER,
                           should_update=True,
                           num_rollouts=cfg.num_train_rollouts,
@@ -192,7 +210,7 @@ def main(cfg):
                           episode_callbacks=my_callbacks)
     td_loop = MAParallelLoop(env_fac,
                           td_ma_fac,
-                          td_ctrl, 
+                          td_ctrl,
                           running_phase=Phase.TRAIN_DETECTOR,
                           should_update=True,
                           num_rollouts=cfg.num_train_rollouts,
@@ -228,7 +246,7 @@ def main(cfg):
 
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
-        a_stats, d_stats = None, None 
+        a_stats, d_stats = None, None
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
         if epoch % 100 >= 50:
             # Train Detector
@@ -241,7 +259,7 @@ def main(cfg):
             train_stats = {"detector":d_stats}
             if epoch % 10 == 9:
                 agent_d.model.push_to_history()
-        
+
         else:
             # Train Attacker
             agent_d.set_use_history(True)
@@ -256,7 +274,7 @@ def main(cfg):
             train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:
                 agent.model.push_to_history()
-        
+
         stats = a_stats or d_stats
 
         cur_time = time.perf_counter() - start_time
@@ -267,7 +285,7 @@ def main(cfg):
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         time.sleep(1)
-        
+
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
         agent.set_use_history(False)
         agent_d.set_use_history(False)
@@ -287,8 +305,8 @@ def main(cfg):
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
         eval_stats = {"attacker":a_stats, "detector":d_stats}
         time.sleep(1)
-        
-        wandb_logger.log(train_stats, eval_stats)
+
+        # wandb_logger.log(train_stats, eval_stats)
 
 
     loops.terminate()
