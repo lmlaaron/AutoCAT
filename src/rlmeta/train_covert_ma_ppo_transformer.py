@@ -134,8 +134,8 @@ def main(cfg):
                      push_every_n_steps=cfg.push_every_n_steps)
     ta_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
-    #ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
-    #ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
+    ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
+    ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
     #### random detector 
     '''
     detector = RandomAgent(2)
@@ -180,14 +180,14 @@ def main(cfg):
                      push_every_n_steps=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
-    ##ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
-    ##ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
+    ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
+    ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list 
     ta_ma_fac = {"sender": ta_d_fac, "receiver": ta_agent_fac } ###{"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
-    td_ma_fac = {"receiver": td_d_fac, "sender": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
-    ##ea_ma_fac = {"receiver": ea_d_fac, "sender": ea_agent_fac } ###{"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
-    ##ed_ma_fac = {"receiver": ed_d_fac, "sender": ed_agent_fac } ###{"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
+    td_ma_fac = {"sender": td_d_fac, "receiver": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
+    ea_ma_fac = {"sender": ea_d_fac, "receiver": ea_agent_fac } ###{"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
+    ed_ma_fac = {"sender": ed_d_fac, "receiver": ed_agent_fac } ###{"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
 
     ta_loop = MAParallelLoop(env_fac,
                           ta_ma_fac,
@@ -207,26 +207,26 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    #####ea_loop = MAParallelLoop(env_fac,
-    #####                      ea_ma_fac,
-    #####                      ea_ctrl, #TODO
-    #####                      running_phase=Phase.EVAL_ATTACKER,
-    #####                      should_update=False,
-    #####                      num_rollouts=cfg.num_eval_rollouts,
-    #####                      num_workers=cfg.num_eval_workers,
-    #####                      seed=cfg.eval_seed,
-    #####                      episode_callbacks=my_callbacks)
-    #####ed_loop = MAParallelLoop(env_fac,
-    #####                      ed_ma_fac,
-    #####                      ed_ctrl, #TODO
-    #####                      running_phase=Phase.EVAL_DETECTOR,
-    #####                      should_update=False,
-    #####                      num_rollouts=cfg.num_eval_rollouts,
-    #####                      num_workers=cfg.num_eval_workers,
-    #####                      seed=cfg.eval_seed,
-    #####                      episode_callbacks=my_callbacks)
+    ea_loop = MAParallelLoop(env_fac,
+                          ea_ma_fac,
+                          ea_ctrl, #TODO
+                          running_phase=Phase.EVAL_ATTACKER,
+                          should_update=False,
+                          num_rollouts=cfg.num_eval_rollouts,
+                          num_workers=cfg.num_eval_workers,
+                          seed=cfg.eval_seed,
+                          episode_callbacks=my_callbacks)
+    ed_loop = MAParallelLoop(env_fac,
+                          ed_ma_fac,
+                          ed_ctrl, #TODO
+                          running_phase=Phase.EVAL_DETECTOR,
+                          should_update=False,
+                          num_rollouts=cfg.num_eval_rollouts,
+                          num_workers=cfg.num_eval_workers,
+                          seed=cfg.eval_seed,
+                          episode_callbacks=my_callbacks)
 
-    loops = LoopList([ta_loop, td_loop]) #, ea_loop, ed_loop])
+    loops = LoopList([ta_loop, td_loop, ea_loop, ed_loop])
 
     servers.start()
     loops.start()
