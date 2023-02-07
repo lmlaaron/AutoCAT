@@ -185,7 +185,7 @@ def main(cfg):
 
     #### create agent list 
     ta_ma_fac = {"sender": ta_d_fac, "receiver": ta_agent_fac } ###{"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
-    #td_ma_fac = {"receiver": td_d_fac, "sender": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
+    td_ma_fac = {"receiver": td_d_fac, "sender": td_agent_fac } ###{"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
     ##ea_ma_fac = {"receiver": ea_d_fac, "sender": ea_agent_fac } ###{"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
     ##ed_ma_fac = {"receiver": ed_d_fac, "sender": ed_agent_fac } ###{"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
 
@@ -198,15 +198,15 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    ########td_loop = MAParallelLoop(env_fac,
-    ########                      td_ma_fac,
-    ########                      td_ctrl, #TODO 
-    ########                      running_phase=Phase.TRAIN_DETECTOR,
-    ########                      should_update=True,
-    ########                      num_rollouts=cfg.num_train_rollouts,
-    ########                      num_workers=cfg.num_train_workers,
-    ########                      seed=cfg.train_seed,
-    ########                      episode_callbacks=my_callbacks)
+    td_loop = MAParallelLoop(env_fac,
+                          td_ma_fac,
+                          td_ctrl, #TODO 
+                          running_phase=Phase.TRAIN_DETECTOR,
+                          should_update=True,
+                          num_rollouts=cfg.num_train_rollouts,
+                          num_workers=cfg.num_train_workers,
+                          seed=cfg.train_seed,
+                          episode_callbacks=my_callbacks)
     #####ea_loop = MAParallelLoop(env_fac,
     #####                      ea_ma_fac,
     #####                      ea_ctrl, #TODO
@@ -226,7 +226,7 @@ def main(cfg):
     #####                      seed=cfg.eval_seed,
     #####                      episode_callbacks=my_callbacks)
 
-    loops = LoopList([ta_loop])#, td_loop]) #, ea_loop, ed_loop])
+    loops = LoopList([ta_loop, td_loop]) #, ea_loop, ed_loop])
 
     servers.start()
     loops.start()

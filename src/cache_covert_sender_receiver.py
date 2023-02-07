@@ -53,7 +53,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.action_mask = { 'sender': True, 'receiver': True} #self.receiver_agent}
         self.step_count = 0
-        self.max_step = 64
+        self.max_step = 12
         self.detector_obs = np.array([1.0, 0.0]) #deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         self.detector_reward_scale = 0.1 #1.0
@@ -67,14 +67,11 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self.action_mask = {'sender': True, 'receiver': True} #{'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
         opponent_obs = self._env.reset(victim_address=victim_address,
-                                       reset_cache_state=True)
+                                       reset_cache_state=False)
         self.victim_address = self._env.victim_address
         self.detector_obs = np.array([1.0,0.0])#deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         obs = {}
-        #obs['detector'] = np.array(list(reversed(self.detector_obs)))
-        #obs['attacker'] = opponent_obs
-        #obs['benign'] = opponent_obs
         obs['sender'] = self.detector_obs #opponent_obs  #np.array(list(reversed(self.detector_obs)))
         obs['receiver'] = opponent_obs
         return obs
@@ -192,7 +189,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         ##### receiver does a step
         receiver_obs, receiver_reward, receiver_done, receiver_info = self._env.step(action['receiver'])#self.opponent_agent])
         if receiver_done:
-            receiver_obs = self._env.reset(reset_cache_state=True)
+            receiver_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address
             self.step_count -= 1 # The reset/guess step should not be counted
         if self.step_count >= self.max_step:
@@ -238,7 +235,8 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         return obs, reward, done, info
 
 if __name__ == '__main__':
-    env = CacheAttackerDetectorEnv({})
+    env = CacheCovertSenderReceiverEnv({})
+    #env = CacheAttackerDetectorEnv({})
     ####env.opponent_weights = [0,1]
     action_space = env.action_space
     obs = env.reset()
@@ -247,12 +245,11 @@ if __name__ == '__main__':
     for k in range(2):
       while not done['__all__']:
         i += 1
-        action = {'attacker':np.random.randint(low=3, high=6),
-                  'benign':np.random.randint(low=2, high=5),
-                  'detector':np.random.randint(low=0, high=1)}
+        action = {'receiver':np.random.randint(low=3, high=6),
+                  'sender':np.random.randint(low=0, high=1)}
         obs, reward, done, info = env.step(action)
         print("step: ", i)
-        print("obs: ", obs['detector'])
+        print("obs: ", obs['sender'])
         print("action: ", action)
         print("victim: ", env.victim_address, env._env.victim_address)
 
@@ -260,7 +257,7 @@ if __name__ == '__main__':
         print("reward:", reward)
         print(env.victim_address_min, env.victim_address_max)
         #print("info:", info )
-        if info['attacker'].get('invoke_victim'):
-            print(info['attacker'])
+        #if info['receiver'].get('invoke_victim'):
+        #    print(info['receiver'])
       obs = env.reset()
       done = {'__all__':False}
