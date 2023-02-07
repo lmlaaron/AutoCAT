@@ -86,11 +86,9 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
-    # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
-
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
@@ -122,6 +120,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.fh.setFormatter(self.fh_format)
     self.sh.setFormatter(self.fh_format)
     self.logger.setLevel(logging.INFO)
+    
     if "cache_configs" in env_config:
       #self.logger.info('Load config from JSON')
       self.configs = env_config["cache_configs"]
@@ -131,7 +130,6 @@ class CacheGuessingGameEnv(gym.Env):
       self.logger.info('Loading config from file ' + self.config_file_name)
       self.configs = yaml.load(self.config_file, yaml.CLoader)
     self.vprint(self.configs)
-
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
     
@@ -142,15 +140,13 @@ class CacheGuessingGameEnv(gym.Env):
       if "rep_policy" not in self.configs['cache_1_core_2']:
         self.configs['cache_1_core_2']['rep_policy'] = 'lru'
       self.configs['cache_1_core_2']['prefetcher'] = self.prefetcher
+      
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 
-
+      self.window_size = self.cache_size * 8 + 8 #10 #40
     else:
       self.window_size = window_size
     self.feature_size = 4
     self.hierarchy = build_hierarchy(self.configs, self.logger)
-    
-    
     
     # NOTE: modified the size of state to accomodate defender's obs space
     self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
@@ -180,18 +176,6 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.flush_inst = flush_inst
     self.reset_time = 0
-    # action step contains four values
-    # 1. access address
-    # 2. whether to end and make a guess now?
-    # 3. whether to invoke the victim access
-    # 4. if make a guess, what is the victim's accessed address?
-    ####self.action_space = spaces.MultiDiscrete(
-    ####  [self.cache_size,     #cache access
-    ####  2,                    #whether to make a guess
-    ####  2,                    #whether to invoke victim access
-    ####  2,                    #whether it is a flush inst 
-    ####  self.cache_size       #what is the guess of the victim's access
-    ####  ])
     
     ######self.action_space = spaces.Discrete(
     ######  len(self.attacker_address_space) * 2 * 2 * 2 * len(self.victim_address_space)
@@ -226,21 +210,9 @@ class CacheGuessingGameEnv(gym.Env):
           2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
         )
     
-    # let's book keep all obvious information in the observation space 
-    # since the agent is dumb
-    #self.observation_space = spaces.MultiDiscrete(
-    #  [
-    #    3,                                          #cache latency
-    #    len(self.attacker_address_space) + 1,       #attacker accessed address
-    #    self.window_size + 2,                       #current steps
-    #    2,                                          #whether the victim has accessed yet
-    #    #2,                                          # whether it is a cflush
-    #  ] * self.window_size
-    #)
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
 
-    
     #print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     #print_cache(self.l1)
@@ -257,8 +229,6 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("[init] victim access %d locked cache line" % self.victim_address_max)
       self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
 
-    #if self.configs['cache_1']['rep_policy'] == 'lru_lock_policy':
-    #  self.l1.read(hex(self(self.victim_address))[2:], self.current_step)
     self.guess_buffer_size = 100
     self.guess_buffer = [False] * self.guess_buffer_size
     #return
@@ -276,8 +246,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("doing remapping!")
       random.shuffle(self.perm)
 
-  # ceasar remapping
-  # addr is integer not string
+  # ceasar remapping. addr is integer not string
   def ceaser_mapping(self, addr):
     if self.rerandomize_victim == False:
       return addr
@@ -437,10 +406,10 @@ class CacheGuessingGameEnv(gym.Env):
     
 
     #TODO remove the temporary test
-    if is_victim or is_victim_random:
-        victim_accessed = 1
-    else:
-        victim_accessed = 0
+    #if is_victim or is_victim_random:
+    #    victim_accessed = 1
+    #else:
+    #    victim_accessed = 0
     
 
 

@@ -63,8 +63,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        # "reset" method resets the environment's random number generator(s) if seed is an integer 
-        # or if the environment has not yet initialized a random number generator
         opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=True)
         self.victim_address = self._env.victim_address
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
@@ -81,9 +79,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         # NOTE: copy the first element of opponent_obs using deepcopy?
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
         
-        # np.any() returns True if at least one element of an array is True 
-        # and False if all elements are False.
-        # https://numpy.org/doc/stable/reference/generated/numpy.any.html
         if not np.any(cur_opponent_obs==-1):
             
             # Make sure the observation does not leak information for detector

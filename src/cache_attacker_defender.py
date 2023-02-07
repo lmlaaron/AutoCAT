@@ -1,4 +1,4 @@
-import copy, random, gym, hydra, os, yaml, logging
+import copy, random, gym, hydra, logging
 from typing import Any, Dict
 from collections import deque 
 import numpy as np
@@ -28,35 +28,30 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 5
+        self.max_step = 10
         self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1]) # Returns a random element from the given sequence
         self.defender_reward_scale = 1 #0.1 
         
         self.repl_policy = env_config.get('rep_policy', 'lru_lock_policy')
-        # self.hierarchy = build_hierarchy(self.configs, self.logger)
-        #self.logger = logging.getLogger()
-        self.l1 = self._env.l1 # TODO 
-        # /home/geunbae/CacheSimulator/configs/config_simple_L1
-        # /home/geunbae/CacheSimulator/env_test/ppo_nolock_empty.txt
-        # /home/geunbae/CacheSimulator/src/rlmeta/config/env_config/config_empty.yaml
-        #self.config_file_name = os.path.dirname(os.path.abspath(__file__))+'/rlmeta/config/env_config/config_exp2.yaml'
-        #self.config_file = open(self.config_file_name)
-        #self.configs = yaml.load(self.config_file, yaml.CLoader)
-        #self.hierarchy = build_hierarchy(self.configs, self.logger)  
-        #self.l1 = self.hierarchy['cache_configs'] 
-        
-        
+        self.cache_config = self._env.configs
+        self.logger = logging.getLogger()
+        self.hierarchy = build_hierarchy(self.cache_config, self.logger)
+        self.l1 = self.hierarchy['cache_1']
+        print_cache(self.l1)
+ 
     #def reset(self, victim_address=-1, reset_obs = True):
-    def reset(self, victim_address=-1):  
+    def reset(self, victim_address=-1):#-1): #TODO  
        
         """ returned obs = { agent_name : obs } """
         '''Episode termination: when there is length violation '''
         
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
-        opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=False)
-        self.victim_address = self._env.victim_address
+        opponent_obs = self._env.reset(victim_address=-1, reset_cache_state=False)
+        #opponent_obs = self._env.reset(victim_address=self.victim_address, reset_cache_state=False) #TODO
+        #self.victim_address = self._env.victim_address
+        self.victim_address = victim_address #TODO
         self.random_domain = random.choice([0,1])
         
         #if reset_obs:
@@ -67,7 +62,6 @@ class CacheAttackerDefenderEnv(gym.Env):
         obs = {}
         obs['defender'] = np.array(list(reversed(self.defender_obs)))
         obs['attacker'] = opponent_obs
-        #print('obs_attacker ', obs['attacker'])
         obs['benign'] = opponent_obs
         return obs
     
@@ -86,23 +80,23 @@ class CacheAttackerDefenderEnv(gym.Env):
             
             if opponent_info.get('invoke_victim'):
                 cur_opponent_obs[0] = opponent_info['victim_latency']
+                print('attackers latency: ', cur_opponent_obs[0])
                 print('victims latency: ', cur_opponent_obs[0])
-                
                 cur_opponent_obs[1] = self.random_domain #1
                 cur_opponent_obs[2] = opponent_info['victim_address']
                 print('victim_address: ', cur_opponent_obs[2], '\n')
-
+                
             else:
                 print('attackers latency: ', cur_opponent_obs[0])
-                
                 cur_opponent_obs[1] = 1-self.random_domain#0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
-                print('attacker_address: ', cur_opponent_obs[2], '\n')
+                #print('attacker_address: ', cur_opponent_obs[2], '\n')
+                
+            self.l1.read(hex(cur_opponent_obs[2])[2:], cur_opponent_obs[3])
             cur_opponent_obs[3] = self.step_count 
             cur_opponent_obs[4] = action['defender']
             self.defender_obs.append(cur_opponent_obs)
             self.defender_obs.popleft()
-            
         
         return np.array(list(reversed(self.defender_obs)))
 
@@ -125,13 +119,15 @@ class CacheAttackerDefenderEnv(gym.Env):
             # TODO: attacker make a wrong guess
      
             # attacker attacker fails to make a guess in episode in time
+            #if self.opponent_agent == 'attacker' and opponent_attack_success == False:
             if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success == False:
                 defender_reward = 20
                 defender_success = True
                 
             ''' penalty conditions '''
             # attacker succeed to guess a victim's secret
-            if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success == True:
+            #if self.opponent_agent == 'attacker' and opponent_attack_success == True:
+            if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success == True:   
                 defender_reward = -20    
         
             # TODO: attacker succeed to guess a victim no access
@@ -162,17 +158,18 @@ class CacheAttackerDefenderEnv(gym.Env):
         obs = {}
         reward = {}
         done = {'__all__':False} 
+        
         info = {}
         action_info = action.get('info')
         
         if isinstance(action, np.ndarray):
             action = action.item()
         #print('agents action ', action)
-        print('defender\'s action: ', action['defender'])
+        #print('defender\'s action: ', action['defender'])
         set_no = 0
         lock_bit = bin(action['defender'])[2:].zfill(4)
-        self.l1.lock(set_no, lock_bit)
-        #print_cache(self._env.l1)
+        self.l1.lock(set_no, lock_bit) #TODO
+        #print_cache(self._env.l1) #TODO
         
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
@@ -186,10 +183,11 @@ class CacheAttackerDefenderEnv(gym.Env):
         #print_cache(self._env.l1)
         
         if opponent_done:
+            
             opponent_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address
-            # NOTE: why reducing the step_count here?
             self.step_count -= 1 # The reset/guess step should not be counted
+            defender_done = False
             
         if self.step_count >= self.max_step:
             defender_done = True # will not terminate the episode
@@ -199,13 +197,13 @@ class CacheAttackerDefenderEnv(gym.Env):
         # attacker
         obs['attacker'] = opponent_obs
         reward['attacker'] = opponent_reward
-        done['attacker'] = defender_done #Figure out correctness
+        done['attacker'] = opponent_done #defender_done #TODO
         info['attacker'] = opponent_info
         
         #benign
         obs['benign'] = opponent_obs
         reward['benign'] = opponent_reward
-        done['benign'] = defender_done #Figure out correctness
+        done['benign'] = opponent_done #defender_done #TODO
         info['benign'] = opponent_info
         opponent_attack_success = opponent_info.get('guess_correct', False)
 
@@ -219,9 +217,9 @@ class CacheAttackerDefenderEnv(gym.Env):
         info['defender'].update(opponent_info)
         #print(obs['defender'])
         
-        # Change the criteria to determine wether the game is done
-        if defender_done:
-            #print('defender_done', defender_done)
+        #criteria to determine wether the game is done
+        if self.step_count >= self.max_step:
+            opponent_done = True # TODO: do we need this condition?
             done['__all__'] = True
 
         info['__all__'] = {'action_mask':self.action_mask}
@@ -234,26 +232,22 @@ class CacheAttackerDefenderEnv(gym.Env):
 @hydra.main(config_path="./rlmeta/config", config_name="ppo_lock")
 # check env_config in ppo_lock for config_empty or config_noempty 
 def main(cfg):
-    
     env = CacheAttackerDefenderEnv(cfg.env_config)
     _env = CacheGuessingGameEnv(cfg.env_config)
     env.opponent_weights = [0, 1] #[0.5, 0.5] #[0,1]
     action_space = env.action_space 
-    obs = _env.reset(victim_address=5)
-    #obs = env.reset()
+    obs = _env.reset(victim_address=-1) #=5)
     done = {'__all__':False}
     i = 0
-    
     ''' L238 to 245: for unit test '''
-    test_action = open('/home/geunbae/CacheSimulator/env_test/ppo_nolock_noempty.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/ppo_nolock_empty.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/ppo_lock_noempty.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/ppo_lock_empty.txt')
+    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/nolock_noempty.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/nolock_empty.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/lock_noempty.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/lock_empty.txt')
     trace = test_action.read().splitlines()
     actions_list = [list(map(int, x.split())) for x in trace]
     actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2]} for values in actions_list]
-  
-    for k in range(2):
+    for k in range(1):
         while not done['__all__']:
             i += 1
             action = actions[i]
@@ -261,26 +255,25 @@ def main(cfg):
             #      'benign': 2, #np.random.randint(low=2, high=5),
             #      'defender':np.random.randint(low=0, high=15)} 
             obs, reward, done, info = env.step(action)
-            print("step: ", i)
-            #print("observation of defender: ", '\n', obs['defender'])
-            
-            print("action: ", action)
-            print('attackers action: ', action['attacker'])
-            #print("victim: ", env.victim_address, env._env.victim_address)
-            #print("reward:", reward)
             print("*****************************************************")
-            print_cache(env._env.l1)
-            print('attackers reward', reward['attacker'])
-            print('defenders reward', reward['defender'])
+            print("STEP: ", i)
+            print("observation of defender: ", '\n', obs['defender'])
+            print("action: ", action)
+            #print('attackers action: ', action['attacker'])
+            #print("victim: ", env.victim_address, env._env.victim_address)
+            print("reward:", reward)
+            #print_cache(_env.l1)
+            print_cache(env.l1)
+            #print('attackers reward', reward['attacker'])
+            #print('defenders reward', reward['defender'])
             print('attackers info:', info['attacker'])
             #print('benigns info:', info['benign'])
             print('defenders info:', info['defender'])
-            
-            correct_rate = _env.calc_correct_rate()
-            print('attackers_correct_guess: ', correct_rate)
+            print(done)
+            #correct_rate = _env.calc_correct_rate()
+            #print('attackers_correct_guess: ', correct_rate)
             #if info['attacker'].get('invoke_victim'):
             #    print('info[attacker]: ', info['attacker'])
-    
         obs = env.reset()
         done = {'__all__':False}
 

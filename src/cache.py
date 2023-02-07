@@ -459,7 +459,7 @@ class Cache:
         #print('lock_vector_array input for op: ', self.lock_vector_array)
         #print('previous lock_vector_array was ', self.set_rep_policy[index].lock_vector_array)
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
-        print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
+        #print('lock_vector_array updated for op: ', self.set_rep_policy[index].lock_vector_array)
         return r, lock_vector_array
 
     def parse_address(self, address):
