@@ -29,10 +29,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.env_config = env_config
         self.episode_length = env_config.get("episode_length", 80)
         self.threshold = env_config.get("threshold", 0.8)
-
-        # NOTE: why use underbar expression here? 
         self._env = CacheGuessingGameEnv(env_config)
-        
         self.validation_env = CacheGuessingGameEnv(env_config)
         self.observation_space = self._env.observation_space # The Space object corresponding to valid observations
         self.action_space = self._env.action_space # # The Space object corresponding to valid actions, 
@@ -43,7 +40,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
         
-        # dictionary.get(keyname, value)
         # If the "opponent_weights" key is not exist in the "env_config" dict, 
         # [0.5, 0.5] will be assigned to "self.opponent_weights" instead. 
         self.opponent_weights = env_config.get("opponent_weights", [0.5,0.5]) 
@@ -63,13 +59,10 @@ class CacheAttackerDetectorEnv(gym.Env):
     # API method from gym.Resets the environment to an initial state, required before calling step. 
     # Returns the first agent observation for an episode and information,
     def reset(self, victim_address=-1):
-        """
-        returned obs = { agent_name : obs }
-        """
+   
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        
         # "reset" method resets the environment's random number generator(s) if seed is an integer 
         # or if the environment has not yet initialized a random number generator
         opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=True)
@@ -77,8 +70,6 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         obs = {}
-        
-        # 'detector' key will have value which a numpy array of shape (64, 4) with values from self.detector_obs
         # shape (64, 4) = 64 rows, 4 columns
         obs['detector'] = np.array(list(reversed(self.detector_obs)))
         obs['attacker'] = opponent_obs

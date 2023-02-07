@@ -588,18 +588,20 @@ class CacheGuessingGameEnv(gym.Env):
     return
 
   def seed_randomization(self, seed=-1):    
-    return self._randomize_cache(mode="union", seed= seed)
+    return self._randomize_cache(mode="attacker", seed= seed)
 
 
-  def _randomize_cache(self, mode = "union", seed=-1):
+  def _randomize_cache(self, mode = "none", seed=-1):
     
     # use seed so that we can get identical initialization states
     if seed != -1:
       random.seed(seed)
   # def _randomize_cache(self, mode = "attacker"):
     if mode == "attacker":
-      self.l1.read(hex(self.ceaser_mapping(0))[2:], -2, domain_id='X')
-      self.l1.read(hex(self.ceaser_mapping(1))[2:], -1, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(0))[2:], -4)#, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(1))[2:], -3)#, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(2))[2:], -2)
+      self.l1.read(hex(self.ceaser_mapping(3))[2:], -1)
       return
     
     if mode == "none":
