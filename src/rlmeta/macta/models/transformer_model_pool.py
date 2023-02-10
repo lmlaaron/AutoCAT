@@ -17,7 +17,9 @@ from rlmeta.agents.ppo.ppo_model import PPOModel
 from rlmeta.core.model import DownstreamModel, RemotableModel
 from rlmeta.core.server import Server
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(
+        os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
