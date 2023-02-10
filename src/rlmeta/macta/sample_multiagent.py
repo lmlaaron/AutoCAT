@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from typing import Dict
 
 import tqdm
@@ -22,8 +23,9 @@ from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
 
-from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_model import CachePPOModel
+from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
 
@@ -222,14 +224,14 @@ def main(cfg):
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
+    spec_trace_f = open('/u/jxcui/remix4.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
         line = line.split()
         y.append(line)
     spec_trace = y
-    benign_agent = SpecAgent(cfg.env_config, spec_trace)
+    benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")

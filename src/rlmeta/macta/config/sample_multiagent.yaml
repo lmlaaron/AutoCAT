@@ -1,4 +1,4 @@
-num_episodes: 10000
+num_episodes: 1000
 seed: 123 #123 1234 12345
 
 #cyclone
@@ -21,8 +21,8 @@ seed: 123 #123 1234 12345
 
 #TEST
 
-attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/attacker-2049.pth"
-detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth" #no init
+attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/attacker-2049.pth"
+detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth"
 
 
 #IBRPPO-fp10
@@ -76,17 +76,10 @@ detectors: [ ["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src
             ]
 
 deterministic_policy: true
+trace_file: "/u/jxcui/remix4.txt"
+trace_limit: 10000
+legacy_trace_format: false
 
 defaults:
-  # - env_config: config_exp4
-  # - env_config: config_exp9
-  # - env_config: config_exp9_nextline
-  # - env_config: config_exp9_stream
-  # - env_config: config_exp_ceaser
-  # - env_config: config_exp_13
-  # - env_config: config_exp_13_nextline
-  # - env_config: config_exp_14
-  - env_config: config_exp61
-  # - env_config: config_exp62
-  # - env_config: config_exp_14_nextline
-  - model_config: experiments
+  - env_config: macta
+  - model_config: transformer

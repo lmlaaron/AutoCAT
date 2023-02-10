@@ -133,8 +133,8 @@ class SpecAgent(Agent):
             domain_id, addr = self.trace[idx]
             addr //= self.cache_size
 
-        assert isinstance(domain_id)
-        assert isinstance(addr)
+        assert isinstance(domain_id, (int, np.int64))
+        assert isinstance(addr, (int, np.int64))
 
         action = addr % self.cache_size
         if domain_id == self.domain_id_0:  # attacker access
@@ -144,7 +144,6 @@ class SpecAgent(Agent):
             action = self.cache_size
             addr = addr % self.cache_size
             info = {"reset_victim_addr": True, "victim_addr": addr}
-
         return Action(action, info)
 
     async def async_act(self, timestep: TimeStep) -> Action:

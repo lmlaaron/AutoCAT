@@ -18,7 +18,7 @@ from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
-from transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
+from models.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
 from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
 from metric_callbacks import MACallbacks
 
