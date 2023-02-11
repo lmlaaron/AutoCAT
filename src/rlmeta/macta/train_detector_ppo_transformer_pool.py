@@ -20,8 +20,8 @@ from rlmeta.core.types import Action, TimeStep
 
 from models.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
 from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
-from metric_callbacks import MACallbacks
 
+from utils.macta_metric_callbacks import MACallbacks
 from utils.wandb_logger import WandbLogger, stats_filter
 from utils.controller import Phase, Controller
 from utils.maloop import LoopList, MAParallelLoop

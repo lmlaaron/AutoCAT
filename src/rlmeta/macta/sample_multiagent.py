@@ -196,6 +196,9 @@ def main(cfg):
     cfg.env_config['verbose'] = 0 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
+    # [1,0] fully benign agents
+    # [0,1] fully attacker agents
+    # [p,1-p] benign w.p. p, attacker w.p. 1-p
     env.env.opponent_weights = [1,0]
     
     # Load model
