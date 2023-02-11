@@ -4,6 +4,7 @@ import sys
 from typing import Any, Dict
 
 from rlmeta.envs.env import Env, EnvFactory
+from rlmeta.envs.gym_wrapper import GymWrapper
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -12,7 +13,6 @@ from cchunter_wrapper import CCHunterWrapper
 from cyclone_wrapper import CycloneWrapper
 from cache_attacker_detector import CacheAttackerDetectorEnv
 
-from utils.gym_wrappers import GymWrapper, MAGymWrapper
 
 class CacheEnvWrapperFactory(EnvFactory):
     def __init__(self, env_config: Dict[str, Any]) -> None:
@@ -56,17 +56,3 @@ class CacheEnvCycloneWrapperFactory(EnvFactory):
         env = CycloneWrapper(self.env_config)
         env = GymWrapper(env)
         return env
-
-class CacheAttackerDetectorEnvFactory(EnvFactory):
-    def __init__(self, env_config: Dict[str, Any]) -> None:
-        self._env_config = env_config
-
-    @property
-    def env_config(self) -> Dict[str, Any]:
-        return self._env_config
-
-    def __call__(self, index: int, *args, **kwargs) -> Env:
-        env = CacheAttackerDetectorEnv(self.env_config)
-        env = MAGymWrapper(env)
-        return env
-
