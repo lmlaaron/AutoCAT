@@ -81,5 +81,5 @@ trace_limit: 10000
 legacy_trace_format: false
 
 defaults:
-  - env_config: macta
+  - env_config: macta_env
   - model_config: transformer

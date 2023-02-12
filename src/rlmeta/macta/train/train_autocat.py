@@ -1,3 +1,5 @@
+import os
+import sys
 import copy
 import logging
 import time
@@ -20,23 +22,17 @@ from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from cache_env_wrapper import CacheEnvWrapperFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
-# from cache_ppo_transformer_model_pe import CachePPOTransformerModel
+from env import CacheEnvWrapperFactory
+from model import CachePPOTransformerModel
 from metric_callbacks import MetricCallbacks
 
 from utils.wandb_logger import WandbLogger
 
-# @hydra.main(config_path="./config", config_name="ppo_lru_8way")
-# @hydra.main(config_path="./config", config_name="ppo_2way_2set")
-# @hydra.main(config_path="./config", config_name="ppo_4way_4set")
-# @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-@hydra.main(config_path="./config", config_name="ppo_exp")
-# @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
-# @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
+@hydra.main(config_path="../config", config_name="autocat")
 def main(cfg):
-    wandb_logger = WandbLogger(project="rl4cache", config=cfg)
+    #wandb_logger = WandbLogger(project="rl4cache", config=cfg)
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
@@ -121,7 +117,7 @@ def main(cfg):
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         train_stats = stats
         time.sleep(1)
-        
+
         stats = agent.eval(cfg.num_eval_episodes)
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
@@ -133,7 +129,7 @@ def main(cfg):
         eval_stats = stats
         time.sleep(1)
         
-        wandb_logger.log(train_stats, eval_stats)
+        #wandb_logger.log(train_stats, eval_stats)
 
         torch.save(train_model.state_dict(), f"ppo_agent-{epoch}.pth")
 

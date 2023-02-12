@@ -16,27 +16,30 @@ rd_server_addr: "127.0.0.1:4722"
 cd_server_name: "cd_server"
 cd_server_addr: "127.0.0.1:4733"
 
-#detector_checkpoint: ""
-attacker_checkpoint: ""
-
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/detector-999.pth"
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-999.pth"
-#detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-32-17/detector-999.pth"
-detector_checkpoint: ""
-
 train_device: "cuda:0"
 infer_device: "cuda:1"
 train_device_d: "cuda:2" #"cuda:2"
 infer_device_d: "cuda:3" #"cuda:3"
+
 num_train_rollouts: 72 #72 #48 #24
 num_train_workers: 24  #24
 
 num_eval_rollouts: 12 #2
 num_eval_workers: 4 #2
 
+#attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
+attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
+#attacker_checkpoint: "/checkpoint/jxcui/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
+#attacker_checkpoint: ""
+
+#trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
+trace_file: "/u/jxcui/remix3.txt"
+trace_limit: 100
+legacy_trace_format: false
+
 # replay_buffer_size: 262144
 # replay_buffer_size: 131072
-replay_buffer_size: 65536
+replay_buffer_size: 262144
 #replay_buffer_size: 1024
 prefetch: 2
 
@@ -57,5 +60,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: exploit_env
+  - env_config: autocat_env
   - model_config: transformer

@@ -34,7 +34,7 @@ from utils.trace_parser import load_trace
 
 from agent import RandomAgent, BenignAgent, SpecAgent, PPOAgent
 
-@hydra.main(config_path="../config", config_name="macta_ppo")
+@hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
     # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
     my_callbacks = MACallbacks()
