@@ -69,7 +69,7 @@ def main(cfg):
 
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
-    #### detector 
+    #### detector
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
@@ -78,10 +78,10 @@ def main(cfg):
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
     infer_model_d.eval()
-    
+
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
     # =========================================================================
-    
+
     #### start server
     # =========================================================================
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
