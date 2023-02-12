@@ -8,11 +8,6 @@ from typing import Dict
 from tqdm import tqdm
 from sklearn.svm import SVC
 
-from agents.ppo_agent import PPOAgent
-from agents.spec_agent import SpecAgent
-from agents.cyclone_agent import CycloneAgent
-from agents.prime_probe_agent import PrimeProbeAgent
-
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
@@ -20,9 +15,9 @@ import rlmeta.utils.nested_utils as nested_utils
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from cache_attacker_detector import CacheAttackerDetectorEnv
-from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel
+from env import CacheAttackerDetectorEnv, CacheAttackerDetectorEnvFactory
+from model import CachePPOTransformerModel
+from agent import PPOAgent, SpecAgent, CycloneAgent, PrimeProbeAgent
 
 LABEL={ 'attacker':1,
         'benign':0,
@@ -117,7 +112,7 @@ def collect(cfg, num_samples):
         line = line.split()
         trace.append(line)
     spec_trace = trace
-    benign_agent = SpecAgent(cfg.env_config, spec_trace)
+    benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     X, y = [], [] 
     for i in tqdm(range(num_samples)):
@@ -146,7 +141,7 @@ def train(cfg):
     pickle.dump(clf,open('cyclone.pkl','wb'))
     return clf
 
-@hydra.main(config_path="./config", config_name="sample_multiagent")
+@hydra.main(config_path="../config", config_name="cyclone")
 def main(cfg):
     clf = train(cfg)
     return clf
