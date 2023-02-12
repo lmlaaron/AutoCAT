@@ -12,12 +12,7 @@ import random
 import hydra
 import gym
 
-sys.path.append(
-    os.path.dirname(
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-
-from cache_guessing_game_env_impl import CacheGuessingGameEnv
+from .cache_guessing_game_env import CacheGuessingGameEnv
 
 
 class CacheAttackerDetectorEnv(gym.Env):

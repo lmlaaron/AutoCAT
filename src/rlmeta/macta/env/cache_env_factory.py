@@ -4,12 +4,12 @@ import sys
 from typing import Any, Dict
 
 from rlmeta.envs.env import Env, EnvFactory
+from rlmeta.envs.gym_wrappers import GymWrapper
 
-from .cache_attacker_detector_env import CacheAttackerDetectorEnv
-from utils.gym_wrappers import GymWrapper, MAGymWrapper
+from .cache_guessing_game_env import CacheGuessingGameEnv
 
 
-class CacheAttackerDetectorEnvFactory(EnvFactory):
+class CacheEnvWrapperFactory(EnvFactory):
     def __init__(self, env_config: Dict[str, Any]) -> None:
         self._env_config = env_config
 
@@ -18,6 +18,6 @@ class CacheAttackerDetectorEnvFactory(EnvFactory):
         return self._env_config
 
     def __call__(self, index: int, *args, **kwargs) -> Env:
-        env = CacheAttackerDetectorEnv(self.env_config)
-        env = MAGymWrapper(env)
+        env = CacheGuessingGameEnv(self.env_config)
+        env = GymWrapper(env)
         return env
