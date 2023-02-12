@@ -6,4 +6,6 @@ sys.path.append(
 
 
 from cache_ppo_transformer_model import CachePPOTransformerModel
+from cache_ppo_lstm import CachePPOLSTMModel
+from cache_ppo_model import CachePPOModel
 from .transformer_model_pool import CachePPOTransformerModelPool

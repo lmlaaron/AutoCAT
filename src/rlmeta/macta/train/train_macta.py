@@ -1,7 +1,8 @@
+import os
+import sys
 import copy
 import logging
 import time
-import sys
 
 import hydra
 
@@ -17,8 +18,9 @@ from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
-from rlmeta.core.model import wrap_downstream_model
-from models import CachePPOTransformerModel
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from model.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
 from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
 
 from utils.ma_metric_callbacks import MACallbacks
@@ -28,12 +30,9 @@ from utils.maloop import LoopList, MAParallelLoop
 
 from utils.trace_parser import load_trace
 
-from agents.random_agent import RandomAgent
-from agents.benign_agent import BenignAgent
-from agents.spec_agent import SpecAgent
-from agents.ppo_agent import PPOAgent
+from agent import RandomAgent, BenignAgent, SpecAgent, PPOAgent
 
-@hydra.main(config_path="./config", config_name="macta_ppo")
+@hydra.main(config_path="../config", config_name="macta_ppo")
 def main(cfg):
     # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
     my_callbacks = MACallbacks()
@@ -41,10 +40,13 @@ def main(cfg):
 
     #### Define env factory
     # =========================================================================
+    # 50% benign, 50% attacker, for detector training
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
+    # 0% benign, 100% attacker, for attacker training and evaluation
     unbalanced_env_config = copy.deepcopy(cfg.env_config)
     unbalanced_env_config["opponent_weights"] = [0,1]
     env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)
+    # 100% benign, 0% attacker, for detector evaluation (false positive)
     benign_env_config = copy.deepcopy(cfg.env_config)
     benign_env_config["opponent_weights"] = [1,0]
     env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)
@@ -55,7 +57,7 @@ def main(cfg):
     env = env_fac(0)
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
-    train_model = CachePPOTransformerModel(**cfg.model_config).to(
+    train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device)
     attacker_checkpoint = cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
@@ -68,19 +70,19 @@ def main(cfg):
 
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
-    #### detector 
+    #### detector
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
+    train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
     infer_model_d.eval()
-    
+
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
     # =========================================================================
-    
+
     #### start server
     # =========================================================================
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
@@ -140,16 +142,16 @@ def main(cfg):
     #### spec benign agent
     
     '''
-    # spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
-    # spec_trace = spec_trace_f.read().split('\n')[:1000000]#[:100000]
+    # spec_trace_f = open('/u/jxcui/remix3.txt','r')
+    # spec_trace_f = open('/checkpoint/yangxm/cache/ICLR2023/remix3.txt', 'r')
+    # spec_trace = spec_trace_f.read().split('\n')[:1000000]
     # y = []
     # for line in spec_trace:
     #     line = line.split()
     #     y.append(line)
     # spec_trace = y
-    # benign = SpecAgent(cfg.env_config, spec_trace)
-    # t_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
-    # e_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
+    # print(f"trace_size = {sys.getsizeof(spec_trace)}")
+
     spec_trace = load_trace(cfg.trace_file,
                             limit=cfg.trace_limit,
                             legacy_trace_format=cfg.legacy_trace_format)
@@ -165,6 +167,7 @@ def main(cfg):
                            cfg.env_config,
                            spec_trace,
                            legacy_trace_format=cfg.legacy_trace_format)
+
 
 
     #### detector agent
@@ -246,12 +249,20 @@ def main(cfg):
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
         if epoch % 100 >= 50:
             # Train Detector
+            agent_d.set_use_history(False)
+            agent.set_use_history(True)
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+            train_stats = {"detector":d_stats}
+            if epoch % 10 == 9:
+                agent_d.model.push_to_history()
+
         else:
             # Train Attacker
+            agent_d.set_use_history(True)
+            agent.set_use_history(False)
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
             if epoch >=50:
                 a_stats = agent.train(cfg.steps_per_epoch)
@@ -259,7 +270,10 @@ def main(cfg):
                 a_stats = agent.train(0)
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
-        #stats = d_stats
+            train_stats = {"attacker":a_stats}
+            if epoch % 10 == 9:
+                agent.model.push_to_history()
+
         stats = a_stats or d_stats
 
         cur_time = time.perf_counter() - start_time
@@ -269,13 +283,11 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        if epoch % 100 >= 50:
-            train_stats = {"detector":d_stats}
-        else:
-            train_stats = {"attacker":a_stats}
         time.sleep(1)
 
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
+        agent.set_use_history(False)
+        agent_d.set_use_history(False)
         agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
         agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)

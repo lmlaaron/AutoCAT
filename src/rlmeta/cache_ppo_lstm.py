@@ -19,8 +19,6 @@ from rlmeta.core.server import Server
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from models.dnn import DNNEncoder
-
 
 class CachePPOLSTMModel(PPOModel):
     def __init__(self,
