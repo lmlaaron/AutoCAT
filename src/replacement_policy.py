@@ -512,9 +512,47 @@ class lru_lock_policy(rep_policy):
         return self.touch(tag, timestamp)
     
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        assert(tag == INVALID_TAG or tag not in self.blocks)
-        assert(len(self.blocks) < self.associativity)
+        #assert(tag == INVALID_TAG or tag not in self.blocks)
+        #assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+                
+    def instantiate_entry_test(self, tag, timestamp, cache_set_data):
+        #print(cache_set_data)
+        locked_tag = tag
+        print(locked_tag)
+        i = 0
+        for i in range(len(cache_set_data)):
+            print(cache_set_data[i])
+            print(self.lock_vector_array[i])
+        # (tag, block.Block(self.block_size, current_step, False, address))
+        #tag = INVALID_TAG
+        #candidate_tags = []
+
+        if self.lock_vector_array[i] == UNLOCK:
+            self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
+            
+        else:
+            '''TODO: what happens cache is locked and empty? if cache is empty and try to 
+            read it, it will get cache misss and write the address in there. if locked, 
+            even if empty the address can not be written there. 
+            so it should be regarded as read from memory'''
+            
+            #del self.blocks[tag]
+            locked_tag = INVALID_TAG
+            return locked_tag
+            return self.reset(locked_tag, timestamp)
+            #print(tag)
+            #assert(False)
+            #return self.find_victim(tag, timestamp, cache_set_data)
+        #else:
+        #    pass
+        #    else:
+        #        pass
+                #return self.invalidate_unsafe(tag)
+                #return INVALID_TAG
+                #tag = INVALID_TAG
+                #break
+                #self.blocks[tag] = INVALID_TAG
         
     def invalidate(self, tag):
         assert(tag in self.blocks)
@@ -537,6 +575,7 @@ class lru_lock_policy(rep_policy):
                     victim_tag = INVALID_TAG
                     
                 else:
+                    
                     min_timestamp = min(self.blocks[item[0]].last_accessed for item in candidate_tags)
                     victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
                     Is_evict = True

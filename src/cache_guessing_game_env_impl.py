@@ -567,10 +567,10 @@ class CacheGuessingGameEnv(gym.Env):
       random.seed(seed)
   # def _randomize_cache(self, mode = "attacker"):
     if mode == "attacker":
-      self.l1.read(hex(self.ceaser_mapping(0))[2:], -4)#, domain_id='X')
-      self.l1.read(hex(self.ceaser_mapping(1))[2:], -3)#, domain_id='X')
-      self.l1.read(hex(self.ceaser_mapping(2))[2:], -2)
-      self.l1.read(hex(self.ceaser_mapping(3))[2:], -1)
+      self.l1.read(hex(self.ceaser_mapping(6))[2:], -4)#, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(7))[2:], -3)#, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(8))[2:], -2)
+      self.l1.read(hex(self.ceaser_mapping(9))[2:], -1)
       return
     
     if mode == "none":

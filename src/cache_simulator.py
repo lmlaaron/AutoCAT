@@ -128,6 +128,8 @@ def print_cache(cache):
                     for w in range(0, cache.associativity):
                         if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
                             timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                        else:
+                            timestamp.append(0)
                     sets.append(timestamp)
 
         table = UnixTable(sets)
@@ -157,7 +159,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
             address = inst2[0]
             op = inst2[1]
             
-        if len(inst2) == 3:
+        elif len(inst2) == 3:
             set_no = inst2[0]
             op = inst2[1]
             lock_bit = inst2[2]
@@ -213,8 +215,12 @@ def simulate(hierarchy, trace, logger, result_file=''):
         else:
             raise InvalidOpError
         
-        #if result_file != '': print the trace 
-        print(address + ' ' + str(r.time), file = f )
+        #if result_file != '': print the trace
+        if op != 'D': #== 'R' or op == 'R2':
+            print(address + ' ' + str(r.time), file = f )
+        elif op == 'D':
+            print(str(r.time), file = f)
+        
         for cache in hierarchy:
             if hierarchy[cache].next_level:
                 print_cache(hierarchy[cache])
