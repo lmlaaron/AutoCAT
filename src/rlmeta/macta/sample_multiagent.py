@@ -7,24 +7,19 @@ import tqdm
 import hydra
 import torch
 import torch.nn
+import numpy as np
 
 import rlmeta.utils.nested_utils as nested_utils
 
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
-from agents.ppo_agent import PPOAgent
-from agents.spec_agent import SpecAgent
-from agents.prime_probe_agent import PrimeProbeAgent
-from agents.evict_reload_agent import EvictReloadAgent
-from agents.cchunter_agent import CCHunterAgent
-from agents.benign_agent import BenignAgent
-from agents.random_agent import RandomAgent
-from agents.cyclone_agent import CycloneAgent
+from agent import PPOAgent, SpecAgent, PrimeProbeAgent, EvictReloadAgent, \
+                  CCHunterAgent, BenignAgent, RandomAgent, CycloneAgent
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
 
-from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
-
+from env import CacheAttackerDetectorEnvFactory
+from utils.trace_parser import load_trace
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
@@ -63,7 +58,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             # Unbatch the action.
             if isinstance(action, tuple):
                 action = Action(action[0], action[1])
-            if not isinstance(action.action, int):
+            if not isinstance(action.action, (int, np.int64)):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
         #print(actions)
@@ -227,14 +222,22 @@ def main(cfg):
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
-    spec_trace_f = open('/u/jxcui/remix4.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[1000000:]
-    y = []
-    for line in spec_trace:
-        line = line.split()
-        y.append(line)
-    spec_trace = y
-    benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
+    #spec_trace_f = open('/u/jxcui/Documents/spectrace/spectrace_500_607.txt','r')
+    #spec_trace = spec_trace_f.read().split('\n')[1000000:]
+    #y = []
+    #for line in spec_trace:
+    #    line = line.split()
+    #    y.append(line)
+    #spec_trace = y
+    spec_trace = load_trace(cfg.trace_file,
+                            limit=cfg.trace_limit,
+                            legacy_trace_format=cfg.legacy_trace_format)
+
+    benign_agent = SpecAgent(cfg.env_config,
+                       spec_trace,
+                       legacy_trace_format=cfg.legacy_trace_format)
+
+    #benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
     agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")

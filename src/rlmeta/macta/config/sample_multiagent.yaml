@@ -76,8 +76,8 @@ detectors: [ ["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src
             ]
 
 deterministic_policy: true
-trace_file: "/u/jxcui/remix4.txt"
-trace_limit: 10000
+trace_file: "/u/jxcui/remix3.txt"
+trace_limit: 1000000
 legacy_trace_format: false
 
 defaults:

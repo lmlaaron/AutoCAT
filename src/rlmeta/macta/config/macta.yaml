@@ -34,7 +34,7 @@ attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-
 
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
 trace_file: "/u/jxcui/remix3.txt"
-trace_limit: 100
+trace_limit: 1000000
 legacy_trace_format: false
 
 # replay_buffer_size: 262144
