@@ -32,8 +32,8 @@ attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outpu
 
 # replay_buffer_size: 262144
 # replay_buffer_size: 131072
-replay_buffer_size: 262144
-#replay_buffer_size: 1024
+#replay_buffer_size: 262144
+replay_buffer_size: 1024
 prefetch: 2
 
 batch_size: 512
@@ -61,7 +61,8 @@ defaults:
   # - env_config: config_exp7
   # - env_config: config_exp8
   # - env_config: config_exp9
-  - env_config: config_exp61
+  
+  - env_config: config_covert
   # - env_config: config_exp9_nextline
   # - env_config: config_exp9_stream
   # - env_config: config_exp10

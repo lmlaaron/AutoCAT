@@ -41,7 +41,7 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
-    wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="cache_ma_covert", config=cfg)
     my_callbacks = MACovertCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
@@ -62,6 +62,7 @@ def main(cfg):
     env = env_fac(0)
     #### receiver
     cfg.model_config["output_dim"] = env.action_space.n
+    print(cfg.model_config)
     train_model = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device)
     attacker_checkpoint = '' #cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
@@ -74,7 +75,7 @@ def main(cfg):
     rb = ReplayBuffer(cfg.replay_buffer_size)
     
     #### sender
-    cfg.sender_model_config["output_dim"] = 2 #env.sender_action_space.n
+    cfg.sender_model_config["output_dim"] = env._env.sender_action_space.n
     cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
     cfg.sender_model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
@@ -243,7 +244,7 @@ def main(cfg):
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             #wandb_logger.save(epoch, train_model_d, prefix="detector-")
-            torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+            torch.save(train_model_d.state_dict(), f"sender-{epoch}.pth")
         else:
             # Train Attacker
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
@@ -252,7 +253,7 @@ def main(cfg):
             else:
                 a_stats = agent.train(10)
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
-            torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
+            torch.save(train_model.state_dict(), f"receiver-{epoch}.pth")
         #stats = d_stats
         stats = a_stats or d_stats
 
@@ -264,9 +265,9 @@ def main(cfg):
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         if epoch % 100 >= 50:
-            train_stats = {"detector":d_stats}
+            train_stats = {"attacker":d_stats}
         else:
-            train_stats = {"attacker":a_stats}
+            train_stats = {"receiver":a_stats}
         time.sleep(1)
         
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
@@ -284,7 +285,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        eval_stats = {"attacker":a_stats, "detector":d_stats} # TODO: think about how to deal with this
+        eval_stats = {"receiver":a_stats, "sender":d_stats} # TODO: think about how to deal with this
         time.sleep(1)
         
         wandb_logger.log(train_stats, eval_stats)
