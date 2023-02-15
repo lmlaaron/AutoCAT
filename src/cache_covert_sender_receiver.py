@@ -2,7 +2,7 @@ import copy
 
 from typing import Any, Dict, Sequence, Tuple
 from collections import deque
-
+import hydra
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -53,7 +53,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #self.action_mask = {'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.action_mask = { 'sender': True, 'receiver': True} #self.receiver_agent}
         self.step_count = 0
-        self.max_step = 12
+        self.max_step = 32
         self.detector_obs = np.array([1.0, 0.0]) #deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         self.detector_reward_scale = 0.1 #1.0
@@ -217,9 +217,9 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         # obs, reward, done, info 
         updated_reward, updated_info = self.compute_reward(action, reward, receiver_done, receiver_attack_success)
         reward['receiver'] = updated_reward['receiver']
-        reward['sender'] = updated_reward['sender']
+        reward['sender'] = updated_reward['receiver']#updated_reward['sender']
         obs['sender'] = self.get_sender_obs(receiver_obs, receiver_info) 
-        done['sender'] = receiver_done #sender_done
+        done['sender'] = sender_done
         info['sender'] = {"guess_correct":updated_info["guess_correct"], "is_guess":bool(action['sender'])}
         info['sender'].update(receiver_info)
         # Change the criteria to determine wether the game is done
@@ -228,14 +228,19 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #from IPython import embed; embed()
 
         info['__all__'] = {'action_mask':self.action_mask}
-    
+
+        print("obs: ", obs['sender'])
+
         for k,v in info.items():
             info[k].update({'action_mask':self.action_mask})
         #print(obs["detector"])
         return obs, reward, done, info
 
-if __name__ == '__main__':
-    env = CacheCovertSenderReceiverEnv({})
+
+
+@hydra.main(config_path="./rlmeta/config", config_name="ppo_exp")
+def main(cfg):
+    env = CacheCovertSenderReceiverEnv(cfg.env_config)
     #env = CacheAttackerDetectorEnv({})
     ####env.opponent_weights = [0,1]
     action_space = env.action_space
@@ -243,15 +248,35 @@ if __name__ == '__main__':
     done = {'__all__':False}
     i = 0
     for k in range(2):
-      while not done['__all__']:
-        i += 1
-        action = {'receiver':np.random.randint(low=3, high=6),
-                  'sender':np.random.randint(low=0, high=1)}
+      actions =[
+        {'receiver': 0, 'sender': 0},
+        {'receiver': 1, 'sender': 0},
+        {'receiver': 2, 'sender': 0},
+        {'receiver': 3, 'sender': 0},
+        {'receiver': 4, 'sender': 0},
+        {'receiver': 5, 'sender': 0},
+        {'receiver': 6, 'sender': 0},
+        {'receiver': 7, 'sender': 0},
+        {'receiver': 8, 'sender': 1 + env._env.victim_secret - env._env.victim_address_min},
+        {'receiver': 1, 'sender': 0},
+        {'receiver': 2, 'sender': 0},
+        {'receiver': 3, 'sender': 0},
+        {'receiver': 4, 'sender': 0},
+        {'receiver': 5, 'sender': 0},
+        {'receiver': 6, 'sender': 0},
+        {'receiver': 7, 'sender': 0},
+        {'receiver': 10 + env._env.victim_secret - env._env.victim_address_min, 'sender': 0}
+      ]
+      while (not done['__all__'] ) and i < len(actions):
+        #i += 1
+        #action = {'receiver':np.random.randint(low=3, high=6),
+        #          'sender':np.random.randint(low=0, high=1)}
+        action = actions[i]
         obs, reward, done, info = env.step(action)
         print("step: ", i)
         print("obs: ", obs['sender'])
         print("action: ", action)
-        print("victim: ", env.victim_address, env._env.victim_address)
+        print("victim address: ",  env._env.victim_address)
 
         #print("done:", done)
         print("reward:", reward)
@@ -259,5 +284,10 @@ if __name__ == '__main__':
         #print("info:", info )
         #if info['receiver'].get('invoke_victim'):
         #    print(info['receiver'])
+        i += 1
       obs = env.reset()
       done = {'__all__':False}
+
+
+if __name__ == '__main__':
+    main()
