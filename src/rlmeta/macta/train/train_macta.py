@@ -31,6 +31,7 @@ from utils.maloop import LoopList, MAParallelLoop
 from utils.trace_parser import load_trace
 
 from agent import RandomAgent, BenignAgent, SpecAgent, PPOAgent
+from agent import SpecAgentFactory
 
 @hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
@@ -152,21 +153,32 @@ def main(cfg):
     # spec_trace = y
     # print(f"trace_size = {sys.getsizeof(spec_trace)}")
 
-    spec_trace = load_trace(cfg.trace_file,
-                            limit=cfg.trace_limit,
-                            legacy_trace_format=cfg.legacy_trace_format)
+    # spec_trace = load_trace(cfg.trace_file,
+    #                         limit=cfg.trace_limit,
+    #                         legacy_trace_format=cfg.legacy_trace_format)
+    #
+    # benign = SpecAgent(cfg.env_config,
+    #                    spec_trace,
+    #                    legacy_trace_format=cfg.legacy_trace_format)
+    # t_b_fac = AgentFactory(SpecAgent,
+    #                        cfg.env_config,
+    #                        spec_trace,
+    #                        legacy_trace_format=cfg.legacy_trace_format)
+    # e_b_fac = AgentFactory(SpecAgent,
+    #                        cfg.env_config,
+    #                        spec_trace,
+    #                        legacy_trace_format=cfg.legacy_trace_format)
 
-    benign = SpecAgent(cfg.env_config,
-                       spec_trace,
-                       legacy_trace_format=cfg.legacy_trace_format)
-    t_b_fac = AgentFactory(SpecAgent,
-                           cfg.env_config,
-                           spec_trace,
-                           legacy_trace_format=cfg.legacy_trace_format)
-    e_b_fac = AgentFactory(SpecAgent,
-                           cfg.env_config,
-                           spec_trace,
-                           legacy_trace_format=cfg.legacy_trace_format)
+    t_b_fac = SpecAgentFactory(cfg.env_config,
+                               cfg.num_trace_files,
+                               cfg.trace_prefix,
+                               cfg.trace_limit,
+                               legacy_trace_format=cfg.legacy_trace_format)
+    e_b_fac = SpecAgentFactory(cfg.env_config,
+                               cfg.num_trace_files,
+                               cfg.trace_prefix,
+                               cfg.trace_limit,
+                               legacy_trace_format=cfg.legacy_trace_format)
 
 
 

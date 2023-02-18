@@ -3,9 +3,12 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 
+import os
+import random
+import sys
 import time
 
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -18,7 +21,7 @@ from rich.progress import track
 import rlmeta.utils.data_utils as data_utils
 import rlmeta.utils.nested_utils as nested_utils
 
-from rlmeta.agents.agent import Agent
+from rlmeta.agents.agent import Agent, AgentFactory
 from rlmeta.core.controller import Controller, ControllerLike, Phase
 from rlmeta.core.model import ModelLike
 from rlmeta.core.replay_buffer import ReplayBufferLike
@@ -27,7 +30,9 @@ from rlmeta.core.types import Action, TimeStep
 from rlmeta.core.types import Tensor, NestedTensor
 from rlmeta.utils.stats_dict import StatsDict
 
-import random
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from utils.trace_parser import load_trace
 
 console = Console()
 
@@ -173,3 +178,33 @@ class SpecAgent(Agent):
             if cur != self.domain_id_0:
                 self.domain_id_1 = cur
                 break
+
+
+class SpecAgentFactory(AgentFactory):
+    def __init__(self,
+                 env_config: Dict[str, Any],
+                 num_trace_files: int,
+                 trace_prefix: str,
+                 trace_limit: int,
+                 legacy_trace_format: bool = False) -> None:
+        self.env_config = env_config
+        self.num_trace_files = num_trace_files
+        self.trace_prefix = trace_prefix
+        self.trace_limit = trace_limit
+        self.legacy_trace_format = legacy_trace_format
+
+    def __call__(self, index: int) -> SpecAgent:
+        spec_trace = self._load_trace(index)
+        return SpecAgent(self.env_config,
+                         spec_trace,
+                         legacy_trace_format=self.legacy_trace_format)
+
+    def _load_trace(self, index: int) -> np.ndarray:
+        trace_file = f"{self.trace_prefix}-{index % self.num_trace_files}.txt"
+
+        print(f"[SpecAgentFactory] agent [{index}] load {trace_file}")
+
+        spec_trace = load_trace(trace_file,
+                                limit=self.trace_limit,
+                                legacy_trace_format=self.legacy_trace_format)
+        return spec_trace

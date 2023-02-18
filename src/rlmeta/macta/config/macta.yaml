@@ -28,11 +28,17 @@ num_eval_rollouts: 12 #2
 num_eval_workers: 4 #2
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
-attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
+# attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
 #attacker_checkpoint: "/checkpoint/jxcui/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
 #attacker_checkpoint: ""
+attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
 
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
+
+# The trace files should be in the path like ${trace_prefix}-[0-9].txt
+num_trace_files: 4
+trace_prefix: "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3"
+
 trace_file: "/u/jxcui/remix3.txt"
 trace_limit: 1000000
 legacy_trace_format: false
