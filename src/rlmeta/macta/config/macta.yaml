@@ -36,8 +36,12 @@ attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
 
 # The trace files should be in the path like ${trace_prefix}-[0-9].txt
-num_trace_files: 4
-trace_prefix: "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3"
+trace_files: [
+  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-0.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-1.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-2.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-3.txt",
+]
 
 trace_file: "/u/jxcui/remix3.txt"
 trace_limit: 1000000

@@ -183,13 +183,11 @@ class SpecAgent(Agent):
 class SpecAgentFactory(AgentFactory):
     def __init__(self,
                  env_config: Dict[str, Any],
-                 num_trace_files: int,
-                 trace_prefix: str,
+                 trace_files: Sequence[str],
                  trace_limit: int,
                  legacy_trace_format: bool = False) -> None:
         self.env_config = env_config
-        self.num_trace_files = num_trace_files
-        self.trace_prefix = trace_prefix
+        self.trace_files = trace_files
         self.trace_limit = trace_limit
         self.legacy_trace_format = legacy_trace_format
 
@@ -200,7 +198,7 @@ class SpecAgentFactory(AgentFactory):
                          legacy_trace_format=self.legacy_trace_format)
 
     def _load_trace(self, index: int) -> np.ndarray:
-        trace_file = f"{self.trace_prefix}-{index % self.num_trace_files}.txt"
+        trace_file = self.trace_files[index % len(self.trace_files)]
 
         print(f"[SpecAgentFactory] agent [{index}] load {trace_file}")
 

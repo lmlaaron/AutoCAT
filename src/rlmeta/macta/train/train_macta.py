@@ -170,13 +170,11 @@ def main(cfg):
     #                        legacy_trace_format=cfg.legacy_trace_format)
 
     t_b_fac = SpecAgentFactory(cfg.env_config,
-                               cfg.num_trace_files,
-                               cfg.trace_prefix,
+                               cfg.trace_files,
                                cfg.trace_limit,
                                legacy_trace_format=cfg.legacy_trace_format)
     e_b_fac = SpecAgentFactory(cfg.env_config,
-                               cfg.num_trace_files,
-                               cfg.trace_prefix,
+                               cfg.trace_files,
                                cfg.trace_limit,
                                legacy_trace_format=cfg.legacy_trace_format)
 
