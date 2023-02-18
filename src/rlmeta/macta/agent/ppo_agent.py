@@ -47,27 +47,31 @@ class PPOAgent(PPOAgent):
         super().__init__(model, deterministic_policy, replay_buffer,
                          controller, optimizer, batch_size, grad_clip,
                          gamma, gae_lambda, eps_clip, vf_loss_coeff,
-                         entropy_coeff, reward_rescaling, 
+                         entropy_coeff, reward_rescaling,
                          advantage_normalization, value_clip,
                          learning_starts, push_every_n_steps)
 
     def set_use_history(self, use_history):
         self.model.set_use_history(use_history)
-    
+
     def act(self, timestep: TimeStep) -> Action:
         obs = timestep.observation
-        reload_model = timestep.info.get("episode_reset", False)
+        # reload_model = timestep.info.get("episode_reset", False)
+        # action, logpi, v = self.model.act(
+        #     obs, torch.tensor([self.deterministic_policy]), reload_model)
         action, logpi, v = self.model.act(
-            obs, torch.tensor([self.deterministic_policy]), reload_model)
+            obs, torch.tensor([self.deterministic_policy]))
         return Action(action, info={"logpi": logpi, "v": v})
 
     async def async_act(self, timestep: TimeStep) -> Action:
         obs = timestep.observation
-        reload_model = timestep.info.get("episode_reset", False)
+        # reload_model = timestep.info.get("episode_reset", False)
+        # action, logpi, v = await self.model.async_act(
+        #     obs, torch.tensor([self.deterministic_policy]), reload_model)
         action, logpi, v = await self.model.async_act(
-            obs, torch.tensor([self.deterministic_policy]), reload_model)
+            obs, torch.tensor([self.deterministic_policy]))
         return Action(action, info={"logpi": logpi, "v": v})
-    
+
     def train(self, num_steps: int) -> Optional[StatsDict]:
         #self.controller.set_phase(Phase.TRAIN, reset=True)
 
@@ -90,7 +94,7 @@ class PPOAgent(PPOAgent):
 
             if step % self.push_every_n_steps == self.push_every_n_steps - 1:
                 self.model.push()
-        
+
         #push the last checkpoint to the model history checkpoint
         #try:
         #    self.model.push_to_history()
@@ -100,7 +104,7 @@ class PPOAgent(PPOAgent):
         stats.update(episode_stats)
 
         return stats
-    
+
     def eval(self, num_episodes: Optional[int] = None) -> Optional[StatsDict]:
         #self.controller.set_phase(Phase.EVAL, limit=num_episodes, reset=True)
         while self.controller.get_count() < num_episodes:

@@ -18,8 +18,8 @@ from rlmeta.core.model import DownstreamModel, RemotableModel
 from rlmeta.core.server import Server
 
 sys.path.append(
-        os.path.dirname(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    os.path.dirname(os.path.dirname(os.path.dirname(
+        os.path.abspath(__file__)))))
 
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
@@ -43,18 +43,30 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         self.latest = None
         self.use_history = False
 
+    # @remote.remote_method(batch_size=128)
+    # def act(self, obs: torch.Tensor, deterministic_policy: torch.Tensor,
+    #         reload_model: bool
+    #         ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    #     if reload_model:
+    #         if self.use_history and len(self.history) > 0:
+    #             state_dict = random.choice(self.history)
+    #             self.load_state_dict(state_dict)
+    #         elif self.latest is not None:
+    #             self.load_state_dict(self.latest)
+    #         #print("reloading model", reload_model)
+    #         #print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
+
     @remote.remote_method(batch_size=128)
-    def act(self, obs: torch.Tensor, deterministic_policy: torch.Tensor,
-            reload_model: bool
-            ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        if reload_model:
-            if self.use_history and len(self.history) > 0:
-                state_dict = random.choice(self.history)
-                self.load_state_dict(state_dict)
-            elif self.latest is not None:
-                self.load_state_dict(self.latest)
-            #print("reloading model", reload_model)
-            #print("length of history:", len(self.history), "use history:", self.use_history, "latest:", self.latest if self.latest is None else len(self.latest))
+    def act(
+        self, obs: torch.Tensor, deterministic_policy: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+
+        if self.use_history and len(self.history) > 0:
+            state_dict = random.choice(self.history)
+            self.load_state_dict(state_dict)
+        elif self.latest is not None:
+            self.load_state_dict(self.latest)
+
         if self._device is None:
             self._device = next(self.parameters()).device
 
