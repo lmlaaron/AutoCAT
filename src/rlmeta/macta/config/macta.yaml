@@ -35,16 +35,25 @@ attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-
 
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
 
-# The trace files should be in the path like ${trace_prefix}-[0-9].txt
-trace_files: [
-  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-0.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-1.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-2.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/experimental/remix3-3.txt",
-]
 
-trace_file: "/u/jxcui/remix3.txt"
-trace_limit: 1000000
+# trace_file: "/u/jxcui/remix3.txt"
+# trace_limit: 1000000
+#
+trace_files: [
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500-2M_500-4M.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502-2M_502-4M.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_505-2M_505-4M.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_2000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_2000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_2000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_6000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_6000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_6000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_10000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_10000000.txt",
+  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_10000000.txt",
+]
+trace_limit: 2000000
 legacy_trace_format: false
 
 # replay_buffer_size: 262144
