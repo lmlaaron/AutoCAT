@@ -41,6 +41,8 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
+    cfg.env_config['verbose'] = 0 
+
     wandb_logger = WandbLogger(project="cache_ma_covert", config=cfg)
     my_callbacks = MACovertCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
@@ -243,16 +245,16 @@ def main(cfg):
             # Train Detector
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
-            #wandb_logger.save(epoch, train_model_d, prefix="detector-")
+            #wandb_logger.save(epoch, train_model_d, prefix="sender-")
             torch.save(train_model_d.state_dict(), f"sender-{epoch}.pth")
         else:
             # Train Attacker
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-            if epoch >=50:
+            if epoch >=5:
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(10)
-            #wandb_logger.save(epoch, train_model, prefix="attacker-")
+            #wandb_logger.save(epoch, train_model, prefix="receiver-")
             torch.save(train_model.state_dict(), f"receiver-{epoch}.pth")
         #stats = d_stats
         stats = a_stats or d_stats
@@ -265,7 +267,7 @@ def main(cfg):
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
         if epoch % 100 >= 50:
-            train_stats = {"attacker":d_stats}
+            train_stats = {"sender":d_stats}
         else:
             train_stats = {"receiver":a_stats}
         time.sleep(1)
