@@ -23,8 +23,12 @@ seed: 123 #123 1234 12345
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/attacker-2049.pth"
 #detector_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth" #no init
-attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-14/12-35-31/receiver-111.pth"
-detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-14/12-35-31/sender-99.pth" 
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-14/12-35-31/receiver-111.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-14/12-35-31/sender-99.pth" 
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-18/22-35-11/receiver-54.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-18/22-35-11/sender-59.pth"
+attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-20/22-04-46/receiver-42.pth"
+detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-20/22-04-46/sender-39.pth"
 
 #IBRPPO-fp10
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/attacker-2049.pth"

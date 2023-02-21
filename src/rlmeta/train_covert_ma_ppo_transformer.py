@@ -81,8 +81,10 @@ def main(cfg):
     cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
     cfg.sender_model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
-    #CachePPOTransformerModel(**cfg.model_config).to(
-    #    cfg.train_device_d)
+    #cfg.model_config["output_dim"] = env._env.sender_action_space.n
+    #cfg.model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    #cfg.model_config["step_dim"] += 2
+    #train_model_d = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
@@ -241,10 +243,12 @@ def main(cfg):
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None 
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        if epoch % 100 >= 50:
+        if epoch % 10 >= 5:
             # Train Detector
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
-            d_stats = agent_d.train(cfg.steps_per_epoch)
+            print(cfg.steps_per_epoch)
+            #exit(-1)
+            d_stats = agent_d.train(3000)#`cfg.steps_per_epoch)
             #wandb_logger.save(epoch, train_model_d, prefix="sender-")
             torch.save(train_model_d.state_dict(), f"sender-{epoch}.pth")
         else:
@@ -266,7 +270,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        if epoch % 100 >= 50:
+        if epoch % 10 >= 5:
             train_stats = {"sender":d_stats}
         else:
             train_stats = {"receiver":a_stats}

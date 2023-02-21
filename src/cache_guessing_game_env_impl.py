@@ -138,7 +138,9 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
-    
+
+    self.seed = -1
+
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
     '''
@@ -302,6 +304,8 @@ class CacheGuessingGameEnv(gym.Env):
       # return self.mapping_func(addr)
       return self.perm[addr]
 
+  def set_seed(self, seed):
+    self.seed = seed
 
   def sender_step(self, sender_action):
     if sender_action != 0:  # sender_action == 0 means no sender action
@@ -542,10 +546,12 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint('Reset...(also the cache state)')
       self.hierarchy = build_hierarchy(self.configs, self.logger)
       self.l1 = self.hierarchy['cache_1']
-      if seed == -1:
+      if seed == -1 and self.seed == -1:
         self._randomize_cache()
-      else:
+      elif seed != -1:
         self.seed_randomization(seed)
+      else:
+        self.seed_randomization(self.seed)
     else:
       self.vprint('Reset...(cache state the same)')
 
@@ -632,7 +638,11 @@ class CacheGuessingGameEnv(gym.Env):
         self.vprint("victim has empty access")
     
     # reset the secret for covert channel
-    self.victim_secret = random.randint(self.victim_secret_min, self.victim_secret_max)
+    if victim_address == -1:
+      self.victim_secret = random.randint(self.victim_secret_min, self.victim_secret_max)
+    else:
+      self.victim_secret = victim_address
+    
     self.vprint("sender secret is ", self.victim_secret)
 
   def render(self, mode='human'):

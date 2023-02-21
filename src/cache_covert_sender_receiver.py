@@ -66,6 +66,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #####self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'sender': True, 'receiver': True} #{'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
+        print("ma victim_address " + str(victim_address) )
         opponent_obs = self._env.reset(victim_address=victim_address,
                                        reset_cache_state=False)
         self.victim_address = self._env.victim_address
@@ -191,8 +192,8 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         if receiver_done:
             receiver_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address
-            self.step_count -= 1 # The reset/guess step should not be counted
-        if self.step_count >= self.max_step:
+            #self.step_count -= 1 # The reset/guess step should not be counted
+        if self.step_count >= self.max_step or receiver_done:
             sender_done = True
         else:
             sender_done = False
@@ -229,7 +230,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
 
         info['__all__'] = {'action_mask':self.action_mask}
 
-        print("obs: ", obs['sender'])
+        #print("obs: ", obs['sender'])
 
         for k,v in info.items():
             info[k].update({'action_mask':self.action_mask})

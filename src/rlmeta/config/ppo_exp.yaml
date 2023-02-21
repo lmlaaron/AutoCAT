@@ -33,7 +33,7 @@ attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outpu
 # replay_buffer_size: 262144
 # replay_buffer_size: 131072
 #replay_buffer_size: 262144
-replay_buffer_size: 1024
+replay_buffer_size: 1024 
 prefetch: 2
 
 batch_size: 512

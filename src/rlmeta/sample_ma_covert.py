@@ -101,8 +101,9 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
 def run_loops(env: Env,
               agent: PPOAgent,
               num_episodes: int,
+              gen_encode: bool = False,
               seed: int = 0) -> StatsDict:
-    env.seed(seed)
+    env.env._env.set_seed(seed)
     metrics = StatsDict()
     if env.env._env.allow_empty_victim_access == False:
         end_address = env.env._env.victim_address_max + 1
@@ -113,10 +114,18 @@ def run_loops(env: Env,
         cur_metrics = run_loop(env, agent, victim_addr=victim_addr)
         metrics.extend(cur_metrics)
     '''
-    for i in tqdm.tqdm(range(num_episodes)):
-        cur_metrics = run_loop(env, agent, victim_addr=-1)
-        metrics.extend(cur_metrics)
+    if gen_encode == False:
+        for i in tqdm.tqdm(range(num_episodes)):
+            cur_metrics = run_loop(env, agent, victim_addr=-1)
+            metrics.extend(cur_metrics)
+    else:
+        for i in range(env._env.victim_secret_min, env._env.victim_secret_max + 1):
+            print("victim addr is "+str(i))
+            cur_metrics = run_loop(env, agent, victim_addr = i)
+            metrics.extend(cur_metrics)
+    
     return metrics
+
 
 def tournament(env,
                cfg,
@@ -215,6 +224,8 @@ def main(cfg):
     detector_model.load_state_dict(detector_params)
     detector_model.eval()
 
+    cfg.deterministic_policy = True
+
     # Create agent
     attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
     #attacker_agent = PrimeProbeAgent(cfg.env_config)
@@ -228,7 +239,7 @@ def main(cfg):
     #spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
     #spec_trace = spec_trace_f.read().split('\n')[1000000:]
     agents = {"receiver": attacker_agent, "sender": detector_agent}
-    metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
+    metrics = run_loops(env, agents, cfg.num_episodes, gen_encode=True, seed = cfg.seed) 
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
     '''
     tournament(env, cfg)
