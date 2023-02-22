@@ -89,7 +89,7 @@ class Cache:
                 
 
                 self.set_rep_policy[index] = self.rep_policy(associativity, block_size)         
-            #print('self.data[index] in __init__ L92', self.data[index])
+            #print('self.data[index][i][0] in __init__ L92', self.data[index])
             #print('initial size of self.data[index]', len(self.data[index]))
         
     def vprint(self, *args):
@@ -202,31 +202,19 @@ class Cache:
 
             #Get the tags in this set
             in_cache = []
-            
-            #print('lock_vector_array in read_no_prefetch L206',lock_vector_array)
-                
+             
             for i in range( 0, len(self.data[index]) ):
                 if self.data[index][i][0] != INVALID_TAG and self.rep_policy != lru_lock_policy:#'x':
                     in_cache.append(self.data[index][i][0])
                     print('in_cache from L211 ',in_cache)
-                    
+                        
                 elif self.data[index][i][0] != INVALID_TAG and self.rep_policy == lru_lock_policy:
                     for i in range(0, len(lock_vector_array)):
                         if lock_vector_array[i] == UNLOCK:
                             in_cache.append(self.data[index][i][0])
-                            #self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
-                            #in_cache.append(self.data[index][i][0])
-                            #break
-                            #i +=1
-                        else:
-                            
                             break
-                        #else:
-                        #    self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
-                            #break
-                            
-            #print('in_cache in read_no_prefetch L225 ',in_cache)
-            #print('self.data[index][i][0]', self.data[index][i][0])
+     
+            #print('in_cache in read_no_prefetch L236 ',in_cache)
 
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
@@ -279,33 +267,29 @@ class Cache:
                 
                 # refresh in_cache after coherent eviction
                 in_cache = []
-                print('lock_vector_array after refresh in_cache, L279: ',lock_vector_array)
+                print('in_cache after coherent eviction', in_cache)
+                #print('lock_vector_array after refresh in_cache, L279: ',lock_vector_array)
                 for i in range( 0, len(self.data[index]) ):
-                    #print(len(self.data[index]))
+                    
                     if self.data[index][i][0] != INVALID_TAG and self.rep_policy != lru_lock_policy:#'x':
                         in_cache.append(self.data[index][i][0])
-                        print('in_cache in read_no_prefetch L286', in_cache)
-                        print('self.data[index] from L288', self.data[index])
+                        #print('in_cache in read_no_prefetch L286', in_cache)
+                        
                     elif self.data[index][i][0] != INVALID_TAG and self.rep_policy == lru_lock_policy:
+                        
                         #for i in range(0, len(lock_vector_array)):
                     
-                            if lock_vector_array[i] == UNLOCK and self.data[index][i][0] != INVALID_TAG:
+                            if lock_vector_array[i] == UNLOCK: 
+                                #count_unlock = lock_vector_array.count(0)
                                 in_cache.append(self.data[index][i][0])
-                                print('in_cache when lock_bit = 0, L292 ', in_cache)
-                                #self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
-                                
-                                #in_cache.append(self.data[index][i][0])
-                                #if len(in_cache) == len(self.associativity):
+                            
+                                #if count_unlock == len(in_cache):
                                 #break
-                            else:
-                                
-                                break
-                        #else:
-                        #    self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
-                print('in_cache in after refresh in_cache, L300', in_cache)
+                print('in_cache in after refresh in_cache ', in_cache)
                         
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity:
+                    print('in_cache in L292', in_cache)
                     for i in range( 0, len(self.data[index])):
                         #print(len(self.data[index]))
                         if self.data[index][i][0] == INVALID_TAG and self.rep_policy != lru_lock_policy:#'x':
@@ -321,19 +305,12 @@ class Cache:
                             #for i in range(0, len(self.lock_vector_array)):
                                 if lock_vector_array[i] == UNLOCK:
                                     self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
-                                    print('in_cache when lock_bit = 0, L321 ', in_cache)
-                                    #i +=1
+                                    #print('in_cache when lock_bit = 0 ', in_cache)
                                     break
-                                #self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
+                        
+                    self.set_rep_policy[index].instantiate_entry(tag, current_step)       
+                    print('in_cache in after refresh', in_cache)
                     
-                                #in_cache.append(self.data[index][i][0])
-                                #break
-                                #else:
-                                #in_cache.append(self.data[index][i][0])
-                                #    break
-                     
-                    self.set_rep_policy[index].instantiate_entry(tag, current_step)
-                    print('in_cache in after refresh in_cache, L315', in_cache)
                     ###if inst_victim_tag != INVALID_TAG: #instantiated entry sometimes does not replace an empty tag
                     ####we have to evict it from the cache in this scenario
                     ###    del self.data[index][inst_victim_tag]

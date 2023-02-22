@@ -2,6 +2,7 @@ import block
 import random
 INVALID_TAG = '--------'
 
+
 # interface for cache replacement policy per set
 class rep_policy:
     def __init__(self):
@@ -515,8 +516,18 @@ class lru_lock_policy(rep_policy):
         #assert(tag == INVALID_TAG or tag not in self.blocks)
         #assert(len(self.blocks) < self.associativity)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-                
+            
     def instantiate_entry_test(self, tag, timestamp, cache_set_data):
+        pass
+        # this function will inovoked only when len(in_cache) < self.associativity in Cache
+        # 1. get the values of lock_vector_array
+        # 2. search for the blocks with lock_vector is 0. 
+        # 3. if all blocks are w/ lock_vector = 1, then cache miss.    
+        # 4. if block(s) exist, instantiate a tag into 1st block
+        # 5. this function should limit len(in_cache) less than self.associativity  
+
+    
+        '''
         #print(cache_set_data)
         locked_tag = tag
         print(locked_tag)
@@ -532,10 +543,10 @@ class lru_lock_policy(rep_policy):
             self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
             
         else:
-            '''TODO: what happens cache is locked and empty? if cache is empty and try to 
-            read it, it will get cache misss and write the address in there. if locked, 
-            even if empty the address can not be written there. 
-            so it should be regarded as read from memory'''
+            #TODO: what happens cache is locked and empty? if cache is empty and try to 
+            #read it, it will get cache misss and write the address in there. if locked, 
+            #even if empty the address can not be written there. 
+            #so it should be regarded as read from memory
             
             #del self.blocks[tag]
             locked_tag = INVALID_TAG
@@ -553,7 +564,7 @@ class lru_lock_policy(rep_policy):
                 #tag = INVALID_TAG
                 #break
                 #self.blocks[tag] = INVALID_TAG
-        
+        ''' 
     def invalidate(self, tag):
         assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
@@ -570,15 +581,15 @@ class lru_lock_policy(rep_policy):
             if self.lock_vector_array[i] == UNLOCK:
                 candidate_tags.append(cache_set_data[i])
 
-                if len(candidate_tags) == 0:
-                    Is_evict = False
-                    victim_tag = INVALID_TAG
+        if len(candidate_tags) == 0:
+            Is_evict = False
+            victim_tag = INVALID_TAG
                     
-                else:
+        else:
                     
-                    min_timestamp = min(self.blocks[item[0]].last_accessed for item in candidate_tags)
-                    victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
-                    Is_evict = True
+            min_timestamp = min(self.blocks[item[0]].last_accessed for item in candidate_tags)
+            victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
+            Is_evict = True
 
         #print('victim_tag: ', victim_tag)
         return Is_evict, victim_tag
