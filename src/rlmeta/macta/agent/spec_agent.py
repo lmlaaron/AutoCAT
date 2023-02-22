@@ -83,7 +83,8 @@ class SpecAgent(Agent):
                     or (victim_addr_e + 1 == attacker_addr_s))
             assert (self.allow_empty_victim_access == False)
 
-        self.cache_line_size = 8  #TODO: remove the hardcode
+        # self.cache_line_size = 8  #TODO: remove the hardcode
+        self.cache_line_size = env_config.get("cache_line_size", 64)
         self.trace = trace
         self.trace_length = (len(self.trace)
                              if legacy_trace_format else self.trace.shape[0])
@@ -109,9 +110,7 @@ class SpecAgent(Agent):
         self.start_idx = random.randint(0, self.trace_length - 1)
         self.step = 0
 
-        print(
-            f"[SpecAgent.__init__()] domain_id_0 = {self.domain_id_0}, domain_id_1 = {self.domain_id_1}, start_idx = {self.start_idx}"
-        )
+        # print(f"[Agent] cache_line_size = {self.cache_line_size}")
 
     def act(self, timestep: TimeStep) -> Action:
         # line = self.trace[(self.start_idx + self.step) % self.trace_length]
