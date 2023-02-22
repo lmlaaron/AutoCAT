@@ -136,7 +136,7 @@ class SpecAgent(Agent):
             addr = int(line[3], 16) // self.cache_line_size
         else:
             domain_id, addr = self.trace[idx]
-            addr //= self.cache_size
+            addr //= self.cache_line_size
 
         assert isinstance(domain_id, (int, np.int64))
         assert isinstance(addr, (int, np.int64))
