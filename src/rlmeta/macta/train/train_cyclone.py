@@ -18,6 +18,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from env import CacheAttackerDetectorEnv, CacheAttackerDetectorEnvFactory
 from model import CachePPOTransformerModel
 from agent import PPOAgent, SpecAgent, CycloneAgent, PrimeProbeAgent
+from utils.trace_parser import load_trace
 
 LABEL={ 'attacker':1,
         'benign':0,
@@ -55,7 +56,7 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
             # Unbatch the action.
             if isinstance(action, tuple):
                 action = Action(action[0], action[1])
-            if not isinstance(action.action, int):
+            if not isinstance(action.action, (int, np.int64)):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
         #print(actions)
@@ -83,8 +84,6 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
 
     #Cyclone
     return agents['detector'].cyclone_counters, env.env.opponent_agent
-    #Same observation   
-    #return timestep['detector'].observation.numpy(), env.env.opponent_agent
 
 def collect(cfg, num_samples):
     # load agents and 
@@ -92,36 +91,33 @@ def collect(cfg, num_samples):
     # return 
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
-    #num_samples = 50
 
     # Load model
     # Attacker
-    cfg.model_config["output_dim"] = env.action_space.n
-    attacker_params = torch.load(cfg.attacker_checkpoint)
-    attacker_model = CachePPOTransformerModel(**cfg.model_config)
-    attacker_model.load_state_dict(attacker_params)
-    attacker_model.eval()
-    
-    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
+    if len(cfg.attacker_checkpoint) > 0:
+        cfg.model_config["output_dim"] = env.action_space.n
+        attacker_params = torch.load(cfg.attacker_checkpoint)
+        attacker_model = CachePPOTransformerModel(**cfg.model_config)
+        attacker_model.load_state_dict(attacker_params)
+        attacker_model.eval()
+        attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy) # use ppo agent as attacker
+    else:
+        attacker_agent = PrimeProbeAgent(cfg.env_config) # use prime+probe agent as attacker
     detector_agent = CycloneAgent(cfg.env_config)
-    spec_trace_f = open(os.path.expanduser('~')+'/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:1000000]
-    trace = []
-    for line in spec_trace:
-        line = line.split()
-        trace.append(line)
-    spec_trace = trace
-    benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
-    agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     X, y = [], [] 
-    for i in tqdm(range(num_samples)):
-        x, label = run_loop(env, agents)
-        X.append(x)
-        y.append(LABEL[label])
-    X = np.array(X)
-    #num_samples, m, n = X.shape
-    X = X.reshape(num_samples, -1)
+    
+    for trace_file in cfg.trace_files:
+        spec_trace = load_trace(trace_file,
+                                limit=cfg.trace_limit,
+                                legacy_trace_format=cfg.legacy_trace_format)
+        benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=cfg.legacy_trace_format)
+        agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
+        for i in tqdm(range(num_samples)):
+            x, label = run_loop(env, agents)
+            X.append(x)
+            y.append(LABEL[label])
+    X = np.array(X) #num_samples, m, n = X.shape
+    X = X.reshape(num_samples*len(cfg.trace_files), -1)
     y = np.array(y)
     #print('features:\n',X,'labels\n',y)
     return X, y
@@ -130,8 +126,8 @@ def train(cfg):
     # run data collection and 
     # train the svm classifier
     # report accuracy
-    X_train, y_train = collect(cfg, num_samples=20000)
-    X_test, y_test = collect(cfg, num_samples=100)
+    X_train, y_train = collect(cfg, num_samples=2000)
+    X_test, y_test = collect(cfg, num_samples=10)
     clf = SVC(kernel='rbf', gamma='auto')
     clf.fit(X_train,y_train)
     print("Train Accuracy:", clf.score(X_train,y_train))

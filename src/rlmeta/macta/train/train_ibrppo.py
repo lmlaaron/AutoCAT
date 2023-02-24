@@ -37,7 +37,7 @@ from agent import SpecAgentFactory
 
 @hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
-    # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="macta", config=cfg)
     print(f"workding_dir = {os.getcwd()}")
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
@@ -286,12 +286,12 @@ def main(cfg):
         else:
             train_stats = {"attacker":a_stats}
         time.sleep(1)
-
         a_ctrl.set_phase(Phase.EVAL, limit=cfg.num_eval_episodes, reset=True)
         agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
         agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
         d_stats = agent_d.eval(cfg.num_eval_episodes)
+
         #stats = d_stats
         stats = a_stats
 
@@ -305,7 +305,7 @@ def main(cfg):
         eval_stats = {"attacker":a_stats, "detector":d_stats}
         time.sleep(1)
 
-        # wandb_logger.log(train_stats, eval_stats)
+        wandb_logger.log(train_stats, eval_stats)
 
 
     loops.terminate()

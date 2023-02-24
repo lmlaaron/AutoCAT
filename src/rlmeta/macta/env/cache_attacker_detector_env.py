@@ -117,7 +117,7 @@ class CacheAttackerDetectorEnv(gym.Env):
                 #detector_reward = - self.max_step + self.step_count - 1 #punish false positive
                 detector_reward = -10 * self.max_step
             elif self.opponent_agent == 'attacker':
-                detector_reward = max(self.max_step - self.step_count, 0)
+                detector_reward = 1 #max(self.max_step - self.step_count, 0)
                 detector_correct = True
         else:
             # else receive a timestep penalty
@@ -171,7 +171,9 @@ class CacheAttackerDetectorEnv(gym.Env):
         if opponent_done:
             opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
-            self.step_count -= 1  # The reset/guess step should not be counted
+            if opponent_info.get('is_guess', False) and self.step_count < self.max_step:
+                # The reset/guess step should not be counted, but time out should be counted
+                self.step_count -= 1
         if self.step_count >= self.max_step:
             detector_done = True
         else:

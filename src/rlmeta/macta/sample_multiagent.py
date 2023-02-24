@@ -61,7 +61,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             if not isinstance(action.action, (int, np.int64)):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
-        #print(actions)
+        #print(actions['detector'])
         #if env.env.step_count <= 31:
         #    actions['detector'] = Action(0, actions['detector'].info)
         timestep = env.step(actions)
@@ -82,8 +82,8 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             detector_action = actions['detector'].action
         if timestep["__all__"].done and detector_action ==1:
             detector_count += 1
+            #print(timestep["detector"])
         detector_accuracy = detector_count
-
     metrics = {
         "episode_length": env.env.step_count,
         "episode_return": episode_return,
@@ -150,7 +150,7 @@ def tournament(env,
             else:
                 cfg.model_config["output_dim"] = 2
                 cfg.model_config["step_dim"] = 66
-                detector_params = torch.load(detector[1], map_location='cuda:1')
+                detector_params = torch.load(detector[1], map_location='cuda:0')
                 detector_model = CachePPOTransformerModel(**cfg.model_config)
                 detector_model.load_state_dict(detector_params)
                 detector_model.eval()
@@ -188,7 +188,7 @@ def tournament(env,
 @hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
-    cfg.env_config['verbose'] = 0 
+    cfg.env_config['verbose'] = 0
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     # [1,0] fully benign agents
@@ -229,18 +229,27 @@ def main(cfg):
     #    line = line.split()
     #    y.append(line)
     #spec_trace = y
-    spec_trace = load_trace(cfg.trace_file,
-                            limit=cfg.trace_limit,
-                            legacy_trace_format=cfg.legacy_trace_format)
+    
+    metrics_multidataset = StatsDict()
 
-    benign_agent = SpecAgent(cfg.env_config,
-                       spec_trace,
-                       legacy_trace_format=cfg.legacy_trace_format)
+    for trace_file in cfg.trace_files:
+        spec_trace = load_trace(trace_file,
+                                limit=cfg.trace_limit,
+                                legacy_trace_format=cfg.legacy_trace_format)
 
-    #benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
-    agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
-    metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
-    logging.info("\n\n" + metrics.table(info="sample") + "\n")
+        benign_agent = SpecAgent(cfg.env_config,
+                                 spec_trace,
+                                 legacy_trace_format=cfg.legacy_trace_format)
+
+        #benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
+        agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
+        metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
+        metrics_mean = metrics.dict()
+        for k in metrics_mean.keys(): metrics_mean[k]=metrics_mean[k]['mean']
+        metrics_multidataset.extend(metrics_mean)
+        #logging.info("\n\n" + metrics.table(info="sample") + "\n")
+    logging.info("\n\n" + metrics_multidataset.table(info="multi-dataset") + "\n")
+
     '''
     tournament(env, cfg)
 

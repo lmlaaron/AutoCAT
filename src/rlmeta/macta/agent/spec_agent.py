@@ -83,7 +83,7 @@ class SpecAgent(Agent):
                     or (victim_addr_e + 1 == attacker_addr_s))
             assert (self.allow_empty_victim_access == False)
 
-        self.cache_line_size = 8  #TODO: remove the hardcode
+        self.cache_line_size = 64  #TODO: remove the hardcode
         self.trace = trace
         self.trace_length = (len(self.trace)
                              if legacy_trace_format else self.trace.shape[0])
@@ -136,7 +136,7 @@ class SpecAgent(Agent):
             addr = int(line[3], 16) // self.cache_line_size
         else:
             domain_id, addr = self.trace[idx]
-            addr //= self.cache_size
+            addr //= self.cache_line_size
 
         assert isinstance(domain_id, (int, np.int64))
         assert isinstance(addr, (int, np.int64))
