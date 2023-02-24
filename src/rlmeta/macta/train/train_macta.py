@@ -35,7 +35,7 @@ from agent import SpecAgentFactory
 
 @hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
-    wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="macta", config=cfg)
     print(f"workding_dir = {os.getcwd()}")
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))

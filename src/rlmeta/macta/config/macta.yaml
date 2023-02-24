@@ -18,8 +18,8 @@ cd_server_addr: "127.0.0.1:4733"
 
 train_device: "cuda:0"
 infer_device: "cuda:1"
-train_device_d: "cuda:2" #"cuda:2"
-infer_device_d: "cuda:3" #"cuda:3"
+train_device_d: "cuda:0" #"cuda:2"
+infer_device_d: "cuda:2" #"cuda:3"
 
 num_train_rollouts: 72 #72 #48 #24
 num_train_workers: 24  #24
@@ -45,13 +45,14 @@ trace_files: [
     #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_505-2M_505-4M.txt",
     #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_2000000.txt",
     #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_2000000.txt",
-  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_2000000.txt",
-  #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_6000000.txt",
-  #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_6000000.txt",
-  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_6000000.txt",
-  #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_10000000.txt",
-  #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_10000000.txt",
-  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_10000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_2000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_6000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_6000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_6000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_10000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_10000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_10000000.txt",
+    "/u/jxcui/remix3.txt",
 ]
 trace_limit: 2000000
 legacy_trace_format: false
