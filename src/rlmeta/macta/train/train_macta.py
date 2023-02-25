@@ -125,6 +125,7 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
+                     dual_clip=cfg.get("dual_clip", None),
                      push_every_n_steps=cfg.push_every_n_steps)
     ta_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
     td_agent_fac = AgentFactory(PPOAgent, td_model, deterministic_policy=True)
@@ -197,6 +198,7 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
+                     dual_clip=cfg.get("dual_clip", None),
                      push_every_n_steps=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)

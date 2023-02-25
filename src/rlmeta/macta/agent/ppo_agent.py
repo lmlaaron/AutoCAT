@@ -39,6 +39,7 @@ class PPOAgent(PPOAgent):
                  eps_clip: float = 0.2,
                  vf_loss_coeff: float = 0.5,
                  entropy_coeff: float = 0.01,
+                 dual_clip: Optional[float] = None,
                  reward_rescaling: bool = True,
                  advantage_normalization: bool = True,
                  value_clip: bool = True,
@@ -50,6 +51,8 @@ class PPOAgent(PPOAgent):
                          entropy_coeff, reward_rescaling,
                          advantage_normalization, value_clip,
                          learning_starts, push_every_n_steps)
+
+        self.dual_clip = dual_clip
 
     def set_use_history(self, use_history):
         self.model.set_use_history(use_history)
@@ -111,3 +114,28 @@ class PPOAgent(PPOAgent):
             time.sleep(1)
         stats = self.controller.get_stats()
         return stats
+
+    def _policy_loss(self, logpi: torch.Tensor, old_logpi: torch.Tensor,
+                     adv: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        if self.advantage_normalization:
+            # Advantage normalization
+            std, mean = torch.std_mean(adv, unbiased=False)
+            adv = (adv - mean) / (std + 1e-8)
+
+        ratio = (logpi - old_logpi).exp()
+
+        # Dual-clip PPO.
+        # https://arxiv.org/pdf/1912.09729.pdf
+        if self.dual_clip is not None:
+            # Assume self.dual_clip > 1 + self.eps_clip.
+            # If adv > 0, ratio > self.dual_clip -> raito > 1 + self.eps_clip.
+            # If adv < 0, ratio will be dual clipped.
+            ratio = ratio.clamp_max(self.dual_clip)
+
+        # Policy clip
+        ratio_clamp = ratio.clamp(1.0 - self.eps_clip, 1.0 + self.eps_clip)
+        surr1 = ratio * adv
+        surr2 = ratio_clamp * adv
+        policy_loss = -torch.min(surr1, surr2).mean()
+
+        return policy_loss, ratio
