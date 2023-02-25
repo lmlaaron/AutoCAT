@@ -1,13 +1,15 @@
 import hydra
 import os
 import sys
+import json
 import torch
 import pickle
 import numpy as np
 from typing import Dict
 from tqdm import tqdm
 from sklearn.svm import SVC
-
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
@@ -126,10 +128,36 @@ def train(cfg):
     # run data collection and 
     # train the svm classifier
     # report accuracy
-    X_train, y_train = collect(cfg, num_samples=2000)
-    X_test, y_test = collect(cfg, num_samples=10)
-    clf = SVC(kernel='rbf', gamma='auto')
-    clf.fit(X_train,y_train)
+    
+    data_file=None
+    #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/04-27-51/data.pkl"
+
+    if data_file is None:
+        X_train, y_train = collect(cfg, num_samples=2000)
+        X_test, y_test = collect(cfg, num_samples=10)
+        data = {"X_train": X_train,
+            "y_train": y_train,
+            "X_test": X_test,
+            "y_test": y_test}
+        pickle.dump(data, open('data.pkl','wb'))
+    else:
+        data=pickle.load(open(data_file,'rb'))
+        X_train=data['X_train']
+        y_train=data['y_train']
+        X_test=data['X_test']
+        y_test=data['y_test']
+    clf = make_pipeline(
+            StandardScaler(),
+            SVC(
+              C=100,
+              kernel='rbf', 
+              gamma='auto',
+              #max_iter=20000, 
+              )
+          )
+    #sample_weight = 2-y_train
+    #clf.fit(X_train,y_train, svc__sample_weight=sample_weight)
+    clf.fit(X_train, y_train)
     print("Train Accuracy:", clf.score(X_train,y_train))
     print("Test Accuracy:", clf.score(X_test, y_test))
     

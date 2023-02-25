@@ -217,9 +217,9 @@ def main(cfg):
     attacker_agent = PrimeProbeAgent(cfg.env_config)
 
     #detector_agent = RandomAgent(1)
-    detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
+    #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
+    detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
     #spec_trace = '/private/home/jxcui/remix3.txt'
     #spec_trace_f = open('/u/jxcui/Documents/spectrace/spectrace_500_607.txt','r')

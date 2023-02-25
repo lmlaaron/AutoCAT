@@ -29,8 +29,8 @@ class CycloneAgent:
             self.clf = pickle.load(open(svm_model_path,'rb'))
         
         self.cyclone_window_size = env_config.get("cyclone_window_size", 4)
-        self.cyclone_interval_size = env_config.get("cyclone_interval_size", 16)
-        self.cyclone_num_buckets = env_config.get("cyclone_num_buckets", 4)
+        self.cyclone_interval_size = env_config.get("cyclone_interval_size", 17) #was 16
+        self.cyclone_num_buckets = env_config.get("cyclone_num_buckets", 8) #was 4
         self.cyclone_bucket_size = env_config.cache_configs.cache_1.blocks / self.cyclone_num_buckets
 
         self.observe_init(timestep=None)
@@ -59,11 +59,15 @@ class CycloneAgent:
         info = timestep.info
         if "cyclic_set_index" in info.keys() and info["cyclic_set_index"] != -1: 
             cyclic_set_index = int(info["cyclic_set_index"])
+            #print("step:",self.local_step,info)
             if self.local_step < self.episode_length:
-                self.cyclone_counters[int(cyclic_set_index // self.cyclone_bucket_size)][int(self.local_step // self.cyclone_interval_size)] += 1
+                self.cyclone_counters[int(cyclic_set_index / self.cyclone_bucket_size)][int((self.local_step-1) / self.cyclone_interval_size)] += 1
 
         if timestep.observation[0][0][-1] >= self.episode_length-1 and self.mode=='active': 
             action = self.cyclone_detect(self.cyclone_counters)
+            #if action==1:
+            #    from IPython import embed; embed()
+            #    print(self.cyclone_counters)
         else:
             action = 0
         return action, info
