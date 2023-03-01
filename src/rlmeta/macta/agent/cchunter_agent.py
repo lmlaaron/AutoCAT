@@ -16,7 +16,7 @@ class CCHunterAgent:
         self.local_step = 0
         self.cc_hunter_history = []
         self.cc_hunter_check_length = 2
-        self.threshold = 0.415
+        self.threshold = 0.45 #0.415
         if "cache_configs" in env_config:
             #self.logger.info('Load config from JSON')
             self.configs = env_config["cache_configs"]
@@ -38,7 +38,7 @@ class CCHunterAgent:
 
     # initialize the agent with an observation
     def observe_init(self, timestep):
-        self.local_step = 0
+        self.local_step = -2
         self.cc_hunter_history = []
     
     def autocorr(self, x: np.ndarray, p: int) -> float:
@@ -46,21 +46,27 @@ class CCHunterAgent:
             return 1.0
         mean = x.mean()
         var = max(x.var(), 1e-12)
-        return ((x[: -p] - mean) * (x[p: ] - mean)).sum() / np.square(x - mean).sum() #Eq (1)
+        return ((x[: -p] - mean) * (x[p: ] - mean)).sum() / max(np.square(x - mean).sum(), 1e-12) #Eq (1)
         #return ((x[:-p] - mean) * (x[p:] - mean)).mean() / var # Eq (2)
 
     def act(self, timestep):
-        if timestep.observation[0][0][0] == -1:
-            #reset the attacker
-            self.local_step = 0
-            self.cc_hunter_history = []
         self.local_step += 1
+        if timestep.observation[0][0][0] == -1:
+            #reset the detector
+            self.cc_hunter_history = []
         cur_step_obs = timestep.observation[0][0]
+        cur_step = cur_step_obs[-1].item()
+        if cur_step == 1: 
+            self.local_step=cur_step
         info = timestep.info
-        latency = cur_step_obs[0] #if self.keep_latency else -1
+        latency = cur_step_obs[0].item() #if self.keep_latency else -1
         domain_id = cur_step_obs[1]
         victim_access = cur_step_obs[1]
-        #MUlong Luo
+        NO_OBS = False
+        if self.local_step > cur_step:
+            #Attacker is guessing, the latency is passed again
+            self.local_step = cur_step
+            NO_OBS = True
         # change the semantics of cc_hunter_history following the paper
         # only append when there is a conflict miss (i.e., victim_latency is 1(miss))
         # then check the action
@@ -73,32 +79,33 @@ class CCHunterAgent:
         #elif latency == 1:
         #    self.cc_hunter_history.append(1)
         
-        if domain_id == 0 and latency == 1:
-            self.cc_hunter_history.append(0)
-        elif domain_id == 1 and latency == 1:
-            self.cc_hunter_history.append(1)
-
-        n = min(len(self.cc_hunter_history), self.cache_size * self.cc_hunter_check_length
-                )  # Mulong: only calculate 4 * size_cache size lag
-        x = np.asarray(self.cc_hunter_history)
-        corr = [self.autocorr(x, i) for i in range(n)]
-        corr = np.asarray(corr[1:])
-        corr = np.nan_to_num(corr)
-        #if n>30 and np.max(corr) >=1: 
-        #    print(corr)
-        mask = corr > self.threshold
-        rew = -np.square(corr).mean() if len(corr) > 0 else 0.0
-
-        cnt = mask.sum()
-        if cnt >=1 and cur_step_obs[-1]>=63:
-            action = 1, info
-
+        if NO_OBS:
+            pass
         else:
-            action = 0, info
+            if domain_id == 0 and latency == 1:
+                self.cc_hunter_history.append(0)
+            elif domain_id == 1 and latency == 1:
+                self.cc_hunter_history.append(1)
 
-        #if cur_step_obs[-1]>=63:
-        #    print("cc_hunter history",x)
-        #    print(corr)
+        # Don't act by default
+        action = 0, info
+        
+        if cur_step >= 63:
+            n = min(
+                    len(self.cc_hunter_history),
+                    self.cache_size * self.cc_hunter_check_length
+                    )  # only calculate 4 * size_cache size lag
+            x = np.asarray(self.cc_hunter_history)
+            corr = [self.autocorr(x, i) for i in range(n)]
+            corr = np.asarray(corr[1:])
+            corr = np.nan_to_num(corr)
+            mask = corr > self.threshold
+            cnt = mask.sum()
+
+            if cnt >= 1:
+                action = 1, info
+        
+
         # np.set_printoptions(suppress=True)
         # print(f"data = {np.asarray(data)}")
         # print(f"corr_arr = \n{corr}")

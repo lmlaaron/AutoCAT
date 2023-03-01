@@ -130,7 +130,7 @@ def train(cfg):
     # report accuracy
     
     data_file=None
-    #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/04-27-51/data.pkl"
+    #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/04-44-27/data.pkl"
 
     if data_file is None:
         X_train, y_train = collect(cfg, num_samples=2000)
