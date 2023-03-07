@@ -513,80 +513,10 @@ class lru_lock_policy(rep_policy):
         return self.touch(tag, timestamp)
     
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        #assert(tag == INVALID_TAG or tag not in self.blocks)
-        #assert(len(self.blocks) < self.associativity)
-        #for i in range(0, len(self.lock_vector_array)):
-        #    if self.lock_vector_array[i] == UNLOCK:
+        assert(tag == INVALID_TAG or tag not in self.blocks)
+        
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
             
-    '''      
-    this function will inovoked only when len(in_cache) < self.associativity 
-    1. get the values of lock_vector_array
-    2. search for the blocks with lock_vector is 0. 
-    3. if all blocks are w/ lock_vector = 1, then cache miss.    
-    4. if block(s) exist, instantiate a tag into 1st block
-    '''
-   
-    def lock_in_cache(self, tag, timestamp, cache_set_data, in_cache, lock_vector_array):
-        #assert(tag == INVALID_TAG or tag not in self.blocks)
-        #assert(tag not in self.blocks)
-        #assert(len(self.blocks) < self.associativity)
-        in_cache = []
-        print('lock_vector_array passsed from Cache', lock_vector_array)
-        #print('in_cache passed from Cache', in_cache)
-        #print(cache_set_data)
-        for i in range(0, len(cache_set_data)):
-            print('cache_set_data in repl policy ', cache_set_data)
-            for j in range(0, len(lock_vector_array)):
-                #print("iterators ", i, j)
-                if lock_vector_array[j] == UNLOCK:
-                    print(lock_vector_array[j])
-                    
-                    in_cache.append(cache_set_data)
-                    #self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
-                    #break
-                #else:
-                    #print("in else adding '--------' ", block.Block(self.block_size, timestamp, False, 0))
-                    #self.blocks[j] = "--------"
-        #print(lock_vector_array)
-        print('in_cache from lock_in_cache ', in_cache)
-        #return in_cache
-        
-        '''
-        #print(cache_set_data)
-        locked_tag = tag
-        print(locked_tag)
-        i = 0
-        for i in range(len(cache_set_data)):
-            print(cache_set_data[i])
-            print(self.lock_vector_array[i])
-        # (tag, block.Block(self.block_size, current_step, False, address))
-        #tag = INVALID_TAG
-        #candidate_tags = []
-
-        else:
-            #TODO: what happens cache is locked and empty? if cache is empty and try to 
-            #read it, it will get cache misss and write the address in there. if locked, 
-            #even if empty the address can not be written there. 
-            #so it should be regarded as read from memory
-            
-            #del self.blocks[tag]
-            locked_tag = INVALID_TAG
-            return locked_tag
-            return self.reset(locked_tag, timestamp)
-            #print(tag)
-            #assert(False)
-            #return self.find_victim(tag, timestamp, cache_set_data)
-        #else:
-        #    pass
-        #    else:
-        #        pass
-                #return self.invalidate_unsafe(tag)
-                #return INVALID_TAG
-                #tag = INVALID_TAG
-                #break
-                #self.blocks[tag] = INVALID_TAG
-        ''' 
     def invalidate(self, tag):
         assert(tag in self.blocks)
         del self.blocks[tag] # delete the oldest entry in the cache = delete the evicted entry
@@ -602,7 +532,6 @@ class lru_lock_policy(rep_policy):
         candidate_index = []
         way_index = -1 
         for i in range(self.associativity):
-            
             if self.lock_vector_array[i] == UNLOCK:
                 candidate_tags.append(cache_set_data[i])
                 candidate_index.append(i)
@@ -616,14 +545,10 @@ class lru_lock_policy(rep_policy):
             Is_evict = False
             victim_tag = INVALID_TAG
                
-        else:
-                  
+        else:    
             min_timestamp = min(self.blocks[item[0]].last_accessed for item in candidate_tags)
-            
             for i in range(0, len(candidate_tags)):
                 item = candidate_tags[i]
-                #victim_tag = [item[0] for item in candidate_tags if item[1].last_accessed == min_timestamp][0]
-                
                 if item[1].last_accessed == min_timestamp:
                     victim_tag = item[0] 
                     way_index = candidate_index[i]
@@ -631,8 +556,6 @@ class lru_lock_policy(rep_policy):
                 
             Is_evict = True
 
-
-        #print('victim_tag: ', victim_tag)
         return Is_evict, victim_tag, way_index
     
     # gathers lock vectors per line into the array

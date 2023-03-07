@@ -87,10 +87,7 @@ class Cache:
                     '''self.data = {'0':[('--------', 1, 0, False, 'X', 0)]}'''
                     self.domain_id_tags[index].append(('X','X')) # for cyclone
                 
-
                 self.set_rep_policy[index] = self.rep_policy(associativity, block_size)         
-            #print('self.data[index][i][0] in __init__ L92', self.data[index])
-            #print('initial size of self.data[index]', len(self.data[index]))
         
     def vprint(self, *args):
         if self.verbose == 1:
@@ -119,7 +116,6 @@ class Cache:
         if tag in in_cache:
             for i in range( 0, len(self.data[index])):
                 if self.data[index][i][0] == tag: 
-                    #self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, address))
                     self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
                     break
             self.set_rep_policy[index].invalidate(tag)
@@ -205,14 +201,8 @@ class Cache:
             in_cache = []
             
             for i in range( 0, len(self.data[index]) ):
-                if self.rep_policy != lru_lock_policy:
-                    if self.data[index][i][0] != INVALID_TAG:#'x':
-                        in_cache.append(self.data[index][i][0])
-                            
-                elif self.rep_policy == lru_lock_policy:
-                    if self.data[index][i][0] != INVALID_TAG and self.lock_vector_array[i] == UNLOCK:
-                        in_cache.append(self.data[index][i][0])
-                        break
+                if self.data[index][i][0] != INVALID_TAG:#'x':
+                    in_cache.append(self.data[index][i][0])
                             
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
@@ -269,17 +259,9 @@ class Cache:
                 in_cache = []
                 
                 for i in range( 0, len(self.data[index]) ):
-                    if self.rep_policy != lru_lock_policy:
                         if self.data[index][i][0] != INVALID_TAG:#'x':
                             in_cache.append(self.data[index][i][0])
-                            
-                     
-                    elif self.rep_policy == lru_lock_policy:
-                        
-                        if self.data[index][i][0] != INVALID_TAG and self.lock_vector_array[i] == UNLOCK:  
-                            in_cache.append(self.data[index][i][0])
-                            break
-                        
+                               
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity and self.rep_policy != lru_lock_policy:   
                     for i in range( 0, len(self.data[index])):
@@ -301,12 +283,10 @@ class Cache:
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
                 
-                
                 else:
                     #Find the victim block and replace it
                     if self.rep_policy == lru_lock_policy:
                         Is_evict, victim_tag, way_index = self.set_rep_policy[index].find_victim(tag, current_step, self.data[index])
-                        #print('test')
                         
                     else:
                         way_index = -1
@@ -314,7 +294,6 @@ class Cache:
                     
                     if victim_tag != INVALID_TAG or self.rep_policy == lru_lock_policy and Is_evict and victim_tag != INVALID_TAG: 
                     
-                        print(way_index)
                         # Write the block back down if it's dirty and we're using write back
                         if self.write_back:
                             for i in range( 0, len(self.data[index])):
@@ -335,7 +314,7 @@ class Cache:
                                 #        cyclic_way_index = i
                                 #    self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                                 self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
-                                print(way_index)
+                                #print(way_index)
                                 break
                         
                         if int(self.n_blocks/ self.associativity) == 1:
@@ -347,15 +326,12 @@ class Cache:
                         # assume line size is always 1B for different level
                         evict_addr = victim_tag  + indexi  + '0' *  int(math.log(self.block_size,2))
                         self.set_rep_policy[index].invalidate(victim_tag)
-                            
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)   
                         
                         if pl_opt != -1:
                             self.set_rep_policy[index].setlock(tag, pl_opt)
                             
-                    elif self.rep_policy == lru_lock_policy and Is_evict: # still lock policy, but tag is invalid 
-                        
- 
+                    elif self.rep_policy == lru_lock_policy and Is_evict: # when the tag is invalid tag 
                         self.data[index][way_index] = (tag, block.Block(self.block_size, current_step, False, address))
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
                         
