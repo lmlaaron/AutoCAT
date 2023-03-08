@@ -502,7 +502,7 @@ class lru_lock_policy(rep_policy):
         self.block_size = block_size
         self.blocks = {}
         self.verbose = verbose
-        self.lock_vector_array = [ UNLOCK ] * self.associativity # [0, 0, 0, 0]
+        self.lock_vector_array = [ UNLOCK ] * self.associativity 
         self.vprint(self.lock_vector_array)
         
     def touch(self, tag, timestamp): 
@@ -513,8 +513,7 @@ class lru_lock_policy(rep_policy):
         return self.touch(tag, timestamp)
     
     def instantiate_entry(self, tag, timestamp):# instantiate a new address in the cache
-        assert(tag == INVALID_TAG or tag not in self.blocks)
-        
+        #assert(tag == INVALID_TAG or tag not in self.blocks)
         self.blocks[tag] = block.Block(self.block_size, timestamp, False, 0)
             
     def invalidate(self, tag):
@@ -552,7 +551,7 @@ class lru_lock_policy(rep_policy):
                 if item[1].last_accessed == min_timestamp:
                     victim_tag = item[0] 
                     way_index = candidate_index[i]
-                    print(way_index)
+                    #print(way_index)
                 
             Is_evict = True
 

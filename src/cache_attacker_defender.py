@@ -85,7 +85,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 print('victim_address: ', cur_opponent_obs[2], '\n')
                 
             else:
-                print('*****************************************')
+                #print('*****************************************')
                 print('attackers latency: ', cur_opponent_obs[0])
                 cur_opponent_obs[1] = 1-self.random_domain#0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
@@ -238,11 +238,11 @@ def main(cfg):
     obs = _env.reset(victim_address=-1) #=5)
     done = {'__all__':False}
     i = 0
-    ''' L238 to 245: for unit test '''
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/nolock_noempty.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/nolock_empty.txt')
-    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/lock_noempty.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/lock_empty.txt')
+    ''' for unit test '''
+    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_000.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_050.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_100.txt') 
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lock_empty.txt')
     trace = test_action.read().splitlines()
     actions_list = [list(map(int, x.split())) for x in trace]
     actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2]} for values in actions_list]
