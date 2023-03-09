@@ -150,7 +150,7 @@ class CacheGuessingGameEnv(gym.Env):
     
     # NOTE: modified the size of state to accomodate defender's obs space
     self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
-    self.step_count = 0
+    self.step_count = 0 #NOTE original value is 0
 
     self.attacker_address_min = attacker_addr_s
     self.attacker_address_max = attacker_addr_e
@@ -216,7 +216,7 @@ class CacheGuessingGameEnv(gym.Env):
     #print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
     #print_cache(self.l1)
-    self.current_step = 0
+    self.current_step = 1 # NOTE: (3/9) changed the value 0 to 1
     self.victim_accessed = False
     if self.allow_empty_victim_access == True:
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
@@ -398,20 +398,17 @@ class CacheGuessingGameEnv(gym.Env):
     # must be consistent with the observation space
     # return observation, reward, done?, info
     #return r, reward, done, info
-    current_step = self.current_step
+    
     if self.victim_accessed == True:
       victim_accessed = 1
     else:
       victim_accessed = 0
     
-
     #TODO remove the temporary test
     #if is_victim or is_victim_random:
     #    victim_accessed = 1
     #else:
     #    victim_accessed = 0
-    
-
 
     ####self.state = [r, action[0], current_step, victim_accessed] + self.state 
 
@@ -457,8 +454,7 @@ class CacheGuessingGameEnv(gym.Env):
 
     return np.array(list(reversed(self.state))), reward, done, info
 
-  def reset(self,
-            victim_address=-1,
+  def reset(self, victim_address=-1,
             reset_cache_state=False,
             reset_observation=True,
             seed = -1):
@@ -478,12 +474,16 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint('Reset...(cache state the same)')
 
     self._reset(victim_address)  # fake reset
+    
     ''' reset_observation '''
     if reset_observation:
         self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
-        self.step_count = 0
+        
+        self.step_count = 0 # NOTE: original value is 0 
+        #self.current_step = current_step
 
     self.reset_time = 0
+    #self.step_count = 1
 
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
@@ -530,7 +530,7 @@ class CacheGuessingGameEnv(gym.Env):
 
   # fake reset, just set a new victim addr 
   def _reset(self, victim_address=-1):
-    self.current_step = 0
+    self.current_step = 0 #NOTE: (3/9) original value was 0 
     self.victim_accessed = False
     if victim_address == -1:
       if self.allow_empty_victim_access == False:
