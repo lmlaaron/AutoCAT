@@ -1,21 +1,11 @@
-import copy # NOTE: how it works here? https://docs.python.org/3/library/copy.html
-
-# provide support for type hints
-# https://typing.readthedocs.io/en/latest/source/libraries.html#why-provide-type-annotations
-from typing import Any, Dict, Sequence, Tuple 
-
-# Returns a new deque object initialized left-to-right (using append()) with data from iterable. 
-# If iterable is not specified, the new deque is empty
+import copy 
+from typing import Any, Dict
 from collections import deque 
-
-import matplotlib.pyplot as plt
-import pandas as pd
 import numpy as np
 import random
-import gym # https://gymnasium.farama.org/api/env/
+import gym 
 
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
-
 
 class CacheAttackerDetectorEnv(gym.Env):
     def __init__(self,
@@ -241,20 +231,20 @@ if __name__ == '__main__':
     for k in range(2):
       while not done['__all__']:
         i += 1
-        action = {'attacker':np.random.randint(low=3, high=6),
-                  'benign':np.random.randint(low=2, high=5),
+        action = {'attacker':np.random.randint(low=0, high=3),
+                  'benign':np.random.randint(low=0, high=3),
                   'detector':np.random.randint(low=0, high=1)}
         obs, reward, done, info = env.step(action)
         print("step: ", i)
         print("observation of detector: ", obs['detector'])
         print("action: ", action)
-        print("victim: ", env.victim_address, env._env.victim_address)
+        #print("victim: ", env.victim_address, env._env.victim_address)
         #print("done:", done)
         print("reward:", reward)
-        print('env.victim_address_min, max: ', env.victim_address_min, env.victim_address_max)
+        #print('env.victim_address_min, max: ', env.victim_address_min, env.victim_address_max)
         
         #print("info:", info )
-        if info['attacker'].get('invoke_victim'):
-            print('info[attacker]: ', info['attacker'])
+        #if info['attacker'].get('invoke_victim'):
+        #    print('info[attacker]: ', info['attacker'])
       obs = env.reset()
       done = {'__all__':False}

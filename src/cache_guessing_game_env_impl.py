@@ -2,7 +2,6 @@
 # date 2021.12.3
 # description: environment for study RL for side channel attack
 from collections import deque
-
 import numpy as np
 import random
 import os
@@ -10,12 +9,9 @@ import yaml, logging
 import sys
 import replacement_policy
 from itertools import permutations
-
 import gym
 from gym import spaces
-
 from omegaconf.omegaconf import open_dict
-
 from cache_simulator import *
 from typing import Any, Dict
 
@@ -25,8 +21,6 @@ class CacheGuessingGameEnv(gym.Env):
     A L1 cache with total_size, num_ways. assume cache_line_size == 1B
   
   Attacker's observation:
-    # let's book keep all obvious information in the observation space 
-    # since the agent is dumb
     self.observation_space = spaces.MultiDiscrete(
       [3,                 #cache latency
       20,                 #current steps
@@ -39,6 +33,7 @@ class CacheGuessingGameEnv(gym.Env):
     # 2. whether to end and make a guess now?
     # 3. whether to invoke the victim access
     # 4. if make a guess, what is the victim's accessed address?
+    
   Reward:
   Starting state:
     fresh cache with nolines
@@ -122,7 +117,6 @@ class CacheGuessingGameEnv(gym.Env):
     self.logger.setLevel(logging.INFO)
     
     if "cache_configs" in env_config:
-      #self.logger.info('Load config from JSON')
       self.configs = env_config["cache_configs"]
     else:
       self.config_file_name = os.path.dirname(os.path.abspath(__file__))+'/../configs/config_simple_L1'
@@ -149,7 +143,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     
     # NOTE: modified the size of state to accomodate defender's obs space
-    self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+    self.state = deque([[-1, -1, -1, -1]] * self.window_size)
     self.step_count = 0 #NOTE original value is 0
 
     self.attacker_address_min = attacker_addr_s
@@ -173,13 +167,10 @@ class CacheGuessingGameEnv(gym.Env):
     self.ceaser_access_count = 0
     self.mapping_func = lambda addr : addr
     self.remap()
-
     self.flush_inst = flush_inst
     self.reset_time = 0
     
-    ######self.action_space = spaces.Discrete(
-    ######  len(self.attacker_address_space) * 2 * 2 * 2 * len(self.victim_address_space)
-    ######)
+    '''define the action space'''
     # using tightened action space
     if self.flush_inst == False:
       # one-hot encoding
@@ -213,10 +204,8 @@ class CacheGuessingGameEnv(gym.Env):
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
 
-    #print('Initializing...')
     self.l1 = self.hierarchy['cache_1']
-    #print_cache(self.l1)
-    self.current_step = 1 # NOTE: (3/9) changed the value 0 to 1
+    self.current_step = 0 # NOTE: (3/9) changed the value 0 to 1
     self.victim_accessed = False
     if self.allow_empty_victim_access == True:
       self.victim_address = random.randint(self.victim_address_min, self.victim_address_max + 1)
@@ -231,8 +220,6 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.guess_buffer_size = 100
     self.guess_buffer = [False] * self.guess_buffer_size
-    #return
-
     self.last_state = None
 
   def clear_guess_buffer_history(self):
@@ -252,7 +239,6 @@ class CacheGuessingGameEnv(gym.Env):
       return addr
     else:
       self.ceaser_access_count += 1
-      # return self.mapping_func(addr)
       return self.perm[addr]
 
   def step(self, action):
@@ -275,7 +261,7 @@ class CacheGuessingGameEnv(gym.Env):
     victim_addr = hex(action[4] + self.victim_address_min)[2:]            # victim address
     is_victim_random = action[5]
     info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min
-    #print_cache(self.l1)
+    
     ''' The actual stepping logic
     1. first check if the length is over the window_size. if not, go to 2, otherwise terminate
     2. second check if it is a victim access. if so go to 3, otherwise go to 4
@@ -338,6 +324,7 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         if is_guess == True:
           r = 2  #
+          
           # this includes two scenarios
           # 1. normal scenario
           # 2. empty victim access scenario: victim_addr parsed is victim_addr_e, 
@@ -385,6 +372,7 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = self.step_reward
           done = False
+          
     #return observation, reward, done, info
     if done == True and is_guess != 0:
       info["is_guess"] = True
@@ -394,26 +382,15 @@ class CacheGuessingGameEnv(gym.Env):
         info["guess_correct"] = False
     else:
       info["is_guess"] = False
+      
     # the observation (r.time) in this case 
     # must be consistent with the observation space
-    # return observation, reward, done?, info
-    #return r, reward, done, info
-    
     if self.victim_accessed == True:
       victim_accessed = 1
     else:
-      victim_accessed = 0
-    
-    #TODO remove the temporary test
-    #if is_victim or is_victim_random:
-    #    victim_accessed = 1
-    #else:
-    #    victim_accessed = 0
+      victim_accessed = 0 
 
-    ####self.state = [r, action[0], current_step, victim_accessed] + self.state 
-
-    # 77 is an arbitary dummy number which is not used in this env
-    self.state.append([r, victim_accessed, original_action, self.step_count, 77])
+    self.state.append([r, victim_accessed, original_action, self.step_count])
     self.state.popleft()
     self.step_count += 1
     
@@ -477,10 +454,9 @@ class CacheGuessingGameEnv(gym.Env):
     
     ''' reset_observation '''
     if reset_observation:
-        self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+        self.state = deque([[-1, -1, -1, -1]] * self.window_size)
         
         self.step_count = 0 # NOTE: original value is 0 
-        #self.current_step = current_step
 
     self.reset_time = 0
     #self.step_count = 1
@@ -644,7 +620,6 @@ class CacheGuessingGameEnv(gym.Env):
         
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
-
 if __name__ == '__main__':
     env = CacheGuessingGameEnv()
     obs = env.reset()
@@ -654,5 +629,4 @@ if __name__ == '__main__':
         i+=1
         obs, reward, done, info = env.step(np.random.randint(9))
         print("step ", i, ":", obs, reward, done, info) 
-        #print_cache(env.l1)
 
