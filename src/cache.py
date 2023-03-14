@@ -76,6 +76,7 @@ class Cache:
         if next_level:
             for i in range(self.n_sets):
                 index = str(bin(i))[2:].zfill(self.index_size)
+                #print(index)
                 if index == '':
                     index = '0'
                 
@@ -203,6 +204,7 @@ class Cache:
             for i in range( 0, len(self.data[index]) ):
                 if self.data[index][i][0] != INVALID_TAG:#'x':
                     in_cache.append(self.data[index][i][0])
+                    print(in_cache)
                             
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
@@ -212,7 +214,7 @@ class Cache:
                 for i in range( 0, len(self.data[index])):
                     if self.data[index][i][0] == tag: 
                         self.data[index][i][1].read(current_step)
-                        #print('if tag in in_cache, ', self.data[index][i][0])
+                        print('self.data[index][i] ', self.data[index][i][0])
                         #if domain_id != 'X':
                         #    if domain_id == self.domain_id_tags[index][i][1] and self.domain_id_tags[index][i][1] != self.domain_id_tags[index][i][0]:
                         #        cyclic_set_index = int(index,2)  
@@ -261,6 +263,7 @@ class Cache:
                 for i in range( 0, len(self.data[index]) ):
                         if self.data[index][i][0] != INVALID_TAG:#'x':
                             in_cache.append(self.data[index][i][0])
+                            print(in_cache)
                                
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity and self.rep_policy != lru_lock_policy:   
