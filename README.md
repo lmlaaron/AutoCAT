@@ -1,71 +1,47 @@
-RL environment and training script for CacheSimulator
-==============
-This repo contains wrapper for the CacheSimulator environment based on 
-https://github.com/auxiliary/CacheSimulator
+# MACTA
 
-For detailed description of CacheSimulator, see the original repo.
+> [**A Multi-agent Reinforcement Learning Approach for Cache Timing Attacks and Detection**](https://openreview.net/forum?id=CDlHZ78-Xzi)\
+> Jiaxun Cui, Xiaomeng Yang*, Mulong Luo*, Geunbae Lee*, Peter Stone, Hsien-Hsin S. Lee, Edward Suh, Wenjie Xiong, Yuandong Tian\
+> International Conference on Learning Representations (_ICLR 2023_)
 
-The environment is based on openai gym
+[Paper](https://openreview.net/pdf?id=CDlHZ78-Xzi) | [Website]() | [Bibtex](#citation)
 
+## Installation
 ```
-$ pip install gym
-```
-
-The trainer is based on RLlib
-
-```
-$ pip install rllib
+conda env create -f environment.yml
+conda activate macta
 ```
 
-To run the training
-
+## Quick Start with Pre-trained Models
+To run our pretrained model, simply run
 ```
-$ cd src
-$ python run_gym_rllib.py
+cd src/rlmeta/macta
+conda activate macta
+python sample_multiagent.py
 ```
 
+## Training
+To train MACTA
+```
+cd src/rlmeta/macta
+conda activate macta
+python train/train_macta.py
+```
 
+## Evaluation
+Please specify the agents and evaluation parameters the config in `src/rlmeta/macta/config/sample_multiagent.yml`
+```
+cd src/rlmeta/macta
+conda activate macta
+python sample_multiagent.py
+```
 
-CacheSimulator
-==============
-
-
-
-A cache simulator in Python for CS 530
-
-Documentation on cache configuration and trace files are located in their respective folders
-
-### Requirements
-
-CacheSimulator needs two extra Python modules: pyyaml and terminaltables
-
-These can both be installed using pip:
-
-    sudo pip install pyyaml/terminaltables
-
-### Running
-
-To run a quick test simulation, enter the src folder and run this command:
-
-    ./cache_simulator.py -pdc ../configs/config_simple_multilevel -t ../traces/trace2.txt
-
-For more details, run:
-
-    ./cache_simulator.py --help
-
-### Goals
-
-This simulator will create a memory heirarchy from a YAML configuration file
-and calculate the AMAT for a given tracefile.
-
-The memory heirarchy is configurable with the following features:
-- Word size, block size
-  - Address size does not need to be defined
-- L1 cache with user-defined parameters
-  - Associativity
-  - Hit time
-  - Write time
-- Optional L2 and L3 caches
-- Simulate write back and write through
-- Pretty print the cache layouts
-
+## Citation
+```bibtex
+@inproceedings{cui2023macta,
+    title = {A Multi-agent Reinforcement Learning Approach for Cache Timing Attacks and Detection},
+    author = {Jiaxun Cui, Xiaomeng Yang*, Mulong Luo*, Geunbae Lee*, Peter Stone, Hsien-Hsin S. Lee, Edward Suh, Wenjie Xiong, Yuandong Tian},
+    booktitle = {International Conference on Learning Representations (ICLR)},
+    year = {2023}
+}
+```
