@@ -463,6 +463,7 @@ class Cache:
         index = str(set_no)
         r = response.Response({self.name:True}, self.lock_time)   
         lock_vector_array = [int(x) for x in str(lock_bit)]
+        #print(lock_vector_array)
         self.set_rep_policy[index].set_lock_vector(lock_vector_array)
         self.lock_vector_array = lock_vector_array
         return r, lock_vector_array

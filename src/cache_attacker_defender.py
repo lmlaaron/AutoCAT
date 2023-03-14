@@ -16,26 +16,28 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.threshold = env_config.get("threshold", 0.8)
         self._env = CacheGuessingGameEnv(env_config) 
         self.validation_env = CacheGuessingGameEnv(env_config)
-        self.observation_space = self._env.observation_space 
-        #self.window_size = 64 # self.cache_size * 8 + 8 
-        #self.feature_size = 5
-        self.action_space = spaces.Discrete(16)
+        #self.observation_space = self._env.observation_space 
+        self.window_size = 64 # self.cache_size * 8 + 8 
+        self.feature_size = 5
+        self.action_space = spaces.Discrete(256) # 16 for 4-way, 256 for 8-way
+        
         self.victim_address_min = self._env.victim_address_min
         self.victim_address_max = self._env.victim_address_max
         self.victim_address = self._env.victim_address
         self.attacker_address_max = self._env.attacker_address_max
         self.attacker_address_min = self._env.attacker_address_min
-        
-        #self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max +1)
-        #self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1) 
-        #self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)
-        #self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
+        self.associativity = env_config.get('associativity', 4)
+    
+        self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max +1)
+        self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1) 
+        self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)
+        self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
         
         self.opponent_weights = env_config.get("opponent_weights", [0.5,0.5]) 
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 10
+        self.max_step = 20
         self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1]) 
         self.defender_reward_scale = 1 #0.1 
@@ -155,7 +157,9 @@ class CacheAttackerDefenderEnv(gym.Env):
         
         ''' defender's action '''
         set_no = 0
-        lock_bit = bin(action['defender'])[2:].zfill(4)
+        #lock_bit = bin(action['defender'])[2:].zfill(4)
+        lock_bit = bin(action['defender'])[2:].zfill(int(self.associativity))
+        assert len(lock_bit) == int(self.associativity)
         self._env.l1.lock(set_no, lock_bit) # TODO: create a new function in _env then use it. do not call functions inside a wrapper
         #print_cache(self._env.l1) #TODO
         
@@ -239,10 +243,17 @@ def main(cfg):
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-2.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-3.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-4.txt')
-    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-5.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-5.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_000.txt')
+    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_025.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_0125.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s16w_0125.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_050.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_reset.txt')
     trace = test_action.read().splitlines()
     actions_list = [list(map(int, x.split())) for x in trace]
+    
+    
     actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2]} for values in actions_list]
     i = 0
     for k in range(1):
