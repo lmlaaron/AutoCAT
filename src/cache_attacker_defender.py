@@ -170,7 +170,10 @@ class CacheAttackerDefenderEnv(gym.Env):
         n_sets = self.n_sets #2 for 2-set cache config
         
         for set_index in range(0, n_sets):
-            lock_bit = bin(action['defender'][set_index])[2:].zfill(int(self.associativity))
+            print(set_index)
+            print(action['defender'])
+            print(action['defender'][set_index])
+            lock_bit = bin(int(action['defender'][set_index]))[2:].zfill(int(self.associativity))
             assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
             self._env.l1.lock(set_index, lock_bit) # TODO: create a new function in _env then use it. do not call functions inside a wrapper
             
@@ -268,7 +271,9 @@ def main(cfg):
     trace = test_action.read().splitlines()
     actions_list = [list(map(int, x.split())) for x in trace]
     
-    actions = [{'attacker': values[0], 'benign': values[1], 'defender': (int(values[2]), int(values[3]))} for values in actions_list]
+    actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2:]} for values in actions_list]
+    #print(actions['defender'])
+    
     i = 0
     for k in range(1):
         while not done['__all__']:
