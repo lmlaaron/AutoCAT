@@ -146,13 +146,10 @@ def simulate(hierarchy, trace, logger, result_file=''):
     if result_file != '':
         f = open(result_file, 'w')
     
-    
     #We only interface directly with L1. Reads and writes will automatically
     #interact with lower levels of the hierarchy
     l1 = hierarchy['cache_1']
-    #print(l1)
-    #assoc = hierarchy['cache_1']['associativity']
-    #print(assoc)
+    
     if 'cache_1_core_2' in hierarchy:
         l1_c2 = hierarchy['cache_1_core_2']
         
@@ -169,25 +166,14 @@ def simulate(hierarchy, trace, logger, result_file=''):
             op = inst2[1]
             lock_bit = inst2[2]
             
-        elif len(inst2) == 4:
+        else:
             n_sets = inst2[0]
             op = inst2[1]
-            lock_bits = (inst2[2], inst2[3])
+            lock_bits = (inst2[2], inst2[3]) # for 2set cache config
             #print(lock_bits)
-        #Call read for this address on our memory hierarchy
-        
-        #Call lock
-        if op == 'D':
-            assert(l1.rep_policy == lru_lock_policy)
-            for i in range(0, int(n_sets)):
-                logger.info('current step: ' + str(current_step) + ' set ' + str(i) + ':\tLock_bit ' + str(lock_bits[i])+ ' ' + 'op:' + op)
-                r, _ = l1.lock(i, lock_bits[i]) #underscore _ ignores a value when unpacking
-                
-            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
-                
-            responses.append(r)
             
-        elif op == 'R' or op == 'R2':
+        #Call read for this address on our memory hierarchy   
+        if op == 'R' or op == 'R2':
             logger.info(str(current_step) + ':\tReading ' + address + ' op: ' + op)
             if op == 'R2':
                 l = l1_c2
@@ -224,6 +210,15 @@ def simulate(hierarchy, trace, logger, result_file=''):
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
             r, _, _ = l1.cflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+        
+        #Call lock
+        elif op == 'D':
+            assert(l1.rep_policy == lru_lock_policy)
+            for i in range(0, int(n_sets)):
+                logger.info('current step: ' + str(current_step) + ' set ' + str(i) + ':\tLock_bit ' + str(lock_bits[i])+ ' ' + 'op:' + op)
+                r, _ = l1.lock(i, lock_bits[i]) 
+            logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')  
+            responses.append(r)
         
         else:
             raise InvalidOpError

@@ -143,7 +143,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     
     # NOTE: modified the size of state to accomodate defender's obs space
-    self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+    self.state = deque([[-1, -1, -1, -1, -1, -1]] * self.window_size)
     self.step_count = 0 #NOTE original value is 0
 
     self.attacker_address_min = attacker_addr_s
@@ -391,7 +391,7 @@ class CacheGuessingGameEnv(gym.Env):
       victim_accessed = 0 
 
     # 77 is an arbitary dummy number which is not used in this env
-    self.state.append([r, victim_accessed, original_action, self.step_count, 77])
+    self.state.append([r, victim_accessed, original_action, self.step_count, 77, 77])
     self.state.popleft()
     self.step_count += 1
     
