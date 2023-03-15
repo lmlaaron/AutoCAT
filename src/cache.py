@@ -60,7 +60,7 @@ class Cache:
         #Dictionary that holds the actual cache data
         self.data = {}
         self.set = {}
-        self.domain_id_tags = {} # for cyclone
+        #self.domain_id_tags = {} # for cyclone
         
         self.lock_vector_array = [] #TODO for test
 
@@ -81,14 +81,15 @@ class Cache:
                     index = '0'
                 
                 self.data[index] = []    # use array of blocks for each set
-                self.domain_id_tags[index] = [] # for cyclone
-                for i in range(associativity):
+                
+                #self.domain_id_tags[index] = [] # for cyclone
+                for j in range(associativity):
                     # isntantiate with empty tags
                     self.data[index].append((INVALID_TAG, block.Block(self.block_size, 0, False, 'x')))
                     '''self.data = {'0':[('--------', 1, 0, False, 'X', 0)]}'''
-                    self.domain_id_tags[index].append(('X','X')) # for cyclone
-                
-                self.set_rep_policy[index] = self.rep_policy(associativity, block_size)         
+                    #self.domain_id_tags[index].append(('X','X')) # for cyclone
+                #print('self.data[index] ', self.data[index])
+                self.set_rep_policy[index] = self.rep_policy(associativity, block_size)        
         
     def vprint(self, *args):
         if self.verbose == 1:
@@ -204,7 +205,7 @@ class Cache:
             for i in range( 0, len(self.data[index]) ):
                 if self.data[index][i][0] != INVALID_TAG:#'x':
                     in_cache.append(self.data[index][i][0])
-                    print(in_cache)
+                    #print(in_cache)
                             
             #If this tag exists in the set, this is a hit
             if tag in in_cache:
@@ -214,7 +215,7 @@ class Cache:
                 for i in range( 0, len(self.data[index])):
                     if self.data[index][i][0] == tag: 
                         self.data[index][i][1].read(current_step)
-                        print('self.data[index][i] ', self.data[index][i][0])
+                        #print('self.data[index][i] ', self.data[index][i][0])
                         #if domain_id != 'X':
                         #    if domain_id == self.domain_id_tags[index][i][1] and self.domain_id_tags[index][i][1] != self.domain_id_tags[index][i][0]:
                         #        cyclic_set_index = int(index,2)  
@@ -263,12 +264,14 @@ class Cache:
                 for i in range( 0, len(self.data[index]) ):
                         if self.data[index][i][0] != INVALID_TAG:#'x':
                             in_cache.append(self.data[index][i][0])
-                            print(in_cache)
+                            #print('self.data[index] ', self.data[index])
+                            #print('self.data[index][i][0] ', self.data[index][i][0])
+                            #print(in_cache)
                                
                 #If there's space in this set, add this block to it
                 if len(in_cache) < self.associativity and self.rep_policy != lru_lock_policy:   
                     for i in range( 0, len(self.data[index])):
-                        if self.data[index][i][0] == INVALID_TAG:#'x':
+                        if self.data[index][i][0] == INVALID_TAG:
                             #if domain_id != 'X':
                             #    if domain_id == self.domain_id_tags[index][i][1] and self.domain_id_tags[index][i][1] != self.domain_id_tags[index][i][0]:
                             #        cyclic_set_index = int(index, 2)  
@@ -292,7 +295,7 @@ class Cache:
                         Is_evict, victim_tag, way_index = self.set_rep_policy[index].find_victim(tag, current_step, self.data[index])
                         
                     else:
-                        way_index = -1
+                        #way_index = -1
                         victim_tag = self.set_rep_policy[index].find_victim(current_step)
                     
                     if victim_tag != INVALID_TAG or self.rep_policy == lru_lock_policy and Is_evict and victim_tag != INVALID_TAG: 
@@ -328,6 +331,7 @@ class Cache:
                         
                         # assume line size is always 1B for different level
                         evict_addr = victim_tag  + indexi  + '0' *  int(math.log(self.block_size,2))
+                        #print('evict_address ', evict_addr)
                         self.set_rep_policy[index].invalidate(victim_tag)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)   
                         
@@ -441,11 +445,11 @@ class Cache:
                     for i in range( 0, len(self.data[index])):
                         if self.data[index][i][0] == victim_tag:
                             
-                            if domain_id != 'X':
-                                if domain_id == self.domain_id_tags[index][i][1] and self.domain_id_tags[index][i][1] != self.domain_id_tags[index][i][0]:
-                                    cyclic_set_index = int(index,2)  
-                                    cyclic_way_index = i
-                                self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
+                            #if domain_id != 'X':
+                            #    if domain_id == self.domain_id_tags[index][i][1] and self.domain_id_tags[index][i][1] != self.domain_id_tags[index][i][0]:
+                            #        cyclic_set_index = int(index,2)  
+                            #        cyclic_way_index = i
+                            #    self.domain_id_tags[index][i] = (domain_id, self.domain_id_tags[index][i][0])
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                             break
                     
@@ -459,7 +463,7 @@ class Cache:
                 if not r:
                     r = response.Response({self.name:False}, self.write_time)
 
-        return r, cyclic_set_index, cyclic_way_index, way_index
+        return r, way_index #cyclic_set_index, cyclic_way_index, 
     
     def lock(self, set_no, lock_bit):
         
@@ -477,7 +481,7 @@ class Cache:
         binary_address = bin(int(address, 16))[2:].zfill(address_size)
 
         if self.block_offset_size > 0:
-            block_offset = binary_address[-self.block_offset_size:]
+            block_offset = binary_address[-self.block_offset_size:] # get the last element 
             index = binary_address[-(self.block_offset_size+self.index_size):-self.block_offset_size]
             if index == '':
                 index = '0'

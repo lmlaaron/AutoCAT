@@ -343,7 +343,7 @@ def build_hierarchy(configs, logger):
         cache_1.add_same_level_cache(cache_1_core_2)
         cache_1_core_2.add_same_level_cache(cache_1)
     hierarchy['cache_1'] = cache_1
-    print(hierarchy)
+    #print(hierarchy)
     return hierarchy
 
 def build_cache(configs, name, next_level_cache, logger):
