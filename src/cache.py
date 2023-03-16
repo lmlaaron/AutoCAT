@@ -89,7 +89,9 @@ class Cache:
                     '''self.data = {'0':[('--------', 1, 0, False, 'X', 0)]}'''
                     #self.domain_id_tags[index].append(('X','X')) # for cyclone
                 #print('self.data[index] ', self.data[index])
-                self.set_rep_policy[index] = self.rep_policy(associativity, block_size)        
+                self.set_rep_policy[index] = self.rep_policy(associativity, block_size)    
+                #print(self.set_rep_policy[index])
+                #print(self.data)
         
     def vprint(self, *args):
         if self.verbose == 1:
@@ -467,11 +469,19 @@ class Cache:
     
     def lock(self, set_no, lock_bit):
         
-        index = str(set_no)
-        r = response.Response({self.name:True}, self.lock_time)   
-        lock_vector_array = [int(x) for x in str(lock_bit)]
+        
+        set_index = str(bin(set_no))[2:].zfill(self.index_size)
+        #print('set_index', set_index)
+        
+        r = response.Response({self.name:True}, self.lock_time)
+        if lock_bit == 1 or lock_bit == 0:
+            lock_vector_array = [lock_bit]
+        else:
+            lock_vector_array = [int(x) for x in str(lock_bit)]
         #print(lock_vector_array)
-        self.set_rep_policy[index].set_lock_vector(lock_vector_array)
+        #print('self.set_rep_policy', self.set_rep_policy)
+        self.set_rep_policy[set_index].set_lock_vector(lock_vector_array)
+        
         self.lock_vector_array = lock_vector_array
         return r, lock_vector_array
 

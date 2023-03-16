@@ -143,8 +143,8 @@ class CacheGuessingGameEnv(gym.Env):
     self.hierarchy = build_hierarchy(self.configs, self.logger)
     
     # NOTE: modified the size of state to accomodate defender's obs space
-    self.state = deque([[-1, -1, -1, -1, -1, -1]] * self.window_size)
-    self.step_count = 0 #NOTE original value is 0
+    self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+    self.step_count = 0 
 
     self.attacker_address_min = attacker_addr_s
     self.attacker_address_max = attacker_addr_e
@@ -152,8 +152,7 @@ class CacheGuessingGameEnv(gym.Env):
                                   self.attacker_address_max + 1)  # start with one attacker cache line
     self.victim_address_min = victim_addr_s
     self.victim_address_max = victim_addr_e
-    self.victim_address_space = range(self.victim_address_min,
-                                self.victim_address_max + 1)  #
+    self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1) 
 
     # for randomized mapping rerandomization
     #perm = permutations(list(range(self.victim_address_min, self.victim_address_max + 1 )))
@@ -391,6 +390,7 @@ class CacheGuessingGameEnv(gym.Env):
       victim_accessed = 0 
 
     # 77 is an arbitary dummy number which is not used in this env
+    # TODO: modify below line to accomodate different observation features for defender
     self.state.append([r, victim_accessed, original_action, self.step_count, 77, 77])
     self.state.popleft()
     self.step_count += 1
@@ -430,7 +430,7 @@ class CacheGuessingGameEnv(gym.Env):
     #info["cyclic_way_index"] = cyclic_way_index
     #info["cyclic_set_index"] = cyclic_set_index
 
-    return np.array(list(reversed(self.state))), reward, done, info
+    return np.array(list(reversed(self.state)), dtype=object), reward, done, info
 
   def reset(self, victim_address=-1,
             reset_cache_state=False,
@@ -457,7 +457,7 @@ class CacheGuessingGameEnv(gym.Env):
     if reset_observation:
         self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
         
-        self.step_count = 0 # NOTE: original value is 0 
+        self.step_count = 0 
 
     self.reset_time = 0
     #self.step_count = 1
@@ -507,7 +507,7 @@ class CacheGuessingGameEnv(gym.Env):
 
   # fake reset, just set a new victim addr 
   def _reset(self, victim_address=-1):
-    self.current_step = 0 #NOTE: (3/9) original value was 0 
+    self.current_step = 0 
     self.victim_accessed = False
     if victim_address == -1:
       if self.allow_empty_victim_access == False:

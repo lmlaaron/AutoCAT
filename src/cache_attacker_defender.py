@@ -16,20 +16,27 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.threshold = env_config.get("threshold", 0.8)
         self._env = CacheGuessingGameEnv(env_config) 
         self.validation_env = CacheGuessingGameEnv(env_config)
-        #self.observation_space = self._env.observation_space 
-        self.window_size = 64 # self.cache_size * 8 + 8 
-        self.feature_size = 6 
-        self.action_space = spaces.Discrete(16) # 16 for 4-way, 256 for 8-way # TODO: put this inside env_config
-        
-        self.victim_address_min = self._env.victim_address_min
-        self.victim_address_max = self._env.victim_address_max
-        self.victim_address = self._env.victim_address
-        self.attacker_address_max = self._env.attacker_address_max
-        self.attacker_address_min = self._env.attacker_address_min
-        
+        self.window_size = env_config.get('window_size', 64)
+        self.feature_size = 6 # TODO: needs to be parameterized?
         self.associativity = env_config.get('associativity', 4)
-        self.n_blocks = env_config.get('blocks', 2)
-        self.n_sets = int(self.n_blocks / self.associativity)
+        if self.associativity == 1: #TODO: include in the env_config
+            action_len = 2 
+        elif self.associativity == 2:
+            action_len = 4
+        elif self.associativity == 4:
+            action_len = 16
+        elif self.associativity == 8:
+            action_len = 256
+        self.action_space = spaces.Discrete(action_len)
+        
+        self.blocks = env_config.get('blocks', 2)
+        self.victim_address_min = env_config.get('victim_addr_s', 9) 
+        self.victim_address_max = env_config.get('victim_addr_e', 9) 
+        self.victim_address = self._env.victim_address 
+        self.attacker_address_max = env_config.get('attacker_addr_s', 0)
+        self.attacker_address_min = env_config.get('attacker_addr_e', 7)
+        
+        self.n_sets = int(self.blocks / self.associativity)
     
         self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max +1)
         self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1) 
@@ -40,11 +47,11 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0] 
         self.action_mask = {'defender':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        self.max_step = 18
+        self.max_step = env_config.get('max_step', 18)
         #self.defender_obs = deque([[-1, -1, -1, -1, -1]] * self.max_step)
-        self.defender_obs = deque([[-1, -1, -1, -1, -1, -1]] * self.max_step)
+        self.defender_obs = deque([[-1, -1, -1, -1, -1, -1]] * self.max_step) # TODO: could be included in the env_config?
         self.random_domain = random.choice([0,1]) 
-        self.defender_reward_scale = 1 #0.1 
+        self.defender_reward_scale = env_config.get('defender_reward_scale', 1)
         self.repl_policy = env_config.get('rep_policy', 'lru_lock_policy')
         
     
@@ -57,7 +64,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         opponent_obs = self._env.reset(victim_address=-1, reset_cache_state=False)
         self.victim_address = victim_address 
         self.random_domain = random.choice([0,1])
-        self.defender_obs = deque([[-1, -1, -1, -1, -1, -1]] * self.max_step)
+        self.defender_obs = deque([[-1, -1, -1, -1, -1, -1]] * self.max_step) # TODO: redundant line?
         self.step_count = 0 
         obs = {}
         obs['defender'] = np.array(list(reversed(self.defender_obs)))
@@ -91,7 +98,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 
             cur_opponent_obs[3] = self.step_count 
             #cur_opponent_obs[4] = action['defender']
-            cur_opponent_obs[4] = action['defender'][0]
+            cur_opponent_obs[4] = action['defender'][0] # TODO: modify for different obs space size
             cur_opponent_obs[5] = action['defender'][1]
             self.defender_obs.append(cur_opponent_obs)
             self.defender_obs.popleft()
@@ -114,7 +121,6 @@ class CacheAttackerDefenderEnv(gym.Env):
         if action_defender is not None:
             
             ''' reward conditions '''
-            # TODO: attacker make a wrong guess
      
             # attacker attacker fails to make a guess in episode in time
             if self.opponent_agent == 'attacker' and opponent_done and opponent_attack_success == False:
@@ -162,23 +168,14 @@ class CacheAttackerDefenderEnv(gym.Env):
         #print_cache(self._env.l1)
         
         ''' defender's action '''
-        #set_no = 0
-        #lock_bit = bin(action['defender'])[2:].zfill(int(self.associativity))
-        #assert len(lock_bit) == int(self.associativity)
-        #self._env.l1.lock(set_no, lock_bit)
         
-        n_sets = self.n_sets #2 for 2-set cache config
+        n_sets = self.n_sets 
         
         for set_index in range(0, n_sets):
-            print(set_index)
-            print(action['defender'])
-            print(action['defender'][set_index])
+            print('set_index', set_index, 'defenders action: ', action['defender'][set_index])
             lock_bit = bin(int(action['defender'][set_index]))[2:].zfill(int(self.associativity))
             assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
             self._env.l1.lock(set_index, lock_bit) # TODO: create a new function in _env then use it. do not call functions inside a wrapper
-            
-            
-        #print_cache(self._env.l1) #TODO
         
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
@@ -189,7 +186,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 self.victim_address = self._env.victim_address
                 
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
-        #print_cache(self._env.l1)
+        
         if opponent_done:
             
             opponent_obs = self._env.reset(reset_cache_state=False)
@@ -256,11 +253,7 @@ def main(cfg):
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_075.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_075-1.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_100.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-1.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-2.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-3.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-4.txt')
-    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_eff-5.txt')
+
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_000.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_025.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w_0125.txt')
@@ -272,14 +265,12 @@ def main(cfg):
     actions_list = [list(map(int, x.split())) for x in trace]
     
     actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2:]} for values in actions_list]
-    #print(actions['defender'])
     
     i = 0
     for k in range(1):
         while not done['__all__']:
             print("STEP: ", i)
             action = copy.deepcopy(actions[i])
-            #print('defenders action: ', action['defender'])
             print('attackers action: ', action['attacker'])
             obs, reward, done, info = env.step(action)
             

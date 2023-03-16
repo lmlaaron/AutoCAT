@@ -26,7 +26,6 @@ def main():
     result_file = 'result.txt'
     if arguments['result_file']:
         result_file = arguments['result_file']
-    #print(result_file)
 
     with open(result_file, 'w'):
         pass
@@ -117,8 +116,7 @@ def print_cache(cache):
                    lock_info = ["Lock bit"]
                    
                    lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
-                   #print(lock_vector_array)
-                   #print(set_indexes[s])
+                 
                    for w in range(0, len(lock_vector_array)):  
                        lock_info.append(lock_vector_array[w])
                    sets.append(lock_info)
@@ -135,7 +133,6 @@ def print_cache(cache):
         table = UnixTable(sets)
         table.title = cache.name
         table.inner_row_border = True
-        #print("\n")
         print(table.table)
         return set_indexes
 
@@ -161,16 +158,10 @@ def simulate(hierarchy, trace, logger, result_file=''):
             address = inst2[0]
             op = inst2[1]
             
-        elif len(inst2) == 3:
-            n_sets = inst2[0]
-            op = inst2[1]
-            lock_bit = inst2[2]
-            
         else:
             n_sets = inst2[0]
             op = inst2[1]
-            lock_bits = (inst2[2], inst2[3]) # for 2set cache config
-            #print(lock_bits)
+            lock_bits = inst2[2:] 
             
         #Call read for this address on our memory hierarchy   
         if op == 'R' or op == 'R2':
@@ -214,9 +205,10 @@ def simulate(hierarchy, trace, logger, result_file=''):
         #Call lock
         elif op == 'D':
             assert(l1.rep_policy == lru_lock_policy)
-            for i in range(0, int(n_sets)):
-                logger.info('current step: ' + str(current_step) + ' set ' + str(i) + ':\tLock_bit ' + str(lock_bits[i])+ ' ' + 'op:' + op)
-                r, _ = l1.lock(i, lock_bits[i]) 
+            
+            for set_index in range(0, int(n_sets)):
+                logger.info('current step: ' + str(current_step) + ' set ' + str(set_index) + ':\tLock_bit ' + str(lock_bits[set_index])+ ' ' + 'op:' + op)
+                r, _ = l1.lock(set_index, lock_bits[set_index]) 
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')  
             responses.append(r)
         
@@ -338,15 +330,11 @@ def build_hierarchy(configs, logger):
         cache_1.add_same_level_cache(cache_1_core_2)
         cache_1_core_2.add_same_level_cache(cache_1)
     hierarchy['cache_1'] = cache_1
-    #print(hierarchy)
+
     return hierarchy
 
 def build_cache(configs, name, next_level_cache, logger):
-    #if name == 'cache_1':
-        #print(configs[name])
-        #print(name)
-        #print(configs[name]['prefetcher'] )
-        #assert(False)
+
     return cache.Cache(name,
                 configs['architecture']['word_size'],
                 configs['architecture']['block_size'],

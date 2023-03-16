@@ -559,9 +559,14 @@ class lru_lock_policy(rep_policy):
     
     # gathers lock vectors per line into the array
     def set_lock_vector(self, lock_vector_array): 
+        self.lock_vector_array = lock_vector_array
+        #print(lock_vector_array)
+        if len(lock_vector_array) == 1:
+            return lock_vector_array
         
-        for i in range(0, len(self.lock_vector_array)):
-            self.lock_vector_array[i] = lock_vector_array[i]
-            i = +i
+        else:    
+            for i in range(0, len(self.lock_vector_array)):
+                self.lock_vector_array[i] = lock_vector_array[i]
+                i = +i
             
-        return self.lock_vector_array
+            return lock_vector_array
