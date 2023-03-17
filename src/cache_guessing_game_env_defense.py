@@ -136,7 +136,7 @@ class CacheGuessingGameEnv(gym.Env):
       self.configs['cache_1_core_2']['prefetcher'] = self.prefetcher
       
     if window_size == 0:
-      self.window_size = self.cache_size * 8 + 8 #10 #40
+      self.window_size = self.cache_size * 8 + 8 
     else:
       self.window_size = window_size
     self.feature_size = 4
@@ -297,9 +297,9 @@ class CacheGuessingGameEnv(gym.Env):
                 t, _ = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step)#, domain_id='v')
                 t = t.time # do not need to lock again
             else:
-                self.vprint("victim make a empty access!") # do not need to actually do something
-                t = 1 # empty access will be treated as HIT??? does that make sense???
-                #t = self.l1.read(str(self.victim_address), self.current_step).time 
+                self.vprint("victim make a empty access!") 
+                t = 1 
+                 
           if t > 500:   # for LRU attack, has to force victim access being hit
             victim_latency = 1
             self.current_step += 1
@@ -391,7 +391,7 @@ class CacheGuessingGameEnv(gym.Env):
 
     # 77 is an arbitary dummy number which is not used in this env
     # TODO: modify below line to accomodate different observation features for defender
-    self.state.append([r, victim_accessed, original_action, self.step_count, 77, 77])
+    self.state.append([r, victim_accessed, original_action, self.step_count, 77]) #TODO
     self.state.popleft()
     self.step_count += 1
     
@@ -620,6 +620,11 @@ class CacheGuessingGameEnv(gym.Env):
         victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
         
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
+  
+  # to pass the hierarchy information to the above wrapper
+  def lock_L1(self, set_index, lock_bit):
+    self.l1.lock(set_index, lock_bit)
+    
 
 if __name__ == '__main__':
     env = CacheGuessingGameEnv()
