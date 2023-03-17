@@ -3,17 +3,13 @@
 # description: environment for study RL for side channel attack
 from collections import deque
 import numpy as np
-import random
-import os
-import yaml, logging
-import sys
+import random, os, yaml, logging, sys
 import replacement_policy
 from itertools import permutations
 import gym
 from gym import spaces
 from omegaconf.omegaconf import open_dict
 from cache_simulator import *
-from typing import Any, Dict
 
 class CacheGuessingGameEnv(gym.Env):
   """
@@ -47,13 +43,13 @@ class CacheGuessingGameEnv(gym.Env):
   metadata = {'render.modes': ['human']}
 
   def __init__(self, env_config={
-   "length_violation_reward":-10000,
-   "double_victim_access_reward": -10000,
+   "atk_length_violation_reward":-10000,
+   "atk_double_victim_access_reward": -10000,
    "force_victim_hit": False,
-   "victim_access_reward":-10,
-   "correct_reward":200,
-   "wrong_reward":-9999,
-   "step_reward":-1,
+   "atk_victim_access_reward":-10,
+   "atk_correct_reward":200,
+   "atk_wrong_reward":-9999,
+   "atk_step_reward":-1,
    "window_size":0,
    "attacker_addr_s":0,
    "attacker_addr_e":3,
@@ -81,22 +77,21 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
-    # pretetcher: "none" "nextline" "stream"
-    # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
+    # pretetcher: "none" "nextline" "stream" https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
     self.allow_empty_victim_access = env_config["allow_empty_victim_access"] if "allow_empty_victim_access" in env_config else False
     self.force_victim_hit =env_config["force_victim_hit"] if "force_victim_hit" in env_config else False
-    self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
-    self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
-    self.victim_miss_reward = env_config["victim_miss_reward"] if "victim_miss_reward" in env_config else -10000 if self.force_victim_hit else self.victim_access_reward
-    self.double_victim_access_reward = env_config["double_victim_access_reward"] if "double_victim_access_reward" in env_config else -10000
+    self.atk_length_violation_reward = env_config["atk_length_violation_reward"] if "atk_length_violation_reward" in env_config else -10000
+    self.atk_victim_access_reward = env_config["atk_victim_access_reward"] if "atk_victim_access_reward" in env_config else -10
+    self.atk_victim_miss_reward = env_config["atk_victim_miss_reward"] if "atk_victim_miss_reward" in env_config else -10000 if self.force_victim_hit else self.atk_victim_access_reward
+    self.atk_double_victim_access_reward = env_config["atk_double_victim_access_reward"] if "atk_double_victim_access_reward" in env_config else -10000
     self.allow_victim_multi_access = env_config["allow_victim_multi_access"] if "allow_victim_multi_access" in env_config else True
-    self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
-    self.wrong_reward = env_config["wrong_reward"] if "wrong_reward" in env_config else -9999
-    self.step_reward = env_config["step_reward"] if "step_reward" in env_config else 0
+    self.atk_correct_reward = env_config["atk_correct_reward"] if "atk_correct_reward" in env_config else 200
+    self.atk_wrong_reward = env_config["atk_wrong_reward"] if "atk_wrong_reward" in env_config else -9999
+    self.atk_step_reward = env_config["atk_step_reward"] if "atk_step_reward" in env_config else 0
     self.reset_limit = env_config["reset_limit"] if "reset_limit" in env_config else 1
     self.cache_state_reset = env_config["cache_state_reset"] if "cache_state_reset" in env_config else True
     window_size = env_config["window_size"] if "window_size" in env_config else 0
@@ -115,7 +110,6 @@ class CacheGuessingGameEnv(gym.Env):
     self.fh.setFormatter(self.fh_format)
     self.sh.setFormatter(self.fh_format)
     self.logger.setLevel(logging.INFO)
-    
     if "cache_configs" in env_config:
       self.configs = env_config["cache_configs"]
     else:
@@ -126,30 +120,28 @@ class CacheGuessingGameEnv(gym.Env):
     self.vprint(self.configs)
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
-    
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
-    
     if 'cache_1_core_2' in self.configs:
       if "rep_policy" not in self.configs['cache_1_core_2']:
         self.configs['cache_1_core_2']['rep_policy'] = 'lru'
       self.configs['cache_1_core_2']['prefetcher'] = self.prefetcher
-      
     if window_size == 0:
       self.window_size = self.cache_size * 8 + 8 
     else:
       self.window_size = window_size
-    self.feature_size = 4
     self.hierarchy = build_hierarchy(self.configs, self.logger)
+    self.n_sets = int(self.cache_size / self.num_ways) 
     
-    # NOTE: modified the size of state to accomodate defender's obs space
-    self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
+    # modified for variable feature size in wrapper for defender
+    self.feature_size = 4 + self.n_sets 
+    self.state = deque([[-1]*(4 + self.n_sets)] * self.window_size)
+    
     self.step_count = 0 
-
     self.attacker_address_min = attacker_addr_s
     self.attacker_address_max = attacker_addr_e
-    self.attacker_address_space = range(self.attacker_address_min,
-                                  self.attacker_address_max + 1)  # start with one attacker cache line
+    # start with one attacker cache line
+    self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max + 1)  
     self.victim_address_min = victim_addr_s
     self.victim_address_max = victim_addr_e
     self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1) 
@@ -259,7 +251,7 @@ class CacheGuessingGameEnv(gym.Env):
     is_flush = action[3]                                              # check whether to flush
     victim_addr = hex(action[4] + self.victim_address_min)[2:]            # victim address
     is_victim_random = action[5]
-    info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min
+    info['attacker_address'] = action[0] 
     
     ''' The actual stepping logic
     1. first check if the length is over the window_size. if not, go to 2, otherwise terminate
@@ -273,7 +265,7 @@ class CacheGuessingGameEnv(gym.Env):
     if self.step_count >= self.window_size - 1:
       r = 2 #
       self.vprint("length violation!")
-      reward = self.length_violation_reward #-10000 
+      reward = self.atk_length_violation_reward #-10000 
       done = True
     else:
       if is_victim == True or is_victim_random == True:
@@ -303,7 +295,7 @@ class CacheGuessingGameEnv(gym.Env):
           if t > 500:   # for LRU attack, has to force victim access being hit
             victim_latency = 1
             self.current_step += 1
-            reward = self.victim_miss_reward #-5000
+            reward = self.atk_victim_miss_reward 
             if self.force_victim_hit == True:
               done = True
               self.vprint("victim access has to be hit! terminate!")
@@ -312,13 +304,13 @@ class CacheGuessingGameEnv(gym.Env):
           else:
             victim_latency = 0
             self.current_step += 1
-            reward = self.victim_access_reward #-10
+            reward = self.atk_victim_access_reward 
             done = False
         else:
           r = 2
           self.vprint("does not allow multi victim access in this config, terminate!")
           self.current_step += 1
-          reward = self.double_victim_access_reward # -10000
+          reward = self.atk_double_victim_access_reward
           done = True
       else:
         if is_guess == True:
@@ -337,7 +329,7 @@ class CacheGuessingGameEnv(gym.Env):
               # update the guess buffer 
               self.guess_buffer.append(True)
               self.guess_buffer.pop(0)
-              reward = self.correct_reward # 200
+              reward = self.atk_correct_reward # 200
               done = True
           else:
               if victim_addr != hex(self.victim_address_max + 1)[2:]:
@@ -348,7 +340,7 @@ class CacheGuessingGameEnv(gym.Env):
               # update the guess buffer 
               self.guess_buffer.append(False)
               self.guess_buffer.pop(0)
-              reward = self.wrong_reward #-9999
+              reward = self.atk_wrong_reward 
               done = True
         elif is_flush == False or self.flush_inst == False:
           #lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step)#, domain_id='a')
@@ -361,7 +353,7 @@ class CacheGuessingGameEnv(gym.Env):
             self.vprint("access " + address + " hit"  )
             r = 0 # cache hit
           self.current_step += 1
-          reward = self.step_reward #-1 
+          reward = self.atk_step_reward #-1 
           done = False
         else:    # is_flush == True
           self.l1.cflush(address, self.current_step)#, domain_id='X')
@@ -369,7 +361,7 @@ class CacheGuessingGameEnv(gym.Env):
           self.vprint("cflush " + address )
           r = 2
           self.current_step += 1
-          reward = self.step_reward
+          reward = self.atk_step_reward
           done = False
           
     #return observation, reward, done, info
@@ -389,9 +381,14 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       victim_accessed = 0 
 
-    # 77 is an arbitary dummy number which is not used in this env
-    # TODO: modify below line to accomodate different observation features for defender
-    self.state.append([r, victim_accessed, original_action, self.step_count, 77]) #TODO
+    # 77 is a dummy value not used in this env
+    # if 1 set, append 1 dummy value per the no of defender's actions on set nos
+    # if 2 sets, append 2 dummy values
+    atk_obs_feature = [r, victim_accessed, original_action, self.step_count] 
+    for _ in range(self.n_sets):
+      atk_obs_feature.append(77)
+      
+    self.state.append(atk_obs_feature)
     self.state.popleft()
     self.step_count += 1
     
@@ -426,7 +423,6 @@ class CacheGuessingGameEnv(gym.Env):
             self.last_state = r
 
     info["cache_state_change"] = cache_state_change
-
     #info["cyclic_way_index"] = cyclic_way_index
     #info["cyclic_set_index"] = cyclic_set_index
 
@@ -454,14 +450,13 @@ class CacheGuessingGameEnv(gym.Env):
     self._reset(victim_address)  # fake reset
     
     ''' reset_observation '''
+    # modified for variable feature size in wrapper for defender
     if reset_observation:
-        self.state = deque([[-1, -1, -1, -1, -1]] * self.window_size)
-        
+        self.state = deque([[-1]*(4 + self.n_sets)] * self.window_size)
         self.step_count = 0 
-
+        
     self.reset_time = 0
-    #self.step_count = 1
-
+  
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
       self.vprint("[reset] victim access %d locked cache line" % self.victim_address_max)
