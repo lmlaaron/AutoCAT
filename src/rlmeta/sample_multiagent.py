@@ -22,8 +22,9 @@ from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
 
-from cache_env_wrapper import CacheAttackerDetectorEnvFactory
-from cache_ppo_model import CachePPOModel
+#from cache_env_wrapper import CacheAttackerDetectorEnvFactory
+from cache_env_wrapper import CacheAttackerDefenderEnvFactory # NOTE
+from cache_ppo_model import CachePPOModel # NOTE 
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
 

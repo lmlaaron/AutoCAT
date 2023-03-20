@@ -1,9 +1,12 @@
-import copy, random, gym, hydra
+import copy
+import random 
+import gym 
+import hydra
 from typing import Any, Dict
 from collections import deque 
 import numpy as np
 from gym import spaces
-from cache_guessing_game_env_defense import CacheGuessingGameEnv # TODO: make sure check the import file name change!!
+from cache_guessing_game_env_defense import AttackerCacheGuessingGameEnv 
 from cache_simulator import *
 
 class CacheAttackerDefenderEnv(gym.Env):
@@ -13,8 +16,8 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.env_config = env_config
         self.episode_length = env_config.get("episode_length", 80)
         self.threshold = env_config.get("threshold", 0.8)
-        self._env = CacheGuessingGameEnv(env_config) 
-        self.validation_env = CacheGuessingGameEnv(env_config)
+        self._env = AttackerCacheGuessingGameEnv(env_config) 
+        self.validation_env = AttackerCacheGuessingGameEnv(env_config)
         self.window_size = env_config.get('window_size', 64)
         self.feature_size = env_config.get('feature_size', 6)
         cache_config = env_config.get('cache_configs', {})
@@ -99,6 +102,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 cur_opponent_obs[i+4] = action['defender'][i] 
             self.defender_obs.append(cur_opponent_obs)
             self.defender_obs.popleft()
+            
         latency = int(cur_opponent_obs[0])
         
         return np.array(list(reversed(self.defender_obs)), dtype=object), latency
@@ -169,6 +173,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 lock_bit = int(action['defender'][set_index])
             else:
                 lock_bit = bin(int(action['defender'][set_index]))[2:].zfill(int(self.associativity))
+                #print(lock_bit)
                 assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
                 
             self._env.lock_L1(set_index, lock_bit)
@@ -189,7 +194,7 @@ class CacheAttackerDefenderEnv(gym.Env):
             self.step_count -= 1 # The reset/guess step should not be counted 
             defender_done = False
             
-        if self.step_count >= self.max_step:
+        elif self.step_count >= self.max_step:
             defender_done = True # will not terminate the episode
         else:
             defender_done = False
@@ -219,7 +224,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         info['defender'].update(opponent_info)
         
         self.step_count += 1
-        #criteria to determine wether the game is done
+        #criteria to determine weather the game is done
         if self.step_count >= self.max_step:
             opponent_done = True 
             done['__all__'] = True
@@ -232,19 +237,20 @@ class CacheAttackerDefenderEnv(gym.Env):
         print_cache(self._env.l1) # TODO: create a new function in _env then use it. do not call functions inside a wrapper
         return obs, reward, done, info
 
-# checks the parameter setting for training and cache configuration
+
 @hydra.main(config_path="./rlmeta/config", config_name="ppo_lru_lock")
 def main(cfg):
-    
+    # checks the parameter setting for training and cache configuration
     env = CacheAttackerDefenderEnv(cfg.env_config)
-    _env = CacheGuessingGameEnv(cfg.env_config)
+    _env = AttackerCacheGuessingGameEnv(cfg.env_config)
     obs = _env.reset(victim_address=-1) 
     done = {'__all__':False}
     
     ''' for unit test '''
+    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s2w.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s4w.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w.txt')
-    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_2s4w.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_2s4w.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_4s1w.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_4s2w.txt')
     #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_8s1w.txt')

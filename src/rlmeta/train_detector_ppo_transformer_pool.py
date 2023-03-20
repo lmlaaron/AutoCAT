@@ -16,7 +16,9 @@ from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
-from cache_env_wrapper import CacheAttackerDetectorEnvFactory
+#from cache_env_wrapper import CacheAttackerDetectorEnvFactory
+from cache_env_wrapper import CacheAttackerDefenderEnvFactory # NOTE: new env for rldefense
+
 from cache_ppo_transformer_model import CachePPOTransformerModelPool, wrap_downstream_model #CachePPOTransformerModel
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 from metric_callbacks import MACallbacks
@@ -25,38 +27,42 @@ from agents.random_agent import RandomAgent
 from agents.benign_agent import BenignAgent
 from agents.spec_agent import SpecAgent
 from agents.ppo_agent import PPOAgent
+
 # @hydra.main(config_path="./config", config_name="ppo_lru_8way")
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
 # @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-@hydra.main(config_path="./config", config_name="ppo_lock")
+@hydra.main(config_path="./config", config_name="ppo_lru_lock") 
 # @hydra.main(config_path="./config", config_name="ppo_exp")
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
     #wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
-    wandb_logger = WandbLogger(project="cache_attack_defense", config=cfg)
+    wandb_logger = WandbLogger(project="RLdefense", config=cfg)
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 
     #### Define env factory
     # =========================================================================
-    env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
+    #env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
+    env_fac = CacheAttackerDefenderEnvFactory(cfg.env_config) # NOTE
     unbalanced_env_config = copy.deepcopy(cfg.env_config)
     unbalanced_env_config["opponent_weights"] = [0,1]
-    env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)
+    #env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)
+    env_fac_unbalanced = CacheAttackerDefenderEnvFactory(unbalanced_env_config) # NOTE
     benign_env_config = copy.deepcopy(cfg.env_config)
     benign_env_config["opponent_weights"] = [1,0]
-    env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)
+    #env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)
+    env_fac_benign = CacheAttackerDefenderEnvFactory(benign_env_config) # NOTE
     # =========================================================================
 
     #### Define model
     # =========================================================================
     env = env_fac(0)
     #### attacker
-    cfg.model_config["output_dim"] = env.action_space.n
+    cfg.model_config["output_dim"] = env.action_space.n # NOTE: check
     train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
-        cfg.train_device)
+        cfg.train_device) # NOTE 
     attacker_checkpoint = cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
         attacker_params = torch.load(cfg.attacker_checkpoint, map_location=cfg.train_device)
@@ -69,8 +75,8 @@ def main(cfg):
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### detector 
-    cfg.model_config["output_dim"] = 2
-    cfg.model_config["step_dim"] += 2
+    cfg.model_config["output_dim"] = 2 # NOTE
+    cfg.model_config["step_dim"] += 2 # NOTE
     train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
@@ -145,13 +151,14 @@ def main(cfg):
     '''
     #spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
     spec_trace_f = open('/home/geunbae/data/remix3.txt','r')
-    spec_trace = spec_trace_f.read().split('\n')[:100]
+    spec_trace = spec_trace_f.read().split('\n')[:1000000]
     y = []
     for line in spec_trace:
         line = line.split()
         y.append(line)
     spec_trace = y
     #spec_trace = '/private/home/jxcui/remix3.txt'
+    #spec_trace = '/home/geunbae/data/remix3.txt'
     benign = SpecAgent(cfg.env_config, spec_trace)
     t_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)
     e_b_fac = AgentFactory(SpecAgent, cfg.env_config, spec_trace)

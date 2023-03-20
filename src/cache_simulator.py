@@ -121,7 +121,7 @@ def print_cache(cache):
                        lock_info.append(lock_vector_array[w])
                    sets.append(lock_info)
                 
-                if cache.rep_policy == lru_policy or lru_lock_policy:
+                elif cache.rep_policy == lru_policy or lru_lock_policy:
                     timestamp = ["Timestamp"]
                     for w in range(0, cache.associativity):
                         if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
@@ -215,11 +215,13 @@ def simulate(hierarchy, trace, logger, result_file=''):
         else:
             raise InvalidOpError
         
-        #if result_file != '': print the trace
-        if op != 'D': #== 'R' or op == 'R2':
-            print(address + ' ' + str(r.time), file = f )
-        elif op == 'D':
+
+        if op == 'D':
             print(str(r.time), file = f)
+                #if result_file != '': print the trace
+        else: 
+            print(address + ' ' + str(r.time), file = f )  
+            
         
         for cache in hierarchy:
             if hierarchy[cache].next_level:

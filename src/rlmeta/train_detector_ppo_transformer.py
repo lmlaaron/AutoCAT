@@ -36,7 +36,8 @@ from agents.ppo_agent import PPOAgent
 # @hydra.main(config_path="./config", config_name="ppo_2way_2set")
 # @hydra.main(config_path="./config", config_name="ppo_4way_4set")
 # @hydra.main(config_path="./config", config_name="ppo_8way_8set")
-@hydra.main(config_path="./config", config_name="ppo_exp")
+# @hydra.main(config_path="./config", config_name="ppo_exp")
+@hydra.main(config_path="./config", config_name="ppo_lru_lock")
 # @hydra.main(config_path="./config", config_name="ppo_exp_ceaser")
 # @hydra.main(config_path="./config", config_name="ppo_cchunter_baseline")
 def main(cfg):
@@ -74,7 +75,7 @@ def main(cfg):
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### detector 
-    cfg.model_config["output_dim"] = 2
+    cfg.model_config["output_dim"] = 2 # NOTE
     cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device_d)

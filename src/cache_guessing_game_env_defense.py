@@ -3,7 +3,11 @@
 # description: environment for study RL for side channel attack
 from collections import deque
 import numpy as np
-import random, os, yaml, logging, sys
+import random
+import os
+import yaml
+import logging 
+import sys
 import replacement_policy
 from itertools import permutations
 import gym
@@ -11,7 +15,7 @@ from gym import spaces
 from omegaconf.omegaconf import open_dict
 from cache_simulator import *
 
-class CacheGuessingGameEnv(gym.Env):
+class AttackerCacheGuessingGameEnv(gym.Env):
   """
   Description:
     A L1 cache with total_size, num_ways. assume cache_line_size == 1B
@@ -43,21 +47,21 @@ class CacheGuessingGameEnv(gym.Env):
   metadata = {'render.modes': ['human']}
 
   def __init__(self, env_config={
-   "atk_length_violation_reward":-10000,
+   "atk_length_violation_reward": -10000,
    "atk_double_victim_access_reward": -10000,
    "force_victim_hit": False,
-   "atk_victim_access_reward":-10,
-   "atk_correct_reward":200,
-   "atk_wrong_reward":-9999,
-   "atk_step_reward":-1,
-   "window_size":0,
-   "attacker_addr_s":0,
-   "attacker_addr_e":3,
-   "victim_addr_s":5,
-   "victim_addr_e":5,
+   "atk_victim_access_reward": -10,
+   "atk_correct_reward": 200,
+   "atk_wrong_reward": -9999,
+   "atk_step_reward": -1,
+   "window_size": 0,
+   "attacker_addr_s": 0,
+   "attacker_addr_e": 3,
+   "victim_addr_s": 5,
+   "victim_addr_e": 5,
    "flush_inst": False,
-   "allow_victim_multi_access": False, #True,
-   "verbose":0,
+   "allow_victim_multi_access": False,
+   "verbose": 0,
    "reset_limit": 1,    # specify how many reset to end an epoch?????
    "cache_configs": {
       # YAML config file for cache simulaton
@@ -622,7 +626,7 @@ class CacheGuessingGameEnv(gym.Env):
     
 
 if __name__ == '__main__':
-    env = CacheGuessingGameEnv()
+    env = AttackerCacheGuessingGameEnv()
     obs = env.reset()
     done = False
     i=0
