@@ -1,0 +1,46 @@
+# for attacker's reward
+atk_length_violation_reward: -20.0
+atk_double_victim_access_reward: -0.01
+atk_victim_access_reward: -0.01
+atk_correct_reward: 10.0
+atk_wrong_reward: -20.0
+atk_step_reward: -0.01
+
+# for defender's reward
+defender_reward_scale: 1 # scaling opt 
+def_success_reward: 20
+def_fail_reward: -20
+def_benign_reward: 0
+def_action_reward: 0
+def_latency_reward: -0.01
+
+verbose: 0
+force_victim_hit: false
+flush_inst: false
+allow_victim_multi_access: false #true
+allow_empty_victim_access: true #false 
+attacker_addr_s: 0
+attacker_addr_e: 3
+victim_addr_s: 5
+victim_addr_e: 5
+reset_limit: 1
+opponent_weights: [0, 1] #[0.5, 0.5]
+
+cache_configs:
+  architecture:
+    word_size: 1
+    block_size: 1
+    write_back: true
+  cache_1:
+    blocks: 4
+    associativity: 1
+    hit_time: 1
+    rep_policy: "lru_lock_policy"
+  mem:
+    hit_time: 1000
+
+# RL env config
+window_size: 64
+feature_size: 8
+action_space_size: 2
+max_step: 64
