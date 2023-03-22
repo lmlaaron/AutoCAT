@@ -193,7 +193,11 @@ class CacheCovertSenderReceiverEnv(gym.Env):
             receiver_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address
             #self.step_count -= 1 # The reset/guess step should not be counted
-        if self.step_count >= self.max_step or receiver_done:
+        if self.step_count >= self.max_step:
+            sender_done = True
+            receiver_reward = self._env.length_violation_reward
+        elif receiver_done:
+            # this time is length violation but receiver may not have receiver done reward
             sender_done = True
         else:
             sender_done = False

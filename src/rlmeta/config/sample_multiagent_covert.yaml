@@ -27,8 +27,17 @@ seed: 123 #123 1234 12345
 #detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-14/12-35-31/sender-99.pth" 
 #attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-18/22-35-11/receiver-54.pth"
 #detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-18/22-35-11/sender-59.pth"
-attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-20/22-04-46/receiver-42.pth"
-detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-20/22-04-46/sender-39.pth"
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-20/22-04-46/receiver-42.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-20/22-04-46/sender-39.pth"
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-21/17-30-54/receiver-64.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-02-21/17-30-54/sender-69.pth"
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-06/13-51-28/receiver-24.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-06/13-51-28/sender-29.pth"
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-08/12-58-27/receiver-22.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-08/12-58-27/sender-19.pth"
+attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/receiver-13.pth"
+detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/sender-9.pth"
+
 
 #IBRPPO-fp10
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/attacker-2049.pth"
@@ -80,7 +89,7 @@ detectors: [ ["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src
              #["None", "None"]
             ]
 
-deterministic_policy: true
+deterministic_policy: true 
 
 defaults:
   # - env_config: config_exp4
