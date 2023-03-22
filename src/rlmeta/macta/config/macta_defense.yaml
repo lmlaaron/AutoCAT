@@ -83,5 +83,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: macta_env
+  - env_config: macta_def_1s2w
   - model_config: transformer
