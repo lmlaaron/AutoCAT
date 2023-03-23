@@ -75,7 +75,7 @@ def print_cache(cache):
     ways = [""]
     sets = []
     set_indexes = sorted(cache.data.keys())
-    print(set_indexes)
+    
     if len(cache.data.keys()) > 0:
         way_no = 0
 
@@ -110,6 +110,7 @@ def print_cache(cache):
                 for w in set_ways:
                     temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w].address)
             sets.append(temp_way)
+            
         else:
             for s in range(len(set_indexes)):
                 temp_way = ["Set " + str(s)]
@@ -127,17 +128,26 @@ def print_cache(cache):
                         lock_info.append(lock_vector_array[w])
                     sets.append(lock_info)
 
-                elif cache.rep_policy == lru_policy or lru_lock_policy:
                     timestamp = ["Timestamp"]
                     for w in range(0, cache.associativity):
-                        print(w)
                         if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
                             timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                            print(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                        else:
+                            timestamp.append(0)
+                    sets.append(timestamp)
+
+                elif cache.rep_policy == lru_policy:  # or cache.rep_policy == lru_lock_policy:
+                    timestamp = ["Timestamp"]
+                    for w in range(0, cache.associativity):
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                            timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                            print(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
                         else:
                             timestamp.append(0)
                             
                     sets.append(timestamp)
-                    print(timestamp)
+                    # print(timestamp)
 
         table = UnixTable(sets)
         table.title = cache.name
