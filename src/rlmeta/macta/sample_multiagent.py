@@ -164,7 +164,7 @@ def tournament(env,
                     env.env.opponent_weights = [0,1]
                     cfg.model_config["output_dim"] = env.action_space.n
                     cfg.model_config["step_dim"] = 64
-                    attacker_params = torch.load(attacker[1])
+                    attacker_params = torch.load(attacker[1], map_location='cuda:3')
                     attacker_model = CachePPOTransformerModel(**cfg.model_config)
                     attacker_model.load_state_dict(attacker_params)
                     attacker_model.eval()           
@@ -204,7 +204,7 @@ def head2head(env,
     # [1,0] fully benign agents
     # [0,1] fully attacker agents
     # [p,1-p] benign w.p. p, attacker w.p. 1-p
-    env.env.opponent_weights = [0,1]
+    env.env.opponent_weights = [1,0]
     
     # Load model
     # Attacker
@@ -228,8 +228,8 @@ def head2head(env,
 
     #detector_agent = RandomAgent(1)
     #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-    detector_agent = CCHunterAgent(cfg.env_config)
-    #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
+    #detector_agent = CCHunterAgent(cfg.env_config)
+    detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
     metrics_multidataset = StatsDict()
 

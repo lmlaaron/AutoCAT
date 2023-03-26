@@ -2,15 +2,15 @@ num_episodes: 1000
 seed: 123 #123 1234 12345
 
 #TEST
-attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-39-43/ppo_agent-99.pth" #AutoCAT
+#attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-39-43/ppo_agent-99.pth" #AutoCAT
 #attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp1/attacker-1849.pth" #IBRPPO
 #attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-13/22-39-14/attacker-2049.pth" #MACTA
 #attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-21/22-06-35/attacker-1949.pth" #macta 1 2m 12data /64
 #attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-22/21-03-36/attacker-1049.pth" #macta 2
-#attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/attacker-1849.pth" #xiaomeng
+attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/attacker-1849.pth" #xiaomeng
 
 
-cyclone_path: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-42/cyclone.pkl"
+cyclone_path: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-10/10-05-38/cyclone.pkl"
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth"
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-13/22-39-14/detector-1999.pth"
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-21/22-06-35/detector-1099.pth" #macta 1 2m 12data /64
@@ -40,12 +40,12 @@ detectors: [
 #["MACTA-detector-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp1/detector-1799.pth"],
 #["MACTA-detector-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/detector-1799.pth"],
 #["MACTA-detector-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp3/detector-1799.pth"],
-#["Cyclone-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-09/cyclone.pkl"],
+["Cyclone-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-24/14-51-49/cyclone.pkl"],
 #["Cyclone-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-28/cyclone.pkl"],
 #["Cyclone-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-42/cyclone.pkl"],
-             ["CC-Hunter-1", "n/a"],
-             ["CC-Hunter-2", "n/a"],
-             ["CC-Hunter-3", "n/a"],
+#             ["CC-Hunter-1", "n/a"],
+#             ["CC-Hunter-2", "n/a"],
+#             ["CC-Hunter-3", "n/a"],
              #["None", "None"],
              #["None", "None"],
              #["None", "None"]

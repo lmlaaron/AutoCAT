@@ -38,6 +38,8 @@ class CycloneAgent:
     def cyclone_detect(self, cyclone_counters):
         x = np.array(cyclone_counters).reshape(-1)
         y = self.clf.predict([x])[0]
+        # FIXME
+        y = int(-y/2+0.5)
         return y
 
     def observe_init(self, timestep):

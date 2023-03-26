@@ -7,7 +7,7 @@ import pickle
 import numpy as np
 from typing import Dict
 from tqdm import tqdm
-from sklearn.svm import SVC
+from sklearn.svm import SVC, OneClassSVM
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from rlmeta.core.types import Action
@@ -39,7 +39,7 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
     detector_count = 0.0
     detector_acc = 0.0
 
-    #env.env.opponent_weights = [0.5, 0.5]
+    env.env.opponent_weights = [1, 0.0]
     if victim_addr == -1:
         timestep = env.reset()
     else:
@@ -130,10 +130,10 @@ def train(cfg):
     # report accuracy
     
     data_file=None
-    #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/04-44-27/data.pkl"
+    #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-22/10-36-30/data.pkl"
 
     if data_file is None:
-        X_train, y_train = collect(cfg, num_samples=2000)
+        X_train, y_train = collect(cfg, num_samples=6000)
         X_test, y_test = collect(cfg, num_samples=10)
         data = {"X_train": X_train,
             "y_train": y_train,
@@ -146,6 +146,23 @@ def train(cfg):
         y_train=data['y_train']
         X_test=data['X_test']
         y_test=data['y_test']
+    
+    
+    clf = make_pipeline(
+            StandardScaler(),
+            OneClassSVM(
+                gamma='auto',
+                nu=0.01))
+    clf.fit(X_train)
+    y = clf.predict(X_train)
+    train_accuracy = np.mean(y==1)
+    y = clf.predict(X_test)
+    test_accuracy = np.mean(y==1)
+
+    print("Train Accuracy:",train_accuracy)
+    print("Test Accuracy:",test_accuracy)
+    
+    '''
     clf = make_pipeline(
             StandardScaler(),
             SVC(
@@ -160,7 +177,7 @@ def train(cfg):
     clf.fit(X_train, y_train)
     print("Train Accuracy:", clf.score(X_train,y_train))
     print("Test Accuracy:", clf.score(X_test, y_test))
-    
+    ''' 
     print("saving the classfier")
     pickle.dump(clf,open('cyclone.pkl','wb'))
     return clf
