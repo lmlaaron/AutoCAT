@@ -7,6 +7,7 @@ from rlmeta.envs.env import Env, EnvFactory
 from rlmeta.envs.gym_wrappers import GymWrapper
 
 from .cache_guessing_game_env import CacheGuessingGameEnv
+#from .cache_guessing_game_def_env import AttackerCacheGuessingGameEnv # for RLdefense
 
 
 class CacheEnvWrapperFactory(EnvFactory):

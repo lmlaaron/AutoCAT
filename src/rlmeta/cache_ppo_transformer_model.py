@@ -16,6 +16,7 @@ from rlmeta.agents.ppo.ppo_model import PPOModel
 from rlmeta.core.model import DownstreamModel, RemotableModel
 from rlmeta.core.server import Server
 
+
 class CachePPOTransformerModel(PPOModel):
     def __init__(self,
                  latency_dim: int,
@@ -78,10 +79,11 @@ class CachePPOTransformerModel(PPOModel):
 
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         obs = obs.to(torch.int64)
-        assert obs.dim() == 3
+        assert obs.dim() == 3  # TODO
+        #print(obs)
 
         # batch_size = obs.size(0)
-        l, v, act, stp = torch.unbind(obs, dim=-1)
+        l, v, act, stp = torch.unbind(obs, dim=-1)  # assumes observation space. update for different obs space size
         l = self.make_one_hot(l, self.latency_dim)
         v = self.make_one_hot(v, self.victim_acc_dim)
         act = self.make_embedding(act, self.action_embed)

@@ -1,6 +1,7 @@
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
+
 class MACallbacks(EpisodeCallbacks):
     def __init__(self):
         super().__init__()

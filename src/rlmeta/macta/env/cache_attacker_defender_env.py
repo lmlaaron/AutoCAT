@@ -2,14 +2,13 @@ import copy
 import os
 import random
 import sys
-
 import gym
 import hydra
 from typing import Any, Dict
 from collections import deque
 import numpy as np
 from gym import spaces
-from cache_guessing_game_def_env import AttackerCacheGuessingGameEnv
+from .cache_guessing_game_def_env import AttackerCacheGuessingGameEnv
 sys.path.append(
     os.path.dirname(
         os.path.dirname(
@@ -31,8 +30,8 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.feature_size = env_config.get('feature_size', 6)
         cache_config = env_config.get('cache_configs', {})
         cache_1_config = cache_config.get('cache_1', {})
-        self.blocks = cache_1_config.get('blocks', 8)
-        self.associativity = cache_1_config.get('associativity', 4)
+        self.blocks = cache_1_config.get('blocks', 2)
+        self.associativity = cache_1_config.get('associativity', 2)
         self.n_sets = int(self.blocks / self.associativity)
         self.action_space_size = env_config.get('action_space_size', 16)  # action_space_size = 2 ^ associativity
         self.action_space = spaces.Discrete(self.action_space_size)
@@ -53,17 +52,17 @@ class CacheAttackerDefenderEnv(gym.Env):
                             'benign': self.opponent_agent == 'benign'}
         self.step_count = 0
         self.max_step = env_config.get('max_step', 20)
-        self.defender_obs = deque([[-1] * (4 + self.n_sets)] * self.max_step)
+        self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
         self.random_domain = random.choice([0, 1])
         self.defender_reward_scale = env_config.get('defender_reward_scale', 1)
-        self.opponent_weights = env_config.get('opponent_weights', [1, 0])
+        self.opponent_weights = env_config.get('opponent_weights', [0, 1])
         self.def_success_reward = env_config.get('def_success_reward', 20)
         self.def_fail_reward = env_config.get('def_fail_reward', -20)
         self.def_benign_reward = env_config.get('def_benign_reward', 0)
         self.def_action_reward = env_config.get('def_action_reward', 0)
         self.def_latency_reward = env_config.get('def_latency_reward', -0.01)
-
-        assert 4 + int(self.n_sets) == self.feature_size, f'feature size mismatches w/ width of obs_space'
+        # to check the feature size is macta's obs + alpha
+        assert 3 + int(self.n_sets) == self.feature_size, f'feature size mismatches w/ width of obs_space'
 
     def reset(self, victim_address=-1) -> dict:
 
@@ -75,7 +74,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         opponent_obs = self._env.reset(victim_address=-1, reset_cache_state=False)
         self.victim_address = victim_address
         self.random_domain = random.choice([0, 1])
-        self.defender_obs = deque([[-1] * (4 + self.n_sets)] * self.max_step)
+        self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
         self.step_count = 0
         obs = {'defender': np.array(list(reversed(self.defender_obs))), 'attacker': opponent_obs,
                'benign': opponent_obs}
@@ -109,8 +108,8 @@ class CacheAttackerDefenderEnv(gym.Env):
             cur_opponent_obs[3] = self.step_count
 
             # accommodate different no of actions of defender according to set no
-            for i in range(0, self.n_sets):
-                cur_opponent_obs[i + 4] = action['defender'][i]
+            #for i in range(0, self.n_sets):
+            #    cur_opponent_obs[i + 4] = action['defender'][i]
             self.defender_obs.append(cur_opponent_obs)
             self.defender_obs.popleft()
 
@@ -175,15 +174,24 @@ class CacheAttackerDefenderEnv(gym.Env):
         n_sets = self.n_sets
 
         for set_index in range(0, n_sets):
-            print('set_index', set_index, 'defenders action: ', action['defender'][set_index])
+            # print('set_index', set_index, 'defenders action: ', action['defender'][set_index])
             if self.associativity == 1:
                 lock_bit = int(action['defender'][set_index])
+
             else:
-                lock_bit = bin(int(action['defender'][set_index]))[2:].zfill(int(self.associativity))
-                # print(lock_bit)
+                #print(action['defender'])
+                lock_bit = bin((action['defender'][set_index]))[2:].zfill(self.associativity)
+                #lock_bit = bin(int(action['defender'][set_index]))[2:].zfill(self.associativity)
+                #print(lock_bit)
                 assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
 
             self._env.lock_l1(set_index, lock_bit)
+
+        #defender_sum = 0
+        #for set_index in range(0, n_sets):
+        #    defender_sum += int(action['defender'][set_index])
+        #action['defender'] = defender_sum
+        #print(action['defender'])
 
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
@@ -241,7 +249,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
 
-        print_cache(self._env.l1)  # TODO: create a new function in _env then use it. do not call funcs inside a wrapper
+        #print_cache(self._env.l1)  # TODO: create a new func in _env then use it. do not call funcs inside a wrapper
         return obs, reward, done, info
 
 

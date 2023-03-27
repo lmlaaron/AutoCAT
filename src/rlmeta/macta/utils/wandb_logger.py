@@ -2,6 +2,7 @@ import os
 import wandb
 import torch
 
+
 class WandbLogger:
     def __init__(self,
                  project,

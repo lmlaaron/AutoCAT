@@ -16,9 +16,9 @@ class Phase(IntEnum):
     TRAIN = 1
     EVAL = 2
     TRAIN_ATTACKER = 3
-    TRAIN_DETECTOR = 4
+    TRAIN_DEFENDER = 4 # TRAIN_DETECTOR = 4
     EVAL_ATTACKER = 5
-    EVAL_DETECTOR = 6
+    EVAL_DEFENDER = 6  # EVAL_DETECTOR = 6
     
 
 

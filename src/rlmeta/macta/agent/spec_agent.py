@@ -31,7 +31,6 @@ from rlmeta.core.types import Tensor, NestedTensor
 from rlmeta.utils.stats_dict import StatsDict
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from utils.trace_parser import load_trace
 
 console = Console()
@@ -73,15 +72,12 @@ class SpecAgent(Agent):
             self.allow_empty_victim_access = env_config.get(
                 "allow_empty_victim_access", False)
 
-            assert (self.num_ways == 1
-                    )  # currently only support direct-map cache
+            # assert (self.num_ways == 1)  # currently only support direct-map cache
             assert (flush_inst == False)  # do not allow flush instruction
-            assert (attacker_addr_e - attacker_addr_s == victim_addr_e -
-                    victim_addr_s)  # address space must be shared
+            #assert (attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s)  # address space must be shared
             #must be no shared address space
-            assert ((attacker_addr_e + 1 == victim_addr_s)
-                    or (victim_addr_e + 1 == attacker_addr_s))
-            assert (self.allow_empty_victim_access == False)
+            #assert ((attacker_addr_e + 1 == victim_addr_s) or (victim_addr_e + 1 == attacker_addr_s))
+            #assert (self.allow_empty_victim_access == False)
 
         # self.cache_line_size = 8  #TODO: remove the hardcode
         self.cache_line_size = env_config.get("cache_line_size", 64)

@@ -5,7 +5,6 @@ from collections import deque
 import numpy as np
 import random
 import os
-
 import yaml
 import logging
 import sys
@@ -122,8 +121,10 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         self.n_sets = int(self.cache_size / self.num_ways)
 
         # modified for variable feature size in wrapper for defender
-        self.feature_size = 4 + self.n_sets
-        self.state = deque([[-1] * (4 + self.n_sets)] * self.window_size)
+        self.feature_size = 3 + self.n_sets
+        self.state = deque([[-1] * (3 + self.n_sets)] * self.window_size)
+        #self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+        
 
         self.step_count = 0
         self.attacker_address_min = attacker_addr_s
@@ -377,8 +378,8 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         # if 1 set, append 1 dummy value per the no of defender's actions on set nos
         # if 2 sets, append 2 dummy values
         atk_obs_feature = [r, victim_accessed, original_action, self.step_count]
-        for _ in range(self.n_sets):
-            atk_obs_feature.append(77)
+        #for _ in range(self.n_sets):
+        #    atk_obs_feature.append(77)
 
         self.state.append(atk_obs_feature)
         self.state.popleft()
@@ -442,7 +443,8 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         ''' reset_observation '''
         # modified for variable feature size in wrapper for defender
         if reset_observation:
-            self.state = deque([[-1] * (4 + self.n_sets)] * self.window_size)
+            self.state = deque([[-1] * (3 + self.n_sets)] * self.window_size)
+            #self.state = deque([[-1, -1, -1, -1]] * self.window_size)
             self.step_count = 0
 
         self.reset_time = 0

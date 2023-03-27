@@ -21,7 +21,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         env_config: Dict[str, Any],
         keep_latency: bool = True,
     ) -> None:
-        #env_config["cache_state_reset"] = False
+        # env_config["cache_state_reset"] = False
 
         self.reset_observation = env_config.get("reset_observation", False)
         self.keep_latency = keep_latency
@@ -203,7 +203,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             "is_guess": bool(action['detector'])
         }
         info['detector'].update(opponent_info)
-        # Change the criteria to determine wether the game is done
+        # Change the criteria to determine whether the game is done
         if detector_done:
             done['__all__'] = True
         #from IPython import embed; embed()
@@ -212,7 +212,7 @@ class CacheAttackerDetectorEnv(gym.Env):
 
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
-        #print(obs["detector"])
+        # print(obs["detector"])
         return obs, reward, done, info
 
 
@@ -231,20 +231,20 @@ def main(cfg):
             print("step: ", i)
             action = {
                 'attacker': 9 if (prev_a == 10 or i < 64) else
-                10,  #np.random.randint(low=9, high=11),
+                10,  # np.random.randint(low=9, high=11),
                 'benign': np.random.randint(low=2, high=5),
                 'detector': np.random.randint(low=0, high=1)
             }
             prev_a = action['attacker']
             obs, reward, done, info = env.step(action)
-            #print("obs: ", obs['detector'])
+            # print("obs: ", obs['detector'])
             print("action: ", action)
             print("victim: ", env.victim_address, env._env.victim_address)
 
-            #print("done:", done)
+            # print("done:", done)
             print("reward:", reward)
-            #print(env.victim_address_min, env.victim_address_max)
-            #print("info:", info )
+            # print(env.victim_address_min, env.victim_address_max)
+            # print("info:", info )
             if info['attacker'].get('invoke_victim') or info['attacker'].get(
                     'is_guess') == True:
                 print(info['attacker'])

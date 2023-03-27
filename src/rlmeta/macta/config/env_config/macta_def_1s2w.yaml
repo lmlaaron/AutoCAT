@@ -18,14 +18,14 @@ def_latency_reward: -0.01
 verbose: 0
 force_victim_hit: false
 flush_inst: false
-allow_victim_multi_access: false #true
-allow_empty_victim_access: true #false
+allow_victim_multi_access: false 
+allow_empty_victim_access: true 
 attacker_addr_s: 0
 attacker_addr_e: 1
 victim_addr_s: 3
 victim_addr_e: 3
 reset_limit: 1
-opponent_weights: [0, 1] #[0.5, 0.5]
+opponent_weights: [0, 1] # [0,1] = 100% attacker, [1,0] = 100% benign
 
 cache_configs:
   architecture:
@@ -41,7 +41,7 @@ cache_configs:
     hit_time: 1000
 
 # RL env config
-window_size: 18
-feature_size: 5
+window_size: 64
+feature_size: 4
 action_space_size: 4 # if associativity is 4 then 16
 max_step: 64

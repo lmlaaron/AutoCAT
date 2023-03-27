@@ -3,38 +3,35 @@ import sys
 import copy
 import logging
 import time
-
 import hydra
-
 import torch
 import torch.multiprocessing as mp
 
 import rlmeta.envs.gym_wrappers as gym_wrappers
-import rlmeta.utils.hydra_utils as hydra_utils # checked
-import rlmeta.utils.remote_utils as remote_utils # checked
+import rlmeta.utils.hydra_utils as hydra_utils
+import rlmeta.utils.remote_utils as remote_utils
 
 # under /home/geunbae/rlmeta/rlmeta
-from rlmeta.agents.agent import AgentFactory  # checked
+from rlmeta.agents.agent import AgentFactory
 from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
 from rlmeta.core.server import Server, ServerList
 from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from model.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model  
-from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory  # TODO
-
+from model.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
+# from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
+from env.cache_attacker_defender_env_factory import CacheAttackerDefenderEnvFactory  # NOTE
 from utils.ma_metric_callbacks import MACallbacks
 from utils.wandb_logger import WandbLogger, stats_filter
 from utils.controller import Phase, Controller
 from utils.maloop import LoopList, MAParallelLoop
-
 from utils.trace_parser import load_trace
+from agent import RandomAgent, BenignAgent, SpecAgent, PPOAgent
+from agent import SpecAgentFactory
 
-from agent import RandomAgent, BenignAgent, SpecAgent, PPOAgent  # TODO
-from agent import SpecAgentFactory  # TODO
 
-@hydra.main(config_path="../config", config_name="macta_defense")  # checked
+@hydra.main(config_path="../config", config_name="macta_defense")  # TODO: update path to config under macta
 def main(cfg):
     # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
     print(f"working_dir = {os.getcwd()}")
@@ -44,15 +41,18 @@ def main(cfg):
     #### Define env factory
     # =========================================================================
     # 50% benign, 50% attacker, for detector training
-    env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)  # TODO
+    # env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
+    env_fac = CacheAttackerDefenderEnvFactory(cfg.env_config)
     # 0% benign, 100% attacker, for attacker training and evaluation
     unbalanced_env_config = copy.deepcopy(cfg.env_config)
-    unbalanced_env_config["opponent_weights"] = [0,1]
-    env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)  # TODO
+    unbalanced_env_config["opponent_weights"] = [0,1]  # NOTE: 100% attacker 
+    # env_fac_unbalanced = CacheAttackerDetectorEnvFactory(unbalanced_env_config)
+    env_fac_unbalanced = CacheAttackerDefenderEnvFactory(unbalanced_env_config)
     # 100% benign, 0% attacker, for detector evaluation (false positive)
     benign_env_config = copy.deepcopy(cfg.env_config)
-    benign_env_config["opponent_weights"] = [1,0]
-    env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)  # TODO
+    benign_env_config["opponent_weights"] = [1,0]  # NOTE: 100% benign
+    # env_fac_benign = CacheAttackerDetectorEnvFactory(benign_env_config)
+    env_fac_benign = CacheAttackerDefenderEnvFactory(benign_env_config)
     # =========================================================================
 
     #### Define model
@@ -60,7 +60,7 @@ def main(cfg):
     env = env_fac(0)
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
-    train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
+    train_model = CachePPOTransformerModelPool(**cfg.model_config).to(  # where defined the attacker 
         cfg.train_device)
     attacker_checkpoint = cfg.attacker_checkpoint
     if len(attacker_checkpoint) > 0:
@@ -74,8 +74,8 @@ def main(cfg):
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### detector
-    cfg.model_config["output_dim"] = 2
-    cfg.model_config["step_dim"] += 2
+    cfg.model_config["output_dim"] = 2  # output dim = action space
+    cfg.model_config["step_dim"] += 2  # means dim for episode length. discrete 0 to 63 to 
     train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(  # TODO
         cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
@@ -207,11 +207,11 @@ def main(cfg):
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list
-    ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
-    td_ma_fac = {"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
-    ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
-    ed_ma_fac = {"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
-
+    ta_ma_fac = {"benign": t_b_fac, "attacker": ta_agent_fac, "detector": ta_d_fac}
+    td_ma_fac = {"benign": t_b_fac, "attacker": td_agent_fac, "detector": td_d_fac}
+    ea_ma_fac = {"benign": e_b_fac, "attacker": ea_agent_fac, "detector": ea_d_fac}
+    ed_ma_fac = {"benign": e_b_fac, "attacker": ed_agent_fac, "detector": ed_d_fac}
+    # ta_train attacker 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
                           ta_ctrl,
@@ -221,7 +221,7 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    td_loop = MAParallelLoop(env_fac,
+    td_loop = MAParallelLoop(env_fac, # change to env_fac_unbalanve
                           td_ma_fac,
                           td_ctrl,
                           running_phase=Phase.TRAIN_DETECTOR,
@@ -230,7 +230,7 @@ def main(cfg):
                           num_workers=cfg.num_train_workers,
                           seed=cfg.train_seed,
                           episode_callbacks=my_callbacks)
-    ea_loop = MAParallelLoop(env_fac_unbalanced,
+    ea_loop = MAParallelLoop(env_fac_unbalanced, # evaluation ea = eval. attacker
                           ea_ma_fac,
                           ea_ctrl,
                           running_phase=Phase.EVAL_ATTACKER,
@@ -267,7 +267,7 @@ def main(cfg):
             agent.set_use_history(True)
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
-            #wandb_logger.save(epoch, train_model_d, prefix="detector-")
+            # wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
             if epoch % 10 == 9:
@@ -282,7 +282,7 @@ def main(cfg):
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(0)
-            #wandb_logger.save(epoch, train_model, prefix="attacker-")
+            # wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:
@@ -306,7 +306,7 @@ def main(cfg):
         a_stats = agent.eval(cfg.num_eval_episodes)
         agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
         d_stats = agent_d.eval(cfg.num_eval_episodes)
-        #stats = d_stats
+        # stats = d_stats
         stats = a_stats
 
         cur_time = time.perf_counter() - start_time
@@ -325,11 +325,13 @@ def main(cfg):
     loops.terminate()
     servers.terminate()
 
+
 def add_prefix(input_dict, prefix=''):
     res = {}
     for k,v in input_dict.items():
         res[prefix+str(k)]=v
     return res
+
 
 if __name__ == "__main__":
     mp.set_start_method("spawn")

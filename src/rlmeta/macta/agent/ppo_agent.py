@@ -1,16 +1,11 @@
 import time
-
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
-
 import torch
 import torch.nn as nn
-
 from rich.console import Console
 from rich.progress import track
-
 import rlmeta.utils.data_utils as data_utils
 import rlmeta.utils.nested_utils as nested_utils
-
 from rlmeta.agents.agent import Agent
 from rlmeta.core.controller import Controller, ControllerLike, Phase
 from rlmeta.core.model import ModelLike
@@ -76,7 +71,7 @@ class PPOAgent(PPOAgent):
         return Action(action, info={"logpi": logpi, "v": v})
 
     def train(self, num_steps: int) -> Optional[StatsDict]:
-        #self.controller.set_phase(Phase.TRAIN, reset=True)
+        # self.controller.set_phase(Phase.TRAIN, reset=True)
 
         self.replay_buffer.warm_up(self.learning_starts)
         stats = StatsDict()
@@ -98,18 +93,18 @@ class PPOAgent(PPOAgent):
             if step % self.push_every_n_steps == self.push_every_n_steps - 1:
                 self.model.push()
 
-        #push the last checkpoint to the model history checkpoint
-        #try:
-        #    self.model.push_to_history()
-        #except:
-        #    pass
+        # push the last checkpoint to the model history checkpoint
+        # try:
+        #     self.model.push_to_history()
+        # except:
+        #     pass
         episode_stats = self.controller.get_stats()
         stats.update(episode_stats)
 
         return stats
 
     def eval(self, num_episodes: Optional[int] = None) -> Optional[StatsDict]:
-        #self.controller.set_phase(Phase.EVAL, limit=num_episodes, reset=True)
+        # self.controller.set_phase(Phase.EVAL, limit=num_episodes, reset=True)
         while self.controller.get_count() < num_episodes:
             time.sleep(1)
         stats = self.controller.get_stats()
@@ -128,7 +123,7 @@ class PPOAgent(PPOAgent):
         # https://arxiv.org/pdf/1912.09729.pdf
         if self.dual_clip is not None:
             # Assume self.dual_clip > 1 + self.eps_clip.
-            # If adv > 0, ratio > self.dual_clip -> raito > 1 + self.eps_clip.
+            # If adv > 0, ratio > self.dual_clip -> ratio > 1 + self.eps_clip.
             # If adv < 0, ratio will be dual clipped.
             ratio = ratio.clamp_max(self.dual_clip)
 

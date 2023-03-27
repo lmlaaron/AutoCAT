@@ -2,13 +2,13 @@ import os
 import sys
 
 from typing import Any, Dict
-
 from rlmeta.envs.env import Env, EnvFactory
 
 from .cache_attacker_detector_env import CacheAttackerDetectorEnv
-from utils.gym_wrappers import GymWrapper, MAGymWrapper
+from utils.gym_wrappers import GymWrapper, MAGymWrapper  #
 
 
+# MACTA
 class CacheAttackerDetectorEnvFactory(EnvFactory):
     def __init__(self, env_config: Dict[str, Any]) -> None:
         self._env_config = env_config
@@ -21,3 +21,4 @@ class CacheAttackerDetectorEnvFactory(EnvFactory):
         env = CacheAttackerDetectorEnv(self.env_config)
         env = MAGymWrapper(env)
         return env
+
