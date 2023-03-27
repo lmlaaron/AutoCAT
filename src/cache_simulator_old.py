@@ -21,9 +21,10 @@ def main():
     if arguments['log_file']:
         log_filename = arguments['log_file']
 
-    result_file = 'result.txt'
+    result_file = ''
     if arguments['result_file']:
         result_file = arguments['result_file']
+    #print(result_file)
 
     with open(result_file, 'w'):
         pass
@@ -85,7 +86,10 @@ def print_cache(cache):
         sets.append(ways)
         if len(set_indexes) > table_size + 4 - 1:
             for s in range(min(table_size, len(set_indexes) - 4)):
+                #set_ways = cache.data[set_indexes[s]].keys()
                 temp_way = ["Set " + str(s)]
+                #for w in set_ways:
+                #    temp_way.append(cache.data[set_indexes[s]][w].address)
                 for w in range(0, cache.associativity):
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
                 sets.append(temp_way)
@@ -96,13 +100,16 @@ def print_cache(cache):
                     temp_way.append('')
                 sets.append(temp_way)
             
-            ##set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
+            set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
             temp_way = ['Set ' + str(len(set_indexes) - 1)]
             for w in range(0, cache.associativity):
                 temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w][1].address)
+            #for w in set_ways:
+            #    temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w].address)
             sets.append(temp_way)
         else: 
             for s in range(len(set_indexes)):
+                #set_ways = cache.data[set_indexes[s]].keys()
                 temp_way = ["Set " + str(s)]
                 for w in range(0, cache.associativity):
                     temp_way.append(cache.data[set_indexes[s]][w][1].address)
@@ -111,6 +118,7 @@ def print_cache(cache):
         table = UnixTable(sets)
         table.title = cache.name
         table.inner_row_border = True
+        #print("\n")
         print(table.table)
 
 #Loop through the instructions in the tracefile and use
@@ -119,53 +127,40 @@ def simulate(hierarchy, trace, logger, result_file=''):
     responses = []
     if result_file != '':
         f = open(result_file, 'w')
+    #print(result_file)
     #We only interface directly with L1. Reads and writes will automatically
     #interact with lower levels of the hierarchy
     l1 = hierarchy['cache_1']
-    if 'cache_1_core_2' in hierarchy:
-        l1_c2 = hierarchy['cache_1_core_2']
     for current_step in range(len(trace)):
         instruction = trace[current_step]
         address, op = instruction.split()
         #Call read for this address on our memory hierarchy
-        if op == 'R' or op == 'R2':
-            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            if op == 'R2':
-                l = l1_c2
-            else:
-                l = l1
-            r, _, _, _ = l.read(address, current_step)
+        if op == 'R':
+            logger.info(str(current_step) + ':\tReading ' + address)
+            r, _, _ = l1.read(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RL' or op == 'RL2':      # pl cache lock cacheline
+        elif op == 'RL':      # pl cache lock cacheline
             assert(l1.rep_policy == plru_pl_policy) # must be pl cache 
-            # multilcore not implemented
-            assert(op == 'RL')
-            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            logger.info(str(current_step) + ':\tReading ' + address)
+            r, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        elif op == 'RU' or op == 'RU2':      # pl cache unlock cacheline
+        elif op == 'RU':      # pl cache unlock cacheline
             assert(l1.rep_policy == plru_pl_policy)
-            # multilcore not implemented
-            assert(op == 'RU')
-            logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
+            logger.info(str(current_step) + ':\tReading ' + address)
+            r, _, _ = l1.read(address, current_step, pl_opt = PL_UNLOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         #Call write
-        elif op == 'W' or op == 'W2':
-            # multilcore not implemented
-            #assert(op == 'W')
-            logger.info(str(current_step) + ':\tWriting ' + address + ' ' + op)
-            r, _, _= l1.write(address, True, current_step)
+        elif op == 'W':
+            logger.info(str(current_step) + ':\tWriting ' + address)
+            r, _, _ = l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         #Call cflush
-        elif op == 'F' or op == 'F2':
-            ## multilcore not implemented
-            #assert(op == 'F')
-            logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
+        elif op == 'F':
+            logger.info(str(current_step) + ':\tFlushing ' + address)
             r, _, _ = l1.cflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
         else:
@@ -180,6 +175,40 @@ def simulate(hierarchy, trace, logger, result_file=''):
     
     logger.info('Simulation complete')
     analyze_results(hierarchy, responses, logger)
+
+#Loop through the instructions in the tracefile and use
+#the given memory hierarchy to find AMAT
+def interactive_simulate(hierarchy, logger):
+    return
+    #responses = []
+    ##We only interface directly with L1. Reads and writes will automatically
+    ##interact with lower levels of the hierarchy
+    #l1 = hierarchy['cache_1']
+    #for current_step in range(len(trace)):
+    #    instruction = trace[current_step]
+    #    address, op = instruction.split()
+    #    #Call read for this address on our memory hierarchy
+    #    if op == 'R':
+    #        logger.info(str(current_step) + ':\tReading ' + address)
+    #        r = l1.read(address, current_step)
+    #        logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+    #        responses.append(r)
+    #    #Call write
+    #    elif op == 'W':
+    #        logger.info(str(current_step) + ':\tWriting ' + address)
+    #        r = l1.write(address, True, current_step)
+    #        logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+    #        responses.append(r)
+    #    else:
+    #        raise InvalidOpError
+    #    
+    #    if int(address, 16) >= l1.block_size * l1.n_blocks :   # receiver adress space is larger than the cache size, receiver is able to measure time      
+    #        print('trace ' + address + ' ' + str(r.time) + '\n' ) 
+    #    else:  # senders address space is within the cache size, sender do not measure time
+    #        print('trace ' + address + ' -1\n')
+
+    #logger.info('Simulation complete')
+    #analyze_results(hierarchy, responses, logger)
 
 def analyze_results(hierarchy, responses, logger):
     #Parse all the responses from the simulation
@@ -240,20 +269,17 @@ def build_hierarchy(configs, logger):
         cache_2 = build_cache(configs, 'cache_2', prev_level, logger)
         prev_level = cache_2
         hierarchy['cache_2'] = cache_2
-    if 'cache_1_core_2' in configs.keys():
-        cache_1_core_2 = build_cache(configs, 'cache_1_core_2', prev_level, logger)
-        prev_level = cache_2
-        hierarchy['cache_1_core_2'] = cache_1_core_2        
     #Cache_1 is required
     cache_1 = build_cache(configs, 'cache_1', prev_level, logger)
-    if 'cache_1_core_2' in configs.keys(): 
-        cache_1.add_same_level_cache(cache_1_core_2)
-        cache_1_core_2.add_same_level_cache(cache_1)
-    #print(len(cache_1.same_level_caches))
     hierarchy['cache_1'] = cache_1
     return hierarchy
 
 def build_cache(configs, name, next_level_cache, logger):
+    #if name == 'cache_1':
+        #print(configs[name])
+        #print(name)
+        #print(configs[name]['prefetcher'] )
+        #assert(False)
     return cache.Cache(name,
                 configs['architecture']['word_size'],
                 configs['architecture']['block_size'],

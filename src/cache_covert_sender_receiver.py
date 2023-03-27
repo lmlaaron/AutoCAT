@@ -35,6 +35,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #print(self._env.victim_address_space)
         #assert(-1)
 
+
         self.victim_secret_min = self._env.victim_address_min 
         self.victim_secret_max = self._env.victim_address_max
 
@@ -43,6 +44,14 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self.attacker_address_max = self._env.attacker_address_max
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
+
+
+
+        # add noise
+        self.noise_prob = env_config.get("noise_prob", 0) 
+        self.noise_address_min = env_config.get("noise_address_min", self._env.victim_address_min)
+        self.noise_address_max = env_config.get("noise_address_max", self._env.victim_address_max) 
+
 
         self.sender_action_space = spaces.Discrete(self.victim_address_max - self.victim_address_min + 1)
         #self.receiver_action_space = self._env.action_space
@@ -66,7 +75,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         #####self.opponent_agent = random.choices(['benign','attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'sender': True, 'receiver': True} #{'detector':True, 'attacker':self.opponent_agent=='attacker', 'benign':self.opponent_agent=='benign'}
         self.step_count = 0
-        print("ma victim_address " + str(victim_address) )
+        #print("ma victim_address " + str(victim_address) )
         opponent_obs = self._env.reset(victim_address=victim_address,
                                        reset_cache_state=False)
         self.victim_address = self._env.victim_address
@@ -187,8 +196,14 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         ######        self._env.set_victim(benign_victim_addr) 
         ######        self.victim_address = self._env.victim_address
 
+        ##### inject noise
+        if random.random() < self.noise_prob:
+            noise_action = random.randint(self.noise_address_min, self.noise_address_max)
+            self._env.noise_step(noise_action)
+
         ##### receiver does a step
         receiver_obs, receiver_reward, receiver_done, receiver_info = self._env.step(action['receiver'])#self.opponent_agent])
+        
         if receiver_done:
             receiver_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address

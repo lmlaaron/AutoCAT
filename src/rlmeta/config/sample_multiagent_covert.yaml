@@ -35,9 +35,10 @@ seed: 123 #123 1234 12345
 #detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-06/13-51-28/sender-29.pth"
 #attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-08/12-58-27/receiver-22.pth"
 #detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-08/12-58-27/sender-19.pth"
-attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/receiver-13.pth"
-detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/sender-9.pth"
-
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/receiver-13.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/sender-9.pth"
+attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-26/17-23-19/receiver-21.pth"
+detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-26/17-23-19/sender-19.pth"
 
 #IBRPPO-fp10
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/attacker-2049.pth"
