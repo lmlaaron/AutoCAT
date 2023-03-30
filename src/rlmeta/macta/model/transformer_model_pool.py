@@ -10,7 +10,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# /home/geunbae/rlmeta/rlmeta
 import rlmeta.core.remote as remote
 import rlmeta.utils.nested_utils as nested_utils
 from rlmeta.agents.ppo.ppo_model import PPOModel

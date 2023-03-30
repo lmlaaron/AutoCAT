@@ -174,6 +174,7 @@ class MAAsyncLoop(MALoop, Launchable):
                 await asyncio.sleep(1)
             stats = await self._run_episode(index, env, agent,
                                             episode_callbacks)
+            print('stats from maloop, L175', stats)
             if stats is not None:
                 await self._controller.async_add_episode(
                     self._running_phase, stats)
@@ -207,6 +208,8 @@ class MAAsyncLoop(MALoop, Launchable):
                 if timestep[k].info is None:
                     timestep[k].info = {}
                 timestep[k].info.update({"episode_reset":True})
+                #timestep[k].info.update({"episode_reset":False})
+                print('timestep[k] from maloop L211: ', timestep[k])
                 await agent[k].async_observe_init(timestep[k])
         if episode_callbacks is not None:
             episode_callbacks.on_episode_init(index, timestep)
@@ -218,10 +221,17 @@ class MAAsyncLoop(MALoop, Launchable):
             for k,v in agent.items():
                 action[k] = await v.async_act(timestep[k])
             timestep = env.step(action)
+            #print('timestep from maloop, L222', timestep)
             
             for k,v in agent.items():
                 if env.action_mask[k]:
+                    print('action[k] from maloop', action[k])
+                    #print('timestep[k] from maloop ', timestep[k])
                     await v.async_observe(action[k], timestep[k])
+                    
+                    print('k is: ', k) # shows attacker, then defender
+                    print('v is: ', v) # <agent.ppo_agent.PPOAgent object at 0x7f14b44a1cd0>, 
+                                       # <agent.ppo_agent.PPOAgent object at 0x7f14b44a1d90>
             if self.should_update:
                 for k,v in agent.items():
                     if env.action_mask[k]:

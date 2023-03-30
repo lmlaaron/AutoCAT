@@ -51,7 +51,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.action_mask = {'defender': True, 'attacker': self.opponent_agent == 'attacker',
                             'benign': self.opponent_agent == 'benign'}
         self.step_count = 0
-        self.max_step = env_config.get('max_step', 20)
+        self.max_step = env_config.get('max_step', 64)
         self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
         self.random_domain = random.choice([0, 1])
         self.defender_reward_scale = env_config.get('defender_reward_scale', 1)
@@ -74,7 +74,8 @@ class CacheAttackerDefenderEnv(gym.Env):
         opponent_obs = self._env.reset(victim_address=-1, reset_cache_state=False)
         self.victim_address = victim_address
         self.random_domain = random.choice([0, 1])
-        self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
+        #self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
+        self.defender_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.step_count = 0
         obs = {'defender': np.array(list(reversed(self.defender_obs))), 'attacker': opponent_obs,
                'benign': opponent_obs}
@@ -106,6 +107,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 cur_opponent_obs[2] = opponent_info['attacker_address']
 
             cur_opponent_obs[3] = self.step_count
+            print('action of attacker: ', cur_opponent_obs[2])
 
             # accommodate different no of actions of defender according to set no
             #for i in range(0, self.n_sets):
@@ -115,11 +117,12 @@ class CacheAttackerDefenderEnv(gym.Env):
 
         latency = int(cur_opponent_obs[0])
 
-        return np.array(list(reversed(self.defender_obs)), dtype=object), latency
+        return np.array(list(reversed(self.defender_obs))), latency
 
     def compute_reward(self, action, latency, reward, opponent_done, opponent_attack_success=False):
 
         action_defender = action['defender']
+        action_attacker = action['attacker']
         defender_success = False
         defender_reward = 0
 
@@ -159,40 +162,42 @@ class CacheAttackerDefenderEnv(gym.Env):
         """ Defender's actions: No of actions matches with the lockbits for n-ways
             1. unlock a set using lock_bit == 0000, means all way_no are unlocked
             2. or lock a set using lock_bit == 0001, means lock way_no = 3 """
-        # print_cache(self._env.l1)
 
         obs = {}
         reward = {}
         done = {'__all__': False}
         info = {}
         action_info = action.get('info')
+        defender_done = False
 
         if isinstance(action, np.ndarray):
             action = action.item()
-
+            #print('action from isinstance', action)
         ''' defender's action '''
         n_sets = self.n_sets
-
+        #print(action)
+        #print(n_sets)
+        
         for set_index in range(0, n_sets):
-            # print('set_index', set_index, 'defenders action: ', action['defender'][set_index])
+            #print('set_index', set_index, 'defenders action: ', action['defender'], action['defender'][set_index])
+ 
+            #print(action['defender'])
+            
             if self.associativity == 1:
                 lock_bit = int(action['defender'][set_index])
 
             else:
-                #print(action['defender'])
-                lock_bit = bin((action['defender'][set_index]))[2:].zfill(self.associativity)
-                #lock_bit = bin(int(action['defender'][set_index]))[2:].zfill(self.associativity)
-                #print(lock_bit)
-                assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
+                if isinstance(action['defender'], list):
+                    lock_bit = bin((action['defender'][set_index]))[2:].zfill(self.associativity)
+                    assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
+                else:  # for 1set cache configs
+                    lock_bit = bin((action['defender']))[2:].zfill(self.associativity)
+                    assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
 
             self._env.lock_l1(set_index, lock_bit)
-
-        #defender_sum = 0
-        #for set_index in range(0, n_sets):
-        #    defender_sum += int(action['defender'][set_index])
-        #action['defender'] = defender_sum
-        #print(action['defender'])
-
+         
+        print('action of defender: ', action['defender'])  
+            
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
             benign_victim_addr = action_info.get('victim_addr', None)
@@ -207,7 +212,7 @@ class CacheAttackerDefenderEnv(gym.Env):
             opponent_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address
             self.step_count -= 1  # The reset/guess step should not be counted
-            defender_done = False
+            
 
         elif self.step_count >= self.max_step:
             defender_done = True  # will not terminate the episode
@@ -240,20 +245,25 @@ class CacheAttackerDefenderEnv(gym.Env):
         info['defender'].update(opponent_info)
 
         self.step_count += 1
-        # criteria to determine weather the game is done
-        if self.step_count >= self.max_step:
+        
+        # criteria to determine wheather the game is done
+        if defender_done:
             done['__all__'] = True
 
         info['__all__'] = {'action_mask': self.action_mask}
 
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
-
-        #print_cache(self._env.l1)  # TODO: create a new func in _env then use it. do not call funcs inside a wrapper
+        print(info)
+        print('actions: ', action)  
+        print('obs: ', obs)
+        
+        #print_cache(self._env.l1)
+        
         return obs, reward, done, info
 
 
-@hydra.main(config_path="../config", config_name="macta_defense")  # TODO update config_name
+@hydra.main(config_path="../config", config_name="macta_defense") 
 def main(cfg):
     # checks the parameter setting for training and cache configuration
     env = CacheAttackerDefenderEnv(cfg.env_config)
@@ -261,8 +271,8 @@ def main(cfg):
     done = {'__all__': False}
 
     ''' for unit test '''
-    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s2w.txt')
-    # test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s4w.txt')
+    #test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s2w.txt')
+    test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s4w.txt')
     # test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_1s8w.txt')
     # test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_2s4w.txt')
     # test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_4s1w.txt')
@@ -270,7 +280,8 @@ def main(cfg):
     # test_action = open('/home/geunbae/CacheSimulator/env_test/rep_policy/rldefense/lru_lock_8s1w.txt')
     trace = test_action.read().splitlines()
     actions_list = [list(map(int, x.split())) for x in trace]
-    actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2:]} for values in actions_list]
+    actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2]} for values in actions_list]
+    print('actions: ', actions)
     i = 0
     for k in range(1):
         while not done['__all__'] and i < len(actions):
@@ -279,17 +290,21 @@ def main(cfg):
             print('attackers action: ', action['attacker'])
             obs, reward, done, info = env.step(action)
             for set_index in range(0, env.n_sets):
-                action['defender'] = [actions[i]['defender'][set_index]]
+                if isinstance(action['defender'], list):
+                    action['defender'] = [actions[i]['defender'][set_index]]
+                else:
+                    action['defender'] = [actions[i]['defender']]
                 # print('defenders action at set_index {}:'.format(set_index), action['defender'])
-            # print("observation of defender: ", '\n', obs['defender'])
-            # print('attackers info:', info['attacker'])
-            # print('defenders info:', info['defender'])
+            #print("observation of defender: ", '\n', obs['defender'])
+            print('attackers info:', info['attacker'])
+            print('defenders info:', info['defender'])
             # print("action: ", action)
 
             print("reward:", reward)
             i += 1
 
         done = {'__all__': False}
+        print(done)
 
 
 if __name__ == "__main__":

@@ -122,8 +122,8 @@ class AttackerCacheGuessingGameEnv(gym.Env):
 
         # modified for variable feature size in wrapper for defender
         self.feature_size = 3 + self.n_sets
-        self.state = deque([[-1] * (3 + self.n_sets)] * self.window_size)
-        #self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+        #self.state = deque([[-1] * (3 + self.n_sets)] * self.window_size)
+        self.state = deque([[-1, -1, -1, -1]] * self.window_size)
         
 
         self.step_count = 0
@@ -238,7 +238,7 @@ class AttackerCacheGuessingGameEnv(gym.Env):
 
         original_action = action
         action = self.parse_action(original_action)  # , self.flush_inst)
-        address = hex(action[0] + self.attacker_address_min)[2:]  # attacker address in attacker_address_space
+        address = hex(action[0] + self.attacker_address_min)[2:]  # attacker addr in attacker_address_space
         is_guess = action[1]  # check whether to guess or not
         is_victim = action[2]  # check whether to invoke victim
         is_flush = action[3]  # check whether to flush
@@ -247,11 +247,11 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         info['attacker_address'] = action[0]
 
         ''' The actual stepping logic
-    1. first check if the length is over the window_size. if not, go to 2, otherwise terminate
-    2. second check if it is a victim access. if so go to 3, otherwise go to 4
-    3. check if the victim can be accessed according to these options. if so make the access, if not terminate
-    4. check if it is a guess, if so, evaluate the guess, if not go to 5. if not, terminate
-    5. do the access, first check if it is a flush, if so do flush, if not, do normal access '''
+        1. first check if the length is over the window_size. if not, go to 2, otherwise terminate
+        2. second check if it is a victim access. if so go to 3, otherwise go to 4
+        3. check if the victim can be accessed according to these options. if so make the access, if not terminate
+        4. check if it is a guess, if so, evaluate the guess, if not go to 5. if not, terminate
+        5. do the access, first check if it is a flush, if so do flush, if not, do normal access '''
 
         victim_latency = None
         # if self.current_step > self.window_size : # if current_step is too long, terminate
@@ -374,13 +374,7 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         else:
             victim_accessed = 0
 
-            # 77 is a dummy value not used in this env
-        # if 1 set, append 1 dummy value per the no of defender's actions on set nos
-        # if 2 sets, append 2 dummy values
         atk_obs_feature = [r, victim_accessed, original_action, self.step_count]
-        #for _ in range(self.n_sets):
-        #    atk_obs_feature.append(77)
-
         self.state.append(atk_obs_feature)
         self.state.popleft()
         self.step_count += 1
@@ -417,7 +411,7 @@ class AttackerCacheGuessingGameEnv(gym.Env):
 
         info["cache_state_change"] = cache_state_change
 
-        return np.array(list(reversed(self.state)), dtype=object), reward, done, info
+        return np.array(list(reversed(self.state))), reward, done, info
 
     def reset(self, victim_address=-1,
               reset_cache_state=False,
@@ -443,8 +437,8 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         ''' reset_observation '''
         # modified for variable feature size in wrapper for defender
         if reset_observation:
-            self.state = deque([[-1] * (3 + self.n_sets)] * self.window_size)
-            #self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+            #self.state = deque([[-1] * (3 + self.n_sets)] * self.window_size)
+            self.state = deque([[-1, -1, -1, -1]] * self.window_size)
             self.step_count = 0
 
         self.reset_time = 0

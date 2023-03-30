@@ -84,7 +84,7 @@ def main(cfg):
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
     '''
     #### defender
-    cfg.model_config["output_dim"] = 4  # output_dim = action space
+    cfg.model_config["output_dim"] = 16  # output_dim = action space
     cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModel(**cfg.model_config).to(
         cfg.train_device_d)
@@ -239,14 +239,14 @@ def main(cfg):
     ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
-    #### create agent list
+    #### create agent list - MACTA
     '''
     ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
     td_ma_fac = {"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
     ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
     ed_ma_fac = {"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
     '''
-    # RLdefense
+    # create agent list - RLdefense
     ta_ma_fac = {"benign": t_b_fac, "attacker": ta_agent_fac, "defender": ta_d_fac}
     td_ma_fac = {"benign": t_b_fac, "attacker": td_agent_fac, "defender": td_d_fac}
     ea_ma_fac = {"benign": e_b_fac, "attacker": ea_agent_fac, "defender": ea_d_fac}

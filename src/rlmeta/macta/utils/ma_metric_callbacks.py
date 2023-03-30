@@ -18,13 +18,27 @@ class MACallbacks(EpisodeCallbacks):
         if attacker_info["is_guess"] and attacker_info['action_mask']['attacker']:
             self.tot_guess += 1
             self.acc_guess += int(attacker_info["guess_correct"])
-        detector_info = timestep['detector'].info
+        #detector_info = timestep['detector'].info
+        defender_info = timestep['defender'].info
+        
         #self.tot_detect += 1
         #self.acc_detect += int(detector_info["guess_correct"])
+        '''
         if timestep['detector'].done:
             self.tot_detect = 1
             self.acc_detect += int(detector_info["guess_correct"])
             self._custom_metrics["detector_correct_rate"] = self.acc_detect / self.tot_detect
+            if attacker_info['action_mask']['attacker']:
+                if self.tot_guess>0:
+                    self._custom_metrics["attacker_correct_rate"] = self.acc_guess / float(self.tot_guess)
+                self._custom_metrics["num_total_guess"] = float(self.tot_guess)
+                self._custom_metrics["num_total_attacks"] = float(self.acc_guess)
+        '''    
+        
+        if timestep['defender'].done: # TODO
+            self.tot_detect = 1
+            self.acc_detect += int(defender_info["guess_correct"])
+            self._custom_metrics["defender_correct_rate"] = self.acc_detect / self.tot_detect
             if attacker_info['action_mask']['attacker']:
                 if self.tot_guess>0:
                     self._custom_metrics["attacker_correct_rate"] = self.acc_guess / float(self.tot_guess)
