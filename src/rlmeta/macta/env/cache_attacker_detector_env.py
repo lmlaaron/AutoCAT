@@ -174,6 +174,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         else:
             detector_done = False
         if action["detector"] == 1:  # Raise Hard Flag
+            print(type(action['detector']))
             detector_done = True  # Terminate the episode
         # attacker
         obs['attacker'] = opponent_obs
@@ -213,7 +214,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         return obs, reward, done, info
 
 
-@hydra.main(config_path="../config", config_name="macta_ppo")
+@hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
     env = CacheAttackerDetectorEnv(cfg.env_config)
     env.opponent_weights = [0, 1]

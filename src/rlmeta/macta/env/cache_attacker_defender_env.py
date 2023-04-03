@@ -33,8 +33,9 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.blocks = cache_1_config.get('blocks', 2)
         self.associativity = cache_1_config.get('associativity', 2)
         self.n_sets = int(self.blocks / self.associativity)
-        self.action_space_size = env_config.get('action_space_size', 16)  # action_space_size = 2 ^ associativity
-        self.action_space = spaces.Discrete(self.action_space_size)
+        #self.action_space_size = env_config.get('action_space_size', 16)  # action_space_size = 2 ^ associativity
+        #self.action_space = spaces.Discrete(self.action_space_size)
+        self.action_space = self._env.action_space
         self.victim_address_min = env_config.get('victim_addr_s', 9)
         self.victim_address_max = env_config.get('victim_addr_e', 9)
         self.victim_address = self._env.victim_address
@@ -69,14 +70,17 @@ class CacheAttackerDefenderEnv(gym.Env):
         """ returned obs = { agent_name : obs } """
         ''' Episode termination: when there is length violation '''
         self.opponent_agent = random.choices(['benign', 'attacker'], weights=self.opponent_weights, k=1)[0]
-        self.action_mask = {'defender': True, 'attacker': self.opponent_agent == 'attacker',
+        self.action_mask = {'defender': True, 
+                            'attacker': self.opponent_agent == 'attacker',
                             'benign': self.opponent_agent == 'benign'}
-        opponent_obs = self._env.reset(victim_address=-1, reset_cache_state=False)
+        self.step_count = 0
+        opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=False)
         self.victim_address = victim_address
+        self.defender_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0, 1])
         #self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
-        self.defender_obs = deque([[-1, -1, -1, -1]] * self.max_step)
-        self.step_count = 0
+        
+        
         obs = {'defender': np.array(list(reversed(self.defender_obs))), 'attacker': opponent_obs,
                'benign': opponent_obs}
         return obs
@@ -107,7 +111,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 cur_opponent_obs[2] = opponent_info['attacker_address']
 
             cur_opponent_obs[3] = self.step_count
-            print('action of attacker: ', cur_opponent_obs[2])
+            #print('action of attacker: ', cur_opponent_obs[2])
 
             # accommodate different no of actions of defender according to set no
             #for i in range(0, self.n_sets):
@@ -144,6 +148,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                 defender_reward = self.def_benign_reward
 
             # 4. Gets 0 penalty for any defenders action
+            #elif isinstance(action_defender, int):
             elif isinstance(action_defender, int):
                 defender_reward = self.def_action_reward
 
@@ -170,14 +175,24 @@ class CacheAttackerDefenderEnv(gym.Env):
         action_info = action.get('info')
         defender_done = False
 
+        '''
         if isinstance(action, np.ndarray):
-            action = action.item()
+            action['defender'] = action.item()
+            #print('data type of action[defender] :', type(action['defender']))
             #print('action from isinstance', action)
+        '''  
+            
         ''' defender's action '''
         n_sets = self.n_sets
         #print(action)
         #print(n_sets)
         
+        if isinstance(action['defender'], int):
+            for set_index in range(0, n_sets):
+                lock_bit = bin((action['defender']))[2:].zfill(self.associativity)
+            self._env.lock_l1(set_index, lock_bit)
+        
+        '''
         for set_index in range(0, n_sets):
             #print('set_index', set_index, 'defenders action: ', action['defender'], action['defender'][set_index])
  
@@ -186,8 +201,8 @@ class CacheAttackerDefenderEnv(gym.Env):
             if self.associativity == 1:
                 lock_bit = int(action['defender'][set_index])
 
-            else:
-                if isinstance(action['defender'], list):
+            else: 
+                if isinstance(action['defender'], list):  # for multi-set cache configs # TODO: needs to convert to 1 value
                     lock_bit = bin((action['defender'][set_index]))[2:].zfill(self.associativity)
                     assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
                 else:  # for 1set cache configs
@@ -195,8 +210,8 @@ class CacheAttackerDefenderEnv(gym.Env):
                     assert len(lock_bit) == int(self.associativity), f"Lock bit length does not match associativity"
 
             self._env.lock_l1(set_index, lock_bit)
-         
-        print('action of defender: ', action['defender'])  
+        '''
+        #print('action of defender: ', action['defender'])  
             
         if action_info:
             benign_reset_victim = action_info.get('reset_victim_addr', False)
@@ -241,7 +256,8 @@ class CacheAttackerDefenderEnv(gym.Env):
         reward['defender'] = updated_reward['defender']
 
         done['defender'] = defender_done
-        info['defender'] = {"guess_correct": updated_info["guess_correct"], "is_guess": bool(action['defender'])}
+        info['defender'] = {"guess_correct": updated_info["guess_correct"]} #, "is_guess": bool(action['defender'])}
+        #info['defender'] = {"guess_correct": updated_info["guess_correct"], "is_guess": bool(action['defender'])}
         info['defender'].update(opponent_info)
 
         self.step_count += 1
@@ -254,9 +270,9 @@ class CacheAttackerDefenderEnv(gym.Env):
 
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
-        print(info)
+        #print(info)
         print('actions: ', action)  
-        print('obs: ', obs)
+        #print('obs: ', obs)
         
         #print_cache(self._env.l1)
         

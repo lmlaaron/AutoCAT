@@ -18,14 +18,14 @@ cd_server_addr: "127.0.0.1:4733"
 
 train_device: "cuda:0"
 infer_device: "cuda:1"
-train_device_d: "cuda:1" #"cuda:2"
-infer_device_d: "cuda:0" #"cuda:3"
+train_device_d: "cuda:0" #"cuda:2"
+infer_device_d: "cuda:1" #"cuda:3"
 
-num_train_rollouts: 16 #72 #48 #24
-num_train_workers: 8  #24
+num_train_rollouts: 1 #72 #48 #24
+num_train_workers: 1  #24
 
-num_eval_rollouts: 12 #2
-num_eval_workers: 4 #2
+num_eval_rollouts: 1 #2
+num_eval_workers: 1 #2
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
 # attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"

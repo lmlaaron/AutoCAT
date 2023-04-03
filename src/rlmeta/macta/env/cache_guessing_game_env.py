@@ -627,7 +627,7 @@ class CacheGuessingGameEnv(gym.Env):
         addr = random.randint(0, sys.maxsize)
       else:
         raise RuntimeError from None
-      self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step)#, domain_id='X')
       self.current_step += 1
 
   def get_obs_space_dim(self):

@@ -50,6 +50,7 @@ def main(cfg):
     benign_env_config = copy.deepcopy(cfg.env_config)
     benign_env_config["opponent_weights"] = [1, 0]  # 100% benign
     env_fac_benign = CacheAttackerDefenderEnvFactory(benign_env_config)
+    print("\033[31m" + "configs check: " + "\033[0m", cfg.env_config)
     # =========================================================================
 
     #### Define model
@@ -94,6 +95,7 @@ def main(cfg):
     infer_model_d.eval()
 
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
+    print('1' * 20)
     
     # =========================================================================
 
@@ -238,7 +240,7 @@ def main(cfg):
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
     ea_d_fac = AgentFactory(PPOAgent, ea_model_d, deterministic_policy=True)
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
-
+    print('2' * 20)
     #### create agent list - MACTA
     '''
     ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
@@ -251,7 +253,7 @@ def main(cfg):
     td_ma_fac = {"benign": t_b_fac, "attacker": td_agent_fac, "defender": td_d_fac}
     ea_ma_fac = {"benign": e_b_fac, "attacker": ea_agent_fac, "defender": ea_d_fac}
     ed_ma_fac = {"benign": e_b_fac, "attacker": ed_agent_fac, "defender": ed_d_fac}
-    
+    print('3' * 20)
 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
@@ -299,11 +301,12 @@ def main(cfg):
     agent.connect()
     agent_d.connect()
     a_ctrl.connect()
-
+    print('4' * 20)
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
+        print('6' * 20)
         if epoch % 100 >= 50:
             '''
             # Train Detector
@@ -313,6 +316,7 @@ def main(cfg):
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             '''
             # Train Defender
+            print('7' * 20)
             agent_d.controller.set_phase(Phase.TRAIN_DEFENDER, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             # wandb_logger.save(epoch, train_model_d, prefix="defender-")
@@ -320,6 +324,7 @@ def main(cfg):
 
         else:
             # Train Attacker
+            print('8' * 20)
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
             if epoch >= 50:
                 a_stats = agent.train(cfg.steps_per_epoch)
@@ -366,7 +371,7 @@ def main(cfg):
 
         # wandb_logger.log(train_stats, eval_stats)
 
-
+    print('5' * 20)
     loops.terminate()
     servers.terminate()
 
