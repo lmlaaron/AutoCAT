@@ -26,7 +26,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         self.reset_observation = env_config.get("reset_observation", False)
         self.keep_latency = keep_latency
         self.env_config = env_config
-        self.episode_length = env_config.get("episode_length", 80)
+        self.episode_length = env_config.get("episode_length", 2000020)
         self.threshold = env_config.get("threshold", 0.8)
 
         self._env = CacheGuessingGameEnv(env_config)
@@ -49,7 +49,7 @@ class CacheAttackerDetectorEnv(gym.Env):
             'benign': self.opponent_agent == 'benign'
         }
         self.step_count = 0
-        self.max_step = 64
+        self.max_step = 2000000
         self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0, 1])
         self.detector_reward_scale = 0.1  #1.0

@@ -1,4 +1,4 @@
-num_episodes: 1000
+num_episodes: 1
 seed: 123 #123 1234 12345
 
 #cyclone
@@ -21,8 +21,10 @@ seed: 123 #123 1234 12345
 
 #TEST
 
-attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/attacker-2049.pth"
-detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth"
+#attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/attacker-2049.pth"
+attacker_checkpoint: "/home/geunbae/CacheSimulator/src/rlmeta/outputs/2023-02-06/10-26-26/attacker-2949.pth" 
+#detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth"
+detector_checkpoint: "/home/geunbae/CacheSimulator/src/rlmeta/outputs/2023-02-06/10-26-26/detector-2999.pth"
 
 
 #IBRPPO-fp10
@@ -55,11 +57,12 @@ attackers: [
             #["MACTA-attacker-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-35-10/attacker-2049.pth"],
             #["MACTA-attacker-4", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-51/attacker-2049.pth"],
              ["Benign", ""],
+            # ["None", "None"]
            
             ]
-detectors: [ ["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/detector-1999.pth"],
-             ["IBRPPO-detector-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-24-54/detector-1999.pth"],
-             ["IBRPPO-detector-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-23-31/detector-1999.pth"],
+detectors: [ #["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/detector-1999.pth"],
+             #["IBRPPO-detector-2","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-24-54/detector-1999.pth"],
+             #["IBRPPO-detector-3","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-23-31/detector-1999.pth"],
              #["MACTA-detector-1", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/20-20-00/detector-1999.pth"],
              #["MACTA-detector-2", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/03-04-01/detector-1999.pth"],
              #["MACTA-detector-3", "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-35-10/detector-1999.pth"],
@@ -72,12 +75,37 @@ detectors: [ ["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src
              #["CC-Hunter-3", "n/a"],
              #["None", "None"],
              #["None", "None"],
-             #["None", "None"]
+             ["None", "None"]
             ]
 
 deterministic_policy: true
-trace_file: "/u/jxcui/remix3.txt"
-trace_limit: 1000000
+#trace_file: 'home/geunbae/data/548-2M_548_4M+67.txt' #'/home/geunbae/data/631-2M_631-4M.txt'  # "/u/jxcui/remix3.txt" 
+trace_files: [
+    #Train
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500-2M_500-4M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502-2M_502-4M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_505-2M_505-4M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_2000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_2000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_2000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_6000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_6000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_6000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_10000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_10000000.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_10000000.txt",
+    
+    #VAL
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_549_607_2000000.txt",
+
+    #TEST
+    #'/home/geunbae/data/548-2M_548-4M+67.txt',
+    #'/home/geunbae/data/548-2M_548-4M+79.txt',
+    '/home/geunbae/data/631-2M_631-4M.txt',
+    #'/home/geunbae/data/631-2M_631-4M+67.txt',
+
+    ]
+trace_limit: 4000000
 legacy_trace_format: false
 
 defaults:
