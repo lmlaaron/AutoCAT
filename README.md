@@ -1,7 +1,7 @@
 # MACTA
 
 > [**A Multi-agent Reinforcement Learning Approach for Cache Timing Attacks and Detection**](https://openreview.net/forum?id=CDlHZ78-Xzi)\
-> Jiaxun Cui, Xiaomeng Yang*, Mulong Luo*, Geunbae Lee*, Peter Stone, Hsien-Hsin S. Lee, Edward Suh, Wenjie Xiong^ Yuandong Tian^\
+> Jiaxun Cui, Xiaomeng Yang*, Mulong Luo*, Geunbae Lee*, Peter Stone, Hsien-Hsin S. Lee, Edward Suh, Wenjie Xiong^, Yuandong Tian^\
 > International Conference on Learning Representations (_ICLR 2023_)
 
 [Paper](https://openreview.net/pdf?id=CDlHZ78-Xzi) | [Website]() | [Bibtex](#citation)
