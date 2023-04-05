@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 
 
 def process_file(input_file):
+    """read from saved output running sample_mutiagent_check.py
+    i.e. python sample_multiagent_check.py > trace.txt """
     atk_data = []
     vic_data = []
     total_steps = 0
@@ -22,9 +24,9 @@ def process_file(input_file):
 
             elif "Step" in line:
                 line = line.replace("Step", "").strip()
-                step = int(line) + total_steps  # Add the current total steps to the step number
+                step = int(line) + total_steps  # Add the current total steps to the steps to get accumulated step number to plot
                 line = str(step) + ' ' + next(infile).strip()
-
+                
                 line = line.replace("victim access", "v")
                 line = line.replace("access", "a")
                 row = line.strip().split(' ')
@@ -41,7 +43,8 @@ def process_file(input_file):
 
 
 def update_data(atk_data, vic_data):
-    """in numpy format [step, domain_id, set_no]"""
+    """in numpy format [step, domain_id, set_no]
+    as we're running benign traces, latency is not required"""
     conversion_dict = {'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15}
 
     for i in range(len(atk_data)):
@@ -52,7 +55,7 @@ def update_data(atk_data, vic_data):
         # Update the domain id to binary int form
         atk_data[i][1] = 1  # if attacker access: change to 1
 
-        # Update address to matching set_index (1way, 8sets)
+        # Update address to matching set_index 0 to 7 (8sets)
         if atk_data[i][2] in conversion_dict:
             atk_data[i][2] = conversion_dict[atk_data[i][2]] % 8
         else:
@@ -81,9 +84,9 @@ def draw_heatmap(data, title='Memory access patterns', output_file='graph.png'):
 
     plt.figure(figsize=(22, 4))  # (width, height)
 
-    hist, x_edges, y_edges, image = plt.hist2d(x_coords, y_coords, bins=[8000, 8], cmap='Reds')
+    hist, x_edges, y_edges, image = plt.hist2d(x_coords, y_coords, bins=[800, 8], cmap='Reds')  # TODO: different color for domain_id
     plt.colorbar(label='No of cache accesses')
-    plt.xlabel('Accumulated steps = max step(64) X episodes(1000)')
+    plt.xlabel('Accumulated steps = max step(64) X episodes')
     plt.ylabel('Set_index')
     plt.title(title)
     plt.ylim(0, 7)
@@ -101,10 +104,10 @@ def main(input_file, atk_data=None, vic_data=None):
     print('vic_data_np')
     print(vic_data_np)
 
-    atk_title = f"Atk Memory access patterns ({input_file})"
+    atk_title = f"Benign A Memory access patterns ({input_file})"
     atk_output_file = f"atk_heatmap_{input_file.split('.')[0]}.png"
 
-    vic_title = f"Vic Memory access patterns ({input_file})"
+    vic_title = f"Benign B Memory access patterns ({input_file})"
     vic_output_file = f"vic_heatmap_{input_file.split('.')[0]}.png"
 
     draw_heatmap(atk_data_np, atk_title, atk_output_file)

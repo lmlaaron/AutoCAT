@@ -22,9 +22,9 @@ seed: 123 #123 1234 12345
 #TEST
 
 #attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-30-49/attacker-2049.pth"
-attacker_checkpoint: "/home/geunbae/CacheSimulator/src/rlmeta/outputs/2023-02-06/10-26-26/attacker-2949.pth" 
+#attacker_checkpoint: "/home/geunbae/CacheSimulator/src/rlmeta/outputs/2023-02-06/10-26-26/attacker-2949.pth" 
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth"
-detector_checkpoint: "/home/geunbae/CacheSimulator/src/rlmeta/outputs/2023-02-06/10-26-26/detector-2999.pth"
+#detector_checkpoint: "/home/geunbae/CacheSimulator/src/rlmeta/outputs/2023-02-06/10-26-26/detector-2999.pth"
 
 
 #IBRPPO-fp10
@@ -81,26 +81,10 @@ detectors: [ #["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/sr
 deterministic_policy: true
 #trace_file: 'home/geunbae/data/548-2M_548_4M+67.txt' #'/home/geunbae/data/631-2M_631-4M.txt'  # "/u/jxcui/remix3.txt" 
 trace_files: [
-    #Train
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500-2M_500-4M.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502-2M_502-4M.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_505-2M_505-4M.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_2000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_2000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_2000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_6000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_6000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_6000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_10000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_10000000.txt",
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_10000000.txt",
-    
-    #VAL
-    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_549_607_2000000.txt",
 
     # Visualization for self mixes: 548, 631, 638, 641 
-    '/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'
-    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M.txt'
     #'/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'
     #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt'
 
@@ -109,6 +93,12 @@ trace_files: [
     #'/home/geunbae/data/MACTA_offset/prime/self_631_p/631-2M_631-4M+1187.txt'
     #'/home/geunbae/data/MACTA_offset/prime/self_638_p/638-2M_638-4M+1187.txt'
     #'/home/geunbae/data/MACTA_offset/prime/self_641_p/641-2M_641-4M+1187.txt'
+
+    # Visualization for self-mix w/ non-prime offset
+    #'/home/geunbae/data/MACTA_offset/nonprime/self_548_np/548-2M_548-4M+31.txt'
+    '/home/geunbae/data/MACTA_offset/nonprime/self_631_np/631-2M_631-4M+31.txt'
+    #'/home/geunbae/data/MACTA_offset/nonprime/self_638_np/638-2M_638-4M+31.txt' 
+    #'/home/geunbae/data/MACTA_offset/nonprime/self_641_np/641-2M_641-4M+31.txt'
 
     ]
 trace_limit: 4000000
