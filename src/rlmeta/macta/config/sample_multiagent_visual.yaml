@@ -99,9 +99,10 @@ trace_files: [
     #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_549_607_2000000.txt",
 
     # Visualization for self mixes: 548, 631, 638, 641 
-    '/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'
-    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M.txt'
-    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M.txt'
+    #'/hdd/shared_traces_022023_631/spectrace_631-2M_631-4M.txt'
+    '/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'
     #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt'
 
     # Visualization for self-mix w/ prime offset
