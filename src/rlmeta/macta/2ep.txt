@@ -1,0 +1,523 @@
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 8, 'associativity': 1, 'hit_time': 1, 'rep_policy': 'lru'}, 'mem': {'hit_time': 1000}} 
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 8, 'associativity': 1, 'hit_time': 1, 'rep_policy': 'lru'}, 'mem': {'hit_time': 1000}} 
+[SpecAgent.__init__()] domain_id_0 = 200641, domain_id_1 = 400641, start_idx = 1370311
+ Reset...(also the cache state) 
+ victim address  6 
+ Step  0 
+ victim access 3  
+ Step  1 
+ victim access 3  
+ Step  2 
+ access 8 hit 
+ Step  3 
+ access 9 hit 
+ Step  4 
+ victim access 1  
+ Step  5 
+ victim access 1  
+ Step  6 
+ access 9 miss 
+ Step  7 
+ victim access 5  
+ Step  8 
+ victim access 2  
+ Step  9 
+ access 9 hit 
+ Step  10 
+ access 8 hit 
+ Step  11 
+ victim access 3  
+ Step  12 
+ access 9 hit 
+ Step  13 
+ access a miss 
+ Step  14 
+ victim access 1  
+ Step  15 
+ victim access 1  
+ Step  16 
+ victim access 1  
+ Step  17 
+ victim access 2  
+ Step  18 
+ access a miss 
+ Step  19 
+ access 9 miss 
+ Step  20 
+ access 9 hit 
+ Step  21 
+ victim access 2  
+ Step  22 
+ victim access 0  
+ Step  23 
+ access 9 hit 
+ Step  24 
+ access a miss 
+ Step  25 
+ access 8 miss 
+ Step  26 
+ access 8 hit 
+ Step  27 
+ victim access 2  
+ Step  28 
+ access 8 hit 
+ Step  29 
+ access 8 hit 
+ Step  30 
+ access 8 hit 
+ Step  31 
+ access 8 hit 
+ Step  32 
+ access 8 hit 
+ Step  33 
+ victim access 2  
+ Step  34 
+ access 8 hit 
+ Step  35 
+ victim access 2  
+ Step  36 
+ access 8 hit 
+ Step  37 
+ access 9 hit 
+ Step  38 
+ access 9 hit 
+ Step  39 
+ access 8 hit 
+ Step  40 
+ access 8 hit 
+ Step  41 
+ victim access 2  
+ Step  42 
+ access 8 hit 
+ Step  43 
+ victim access 2  
+ Step  44 
+ access 8 hit 
+ Step  45 
+ access 8 hit 
+ Step  46 
+ victim access 0  
+ Step  47 
+ access 8 miss 
+ Step  48 
+ access 8 hit 
+ Step  49 
+ access 9 hit 
+ Step  50 
+ victim access 0  
+ Step  51 
+ access 9 hit 
+ Step  52 
+ access 9 hit 
+ Step  53 
+ victim access 0  
+ Step  54 
+ access 9 hit 
+ Step  55 
+ victim access 0  
+ Step  56 
+ access 9 hit 
+ Step  57 
+ victim access 0  
+ Step  58 
+ access 9 hit 
+ Step  59 
+ access 9 hit 
+ Step  60 
+ victim access 0  
+ Step  61 
+ access 9 hit 
+ Step  62 
+ victim access 0  
+ Step  63 
+ access a miss 
+ Reset...(also the cache state) 
+ victim address  2 
+ Step  0 
+ access 9 miss 
+ Step  1 
+ victim access 0  
+ Step  2 
+ access 9 hit 
+ Step  3 
+ victim access 1  
+ Step  4 
+ victim access 0  
+ Step  5 
+ victim access 1  
+ Step  6 
+ access a hit 
+ Step  7 
+ victim access 0  
+ Step  8 
+ access 9 miss 
+ Step  9 
+ victim access 1  
+ Step  10 
+ access a hit 
+ Step  11 
+ victim access 0  
+ Step  12 
+ victim access 1  
+ Step  13 
+ access a hit 
+ Step  14 
+ victim access 0  
+ Step  15 
+ victim access 0  
+ Step  16 
+ victim access 1  
+ Step  17 
+ access 9 miss 
+ Step  18 
+ victim access 1  
+ Step  19 
+ access 9 miss 
+ Step  20 
+ victim access 0  
+ Step  21 
+ victim access 1  
+ Step  22 
+ access 8 miss 
+ Step  23 
+ access 8 hit 
+ Step  24 
+ victim access 0  
+ Step  25 
+ victim access 1  
+ Step  26 
+ access 9 miss 
+ Step  27 
+ access 9 hit 
+ Step  28 
+ victim access 1  
+ Step  29 
+ access 8 miss 
+ Step  30 
+ victim access 0  
+ Step  31 
+ victim access 1  
+ Step  32 
+ access 9 miss 
+ Step  33 
+ victim access 1  
+ Step  34 
+ access 8 miss 
+ Step  35 
+ access 9 miss 
+ Step  36 
+ victim access 1  
+ Step  37 
+ access 8 hit 
+ Step  38 
+ victim access 0  
+ Step  39 
+ access 8 miss 
+ Step  40 
+ access 8 hit 
+ Step  41 
+ victim access 1  
+ Step  42 
+ access 9 miss 
+ Step  43 
+ victim access 1  
+ Step  44 
+ access 9 miss 
+ Step  45 
+ access 9 hit 
+ Step  46 
+ victim access 1  
+ Step  47 
+ access 9 miss 
+ Step  48 
+ victim access 0  
+ Step  49 
+ victim access 1  
+ Step  50 
+ access 9 miss 
+ Step  51 
+ access a hit 
+ Step  52 
+ victim access 2  
+ Step  53 
+ access 8 miss 
+ Step  54 
+ access 8 hit 
+ Step  55 
+ victim access 2  
+ Step  56 
+ access 8 hit 
+ Step  57 
+ victim access 1  
+ Step  58 
+ access 9 miss 
+ Step  59 
+ victim access 1  
+ Step  60 
+ access 9 miss 
+ Step  61 
+ victim access 1  
+ Step  62 
+ victim access 2  
+ Step  63 
+ victim access 0  
+ Reset...(also the cache state) 
+ victim address  5 
+ Step  0 
+ access 8 hit 
+ Step  1 
+ access 8 hit 
+ Step  2 
+ victim access 0  
+ Step  3 
+ access 9 miss 
+ Step  4 
+ victim access 0  
+ Step  5 
+ access 9 hit 
+ Step  6 
+ victim access 0  
+ Step  7 
+ access 8 miss 
+ Step  8 
+ victim access 0  
+ Step  9 
+ access 8 miss 
+ Step  10 
+ victim access 0  
+ Step  11 
+ access 8 miss 
+ Step  12 
+ victim access 0  
+ Step  13 
+ access 8 miss 
+ Step  14 
+ victim access 0  
+ Step  15 
+ access 9 hit 
+ Step  16 
+ victim access 0  
+ Step  17 
+ access a miss 
+ Step  18 
+ victim access 1  
+ Step  19 
+ access a hit 
+ Step  20 
+ victim access 1  
+ Step  21 
+ victim access 0  
+ Step  22 
+ access a hit 
+ Step  23 
+ victim access 0  
+ Step  24 
+ access d miss 
+ Step  25 
+ victim access 0  
+ Step  26 
+ victim access 0  
+ Step  27 
+ victim access 0  
+ Step  28 
+ access b miss 
+ Step  29 
+ victim access 0  
+ Step  30 
+ access b hit 
+ Step  31 
+ victim access 0  
+ Step  32 
+ access b hit 
+ Step  33 
+ access b hit 
+ Step  34 
+ victim access 1  
+ Step  35 
+ victim access 1  
+ Step  36 
+ access b hit 
+ Step  37 
+ victim access 1  
+ Step  38 
+ access b hit 
+ Step  39 
+ victim access 1  
+ Step  40 
+ access b hit 
+ Step  41 
+ access c hit 
+ Step  42 
+ victim access 1  
+ Step  43 
+ access c hit 
+ Step  44 
+ victim access 1  
+ Step  45 
+ access d hit 
+ Step  46 
+ victim access 1  
+ Step  47 
+ victim access 1  
+ Step  48 
+ victim access 2  
+ Step  49 
+ victim access 1  
+ Step  50 
+ access c hit 
+ Step  51 
+ victim access 1  
+ Step  52 
+ access c hit 
+ Step  53 
+ access c hit 
+ Step  54 
+ victim access 2  
+ Step  55 
+ access 9 miss 
+ Step  56 
+ victim access 1  
+ Step  57 
+ victim access 2  
+ Step  58 
+ access 9 miss 
+ Step  59 
+ victim access 2  
+ Step  60 
+ access 9 hit 
+ Step  61 
+ victim access 1  
+ Step  62 
+ access 9 miss 
+ Step  63 
+ victim access 1  
+ Reset...(also the cache state) 
+ victim address  6 
+ Step  0 
+ access a hit 
+ Step  1 
+ victim access 0  
+ Step  2 
+ victim access 0  
+ Step  3 
+ victim access 1  
+ Step  4 
+ access a hit 
+ Step  5 
+ victim access 1  
+ Step  6 
+ access f miss 
+ Step  7 
+ victim access 0  
+ Step  8 
+ victim access 1  
+ Step  9 
+ access f hit 
+ Step  10 
+ victim access 0  
+ Step  11 
+ victim access 1  
+ Step  12 
+ access f hit 
+ Step  13 
+ victim access 0  
+ Step  14 
+ victim access 0  
+ Step  15 
+ access f hit 
+ Step  16 
+ victim access 0  
+ Step  17 
+ victim access 1  
+ Step  18 
+ victim access 1  
+ Step  19 
+ access c hit 
+ Step  20 
+ victim access 1  
+ Step  21 
+ victim access 1  
+ Step  22 
+ access c hit 
+ Step  23 
+ victim access 1  
+ Step  24 
+ access b hit 
+ Step  25 
+ victim access 2  
+ Step  26 
+ victim access 0  
+ Step  27 
+ access a miss 
+ Step  28 
+ victim access 0  
+ Step  29 
+ victim access 0  
+ Step  30 
+ access 8 miss 
+ Step  31 
+ victim access 1  
+ Step  32 
+ victim access 1  
+ Step  33 
+ access 8 hit 
+ Step  34 
+ victim access 0  
+ Step  35 
+ access d miss 
+ Step  36 
+ victim access 0  
+ Step  37 
+ victim access 1  
+ Step  38 
+ victim access 1  
+ Step  39 
+ access c hit 
+ Step  40 
+ victim access 0  
+ Step  41 
+ victim access 0  
+ Step  42 
+ victim access 0  
+ Step  43 
+ access c hit 
+ Step  44 
+ victim access 0  
+ Step  45 
+ victim access 1  
+ Step  46 
+ access d hit 
+ Step  47 
+ victim access 2  
+ Step  48 
+ victim access 2  
+ Step  49 
+ access b hit 
+ Step  50 
+ access c hit 
+ Step  51 
+ access c hit 
+ Step  52 
+ access e miss 
+ Step  53 
+ victim access 2  
+ Step  54 
+ victim access 5  
+ Step  55 
+ access c hit 
+ Step  56 
+ access c hit 
+ Step  57 
+ victim access 3  
+ Step  58 
+ victim access 3  
+ Step  59 
+ access c hit 
+ Step  60 
+ victim access 3  
+ Step  61 
+ victim access 3  
+ Step  62 
+ access 9 miss 
+ Step  63 
+ victim access 3  

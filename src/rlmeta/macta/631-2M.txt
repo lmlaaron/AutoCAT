@@ -1,0 +1,1224 @@
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 8, 'associativity': 1, 'hit_time': 1, 'rep_policy': 'lru'}, 'mem': {'hit_time': 1000}} 
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 8, 'associativity': 1, 'hit_time': 1, 'rep_policy': 'lru'}, 'mem': {'hit_time': 1000}} 
+ Reset...(also the cache state) 
+ victim address  4 
+ Step  0 
+ victim access 6  
+ Step  1 
+ access e miss 
+ Step  2 
+ victim access 6  
+ Step  3 
+ access e miss 
+ Step  4 
+ victim access 6  
+ Step  5 
+ access e miss 
+ Step  6 
+ victim access 6  
+ Step  7 
+ access e miss 
+ Step  8 
+ victim access 6  
+ Step  9 
+ access e miss 
+ Step  10 
+ victim access 6  
+ Step  11 
+ access e miss 
+ Step  12 
+ victim access 6  
+ Step  13 
+ access e miss 
+ Step  14 
+ victim access 6  
+ Step  15 
+ access e miss 
+ Step  16 
+ victim access 6  
+ Step  17 
+ access e miss 
+ Step  18 
+ victim access 6  
+ Step  19 
+ access e miss 
+ Step  20 
+ victim access 6  
+ Step  21 
+ access e miss 
+ Step  22 
+ victim access 6  
+ Step  23 
+ access e miss 
+ Step  24 
+ victim access 6  
+ Step  25 
+ access e miss 
+ Step  26 
+ victim access 6  
+ Step  27 
+ access e miss 
+ Step  28 
+ victim access 6  
+ Step  29 
+ access e miss 
+ Step  30 
+ victim access 6  
+ Step  31 
+ access e miss 
+ Step  32 
+ victim access 6  
+ Step  33 
+ access e miss 
+ Step  34 
+ victim access 6  
+ Step  35 
+ access e miss 
+ Step  36 
+ victim access 6  
+ Step  37 
+ access e miss 
+ Step  38 
+ victim access 6  
+ Step  39 
+ access e miss 
+ Step  40 
+ victim access 6  
+ Step  41 
+ access e miss 
+ Step  42 
+ victim access 6  
+ Step  43 
+ access e miss 
+ Step  44 
+ victim access 6  
+ Step  45 
+ access e miss 
+ Step  46 
+ victim access 6  
+ Step  47 
+ access e miss 
+ Step  48 
+ victim access 6  
+ Step  49 
+ access e miss 
+ Step  50 
+ victim access 6  
+ Step  51 
+ access e miss 
+ Step  52 
+ victim access 6  
+ Step  53 
+ access e miss 
+ Step  54 
+ victim access 6  
+ Step  55 
+ access e miss 
+ Step  56 
+ victim access 6  
+ Step  57 
+ access e miss 
+ Step  58 
+ victim access 6  
+ Step  59 
+ access e miss 
+ Step  60 
+ victim access 6  
+ Step  61 
+ access e miss 
+ Step  62 
+ victim access 6  
+ Step  63 
+ access e miss 
+ Step  64 
+ victim access 6  
+ Step  65 
+ access e miss 
+ Step  66 
+ victim access 6  
+ Step  67 
+ access e miss 
+ Step  68 
+ victim access 6  
+ Step  69 
+ access e miss 
+ Step  70 
+ victim access 6  
+ Step  71 
+ access e miss 
+ Step  72 
+ victim access 6  
+ Step  73 
+ access e miss 
+ Step  74 
+ victim access 6  
+ Step  75 
+ access e miss 
+ Step  76 
+ victim access 6  
+ Step  77 
+ access e miss 
+ Step  78 
+ victim access 6  
+ Step  79 
+ access e miss 
+ Step  80 
+ victim access 6  
+ Step  81 
+ access e miss 
+ Step  82 
+ victim access 6  
+ Step  83 
+ access e miss 
+ Step  84 
+ victim access 6  
+ Step  85 
+ access e miss 
+ Step  86 
+ victim access 6  
+ Step  87 
+ access e miss 
+ Step  88 
+ victim access 6  
+ Step  89 
+ access e miss 
+ Step  90 
+ victim access 6  
+ Step  91 
+ access e miss 
+ Step  92 
+ victim access 6  
+ Step  93 
+ access e miss 
+ Step  94 
+ victim access 6  
+ Step  95 
+ access e miss 
+ Step  96 
+ victim access 6  
+ Step  97 
+ access e miss 
+ Step  98 
+ victim access 6  
+ Step  99 
+ access e miss 
+ Step  100 
+ victim access 6  
+ Step  101 
+ access e miss 
+ Step  102 
+ victim access 6  
+ Step  103 
+ access e miss 
+ Step  104 
+ victim access 6  
+ Step  105 
+ access e miss 
+ Step  106 
+ victim access 6  
+ Step  107 
+ access e miss 
+ Step  108 
+ victim access 6  
+ Step  109 
+ access e miss 
+ Step  110 
+ victim access 6  
+ Step  111 
+ access e miss 
+ Step  112 
+ victim access 6  
+ Step  113 
+ access e miss 
+ Step  114 
+ victim access 6  
+ Step  115 
+ access e miss 
+ Step  116 
+ victim access 6  
+ Step  117 
+ access e miss 
+ Step  118 
+ victim access 6  
+ Step  119 
+ access e miss 
+ Step  120 
+ victim access 6  
+ Step  121 
+ access e miss 
+ Step  122 
+ victim access 6  
+ Step  123 
+ access e miss 
+ Step  124 
+ victim access 6  
+ Step  125 
+ access e miss 
+ Step  126 
+ victim access 6  
+ Step  127 
+ access e miss 
+ Step  128 
+ victim access 6  
+ Step  129 
+ access e miss 
+ Step  130 
+ victim access 6  
+ Step  131 
+ access e miss 
+ Step  132 
+ victim access 6  
+ Step  133 
+ access e miss 
+ Step  134 
+ victim access 6  
+ Step  135 
+ access e miss 
+ Step  136 
+ victim access 6  
+ Step  137 
+ access e miss 
+ Step  138 
+ victim access 6  
+ Step  139 
+ access e miss 
+ Step  140 
+ victim access 6  
+ Step  141 
+ access e miss 
+ Step  142 
+ victim access 6  
+ Step  143 
+ access e miss 
+ Step  144 
+ victim access 6  
+ Step  145 
+ access e miss 
+ Step  146 
+ victim access 6  
+ Step  147 
+ access e miss 
+ Step  148 
+ victim access 6  
+ Step  149 
+ access e miss 
+ Step  150 
+ victim access 6  
+ Step  151 
+ access e miss 
+ Step  152 
+ victim access 6  
+ Step  153 
+ access e miss 
+ Step  154 
+ victim access 6  
+ Step  155 
+ access e miss 
+ Step  156 
+ victim access 6  
+ Step  157 
+ access e miss 
+ Step  158 
+ victim access 6  
+ Step  159 
+ access e miss 
+ Step  160 
+ victim access 6  
+ Step  161 
+ access e miss 
+ Step  162 
+ victim access 6  
+ Step  163 
+ access e miss 
+ Step  164 
+ victim access 6  
+ Step  165 
+ access e miss 
+ Step  166 
+ victim access 6  
+ Step  167 
+ access e miss 
+ Step  168 
+ victim access 6  
+ Step  169 
+ access e miss 
+ Step  170 
+ victim access 6  
+ Step  171 
+ access e miss 
+ Step  172 
+ victim access 6  
+ Step  173 
+ access e miss 
+ Step  174 
+ victim access 6  
+ Step  175 
+ access e miss 
+ Step  176 
+ victim access 6  
+ Step  177 
+ access e miss 
+ Step  178 
+ victim access 6  
+ Step  179 
+ access e miss 
+ Step  180 
+ victim access 6  
+ Step  181 
+ access e miss 
+ Step  182 
+ access e hit 
+ Step  183 
+ access e hit 
+ Step  184 
+ victim access 6  
+ Step  185 
+ access e miss 
+ Step  186 
+ victim access 6  
+ Step  187 
+ access e miss 
+ Step  188 
+ victim access 6  
+ Step  189 
+ access e miss 
+ Step  190 
+ victim access 6  
+ Step  191 
+ victim access 6  
+ Step  192 
+ access e miss 
+ Step  193 
+ victim access 6  
+ Step  194 
+ access e miss 
+ Step  195 
+ victim access 6  
+ Step  196 
+ victim access 6  
+ Step  197 
+ access e miss 
+ Step  198 
+ access e hit 
+ Step  199 
+ access e hit 
+ Step  200 
+ victim access 6  
+ Step  201 
+ access e miss 
+ Step  202 
+ victim access 6  
+ Step  203 
+ access e miss 
+ Step  204 
+ victim access 6  
+ Step  205 
+ access e miss 
+ Step  206 
+ victim access 6  
+ Step  207 
+ victim access 6  
+ Step  208 
+ access e miss 
+ Step  209 
+ victim access 6  
+ Step  210 
+ access e miss 
+ Step  211 
+ victim access 6  
+ Step  212 
+ victim access 6  
+ Step  213 
+ access e miss 
+ Step  214 
+ access e hit 
+ Step  215 
+ access e hit 
+ Step  216 
+ victim access 6  
+ Step  217 
+ access e miss 
+ Step  218 
+ victim access 6  
+ Step  219 
+ access e miss 
+ Step  220 
+ victim access 6  
+ Step  221 
+ access e miss 
+ Step  222 
+ victim access 6  
+ Step  223 
+ victim access 6  
+ Step  224 
+ access e miss 
+ Step  225 
+ victim access 6  
+ Step  226 
+ access e miss 
+ Step  227 
+ victim access 6  
+ Step  228 
+ victim access 6  
+ Step  229 
+ access e miss 
+ Step  230 
+ access e hit 
+ Step  231 
+ access e hit 
+ Step  232 
+ victim access 6  
+ Step  233 
+ access e miss 
+ Step  234 
+ victim access 6  
+ Step  235 
+ access e miss 
+ Step  236 
+ victim access 6  
+ Step  237 
+ access e miss 
+ Step  238 
+ victim access 6  
+ Step  239 
+ victim access 6  
+ Step  240 
+ access e miss 
+ Step  241 
+ victim access 6  
+ Step  242 
+ access e miss 
+ Step  243 
+ victim access 6  
+ Step  244 
+ victim access 6  
+ Step  245 
+ access e miss 
+ Step  246 
+ access e hit 
+ Step  247 
+ access e hit 
+ Step  248 
+ victim access 6  
+ Step  249 
+ access e miss 
+ Step  250 
+ victim access 6  
+ Step  251 
+ access e miss 
+ Step  252 
+ victim access 6  
+ Step  253 
+ access e miss 
+ Step  254 
+ victim access 6  
+ Step  255 
+ victim access 6  
+ Step  256 
+ access e miss 
+ Step  257 
+ victim access 6  
+ Step  258 
+ access e miss 
+ Step  259 
+ victim access 6  
+ Step  260 
+ victim access 6  
+ Step  261 
+ access e miss 
+ Step  262 
+ access e hit 
+ Step  263 
+ access e hit 
+ Step  264 
+ victim access 6  
+ Step  265 
+ access e miss 
+ Step  266 
+ victim access 6  
+ Step  267 
+ access e miss 
+ Step  268 
+ victim access 6  
+ Step  269 
+ access e miss 
+ Step  270 
+ victim access 6  
+ Step  271 
+ victim access 6  
+ Step  272 
+ access e miss 
+ Step  273 
+ victim access 6  
+ Step  274 
+ access e miss 
+ Step  275 
+ victim access 6  
+ Step  276 
+ victim access 6  
+ Step  277 
+ access e miss 
+ Step  278 
+ access e hit 
+ Step  279 
+ access e hit 
+ Step  280 
+ victim access 6  
+ Step  281 
+ access e miss 
+ Step  282 
+ victim access 6  
+ Step  283 
+ access e miss 
+ Step  284 
+ victim access 6  
+ Step  285 
+ access e miss 
+ Step  286 
+ victim access 6  
+ Step  287 
+ victim access 6  
+ Step  288 
+ access e miss 
+ Step  289 
+ victim access 6  
+ Step  290 
+ access e miss 
+ Step  291 
+ victim access 6  
+ Step  292 
+ victim access 6  
+ Step  293 
+ access e miss 
+ Step  294 
+ access e hit 
+ Step  295 
+ access e hit 
+ Step  296 
+ victim access 6  
+ Step  297 
+ access e miss 
+ Step  298 
+ victim access 6  
+ Step  299 
+ access e miss 
+ Step  300 
+ victim access 6  
+ Step  301 
+ access e miss 
+ Step  302 
+ victim access 6  
+ Step  303 
+ victim access 6  
+ Step  304 
+ access e miss 
+ Step  305 
+ victim access 6  
+ Step  306 
+ access e miss 
+ Step  307 
+ victim access 6  
+ Step  308 
+ victim access 6  
+ Step  309 
+ access e miss 
+ Step  310 
+ access e hit 
+ Step  311 
+ access e hit 
+ Step  312 
+ victim access 6  
+ Step  313 
+ access e miss 
+ Step  314 
+ victim access 6  
+ Step  315 
+ access e miss 
+ Step  316 
+ victim access 6  
+ Step  317 
+ access e miss 
+ Step  318 
+ victim access 6  
+ Step  319 
+ victim access 6  
+ Step  320 
+ access e miss 
+ Step  321 
+ victim access 6  
+ Step  322 
+ access e miss 
+ Step  323 
+ victim access 6  
+ Step  324 
+ victim access 6  
+ Step  325 
+ access e miss 
+ Step  326 
+ access e hit 
+ Step  327 
+ access e hit 
+ Step  328 
+ victim access 6  
+ Step  329 
+ access e miss 
+ Step  330 
+ victim access 6  
+ Step  331 
+ access e miss 
+ Step  332 
+ victim access 6  
+ Step  333 
+ access e miss 
+ Step  334 
+ victim access 6  
+ Step  335 
+ victim access 6  
+ Step  336 
+ access e miss 
+ Step  337 
+ victim access 6  
+ Step  338 
+ access e miss 
+ Step  339 
+ victim access 6  
+ Step  340 
+ victim access 6  
+ Step  341 
+ access e miss 
+ Step  342 
+ access e hit 
+ Step  343 
+ access e hit 
+ Step  344 
+ victim access 6  
+ Step  345 
+ access e miss 
+ Step  346 
+ victim access 6  
+ Step  347 
+ access e miss 
+ Step  348 
+ victim access 6  
+ Step  349 
+ access e miss 
+ Step  350 
+ victim access 6  
+ Step  351 
+ victim access 6  
+ Step  352 
+ access e miss 
+ Step  353 
+ victim access 6  
+ Step  354 
+ access e miss 
+ Step  355 
+ victim access 6  
+ Step  356 
+ victim access 6  
+ Step  357 
+ access e miss 
+ Step  358 
+ access e hit 
+ Step  359 
+ access e hit 
+ Step  360 
+ victim access 6  
+ Step  361 
+ access e miss 
+ Step  362 
+ victim access 6  
+ Step  363 
+ access e miss 
+ Step  364 
+ victim access 6  
+ Step  365 
+ access e miss 
+ Step  366 
+ victim access 6  
+ Step  367 
+ victim access 6  
+ Step  368 
+ access e miss 
+ Step  369 
+ victim access 6  
+ Step  370 
+ access e miss 
+ Step  371 
+ victim access 6  
+ Step  372 
+ victim access 6  
+ Step  373 
+ access e miss 
+ Step  374 
+ access e hit 
+ Step  375 
+ access e hit 
+ Step  376 
+ victim access 6  
+ Step  377 
+ access e miss 
+ Step  378 
+ victim access 6  
+ Step  379 
+ access e miss 
+ Step  380 
+ victim access 6  
+ Step  381 
+ access e miss 
+ Step  382 
+ victim access 6  
+ Step  383 
+ victim access 6  
+ Step  384 
+ access e miss 
+ Step  385 
+ victim access 6  
+ Step  386 
+ access e miss 
+ Step  387 
+ victim access 6  
+ Step  388 
+ victim access 6  
+ Step  389 
+ access e miss 
+ Step  390 
+ access e hit 
+ Step  391 
+ access e hit 
+ Step  392 
+ victim access 6  
+ Step  393 
+ access e miss 
+ Step  394 
+ victim access 6  
+ Step  395 
+ access e miss 
+ Step  396 
+ victim access 6  
+ Step  397 
+ access e miss 
+ Step  398 
+ victim access 6  
+ Step  399 
+ victim access 6  
+ Step  400 
+ access e miss 
+ Step  401 
+ victim access 6  
+ Step  402 
+ access e miss 
+ Step  403 
+ victim access 6  
+ Step  404 
+ victim access 6  
+ Step  405 
+ access e miss 
+ Step  406 
+ access e hit 
+ Step  407 
+ access e hit 
+ Step  408 
+ victim access 6  
+ Step  409 
+ access e miss 
+ Step  410 
+ victim access 6  
+ Step  411 
+ access e miss 
+ Step  412 
+ victim access 6  
+ Step  413 
+ access e miss 
+ Step  414 
+ victim access 6  
+ Step  415 
+ victim access 6  
+ Step  416 
+ access e miss 
+ Step  417 
+ victim access 6  
+ Step  418 
+ access e miss 
+ Step  419 
+ victim access 6  
+ Step  420 
+ victim access 6  
+ Step  421 
+ access e miss 
+ Step  422 
+ access e hit 
+ Step  423 
+ access e hit 
+ Step  424 
+ victim access 6  
+ Step  425 
+ access e miss 
+ Step  426 
+ victim access 6  
+ Step  427 
+ access e miss 
+ Step  428 
+ victim access 6  
+ Step  429 
+ access e miss 
+ Step  430 
+ victim access 6  
+ Step  431 
+ victim access 6  
+ Step  432 
+ access e miss 
+ Step  433 
+ victim access 6  
+ Step  434 
+ access e miss 
+ Step  435 
+ victim access 6  
+ Step  436 
+ victim access 6  
+ Step  437 
+ access e miss 
+ Step  438 
+ victim access 6  
+ Step  439 
+ access e miss 
+ Step  440 
+ victim access 6  
+ Step  441 
+ access e miss 
+ Step  442 
+ victim access 6  
+ Step  443 
+ access e miss 
+ Step  444 
+ victim access 6  
+ Step  445 
+ access e miss 
+ Step  446 
+ victim access 6  
+ Step  447 
+ access e miss 
+ Step  448 
+ victim access 6  
+ Step  449 
+ access e miss 
+ Step  450 
+ victim access 6  
+ Step  451 
+ access e miss 
+ Step  452 
+ victim access 6  
+ Step  453 
+ access e miss 
+ Step  454 
+ victim access 6  
+ Step  455 
+ access e miss 
+ Step  456 
+ victim access 6  
+ Step  457 
+ access e miss 
+ Step  458 
+ victim access 6  
+ Step  459 
+ access e miss 
+ Step  460 
+ victim access 6  
+ Step  461 
+ access e miss 
+ Step  462 
+ victim access 6  
+ Step  463 
+ access e miss 
+ Step  464 
+ victim access 6  
+ Step  465 
+ access e miss 
+ Step  466 
+ victim access 6  
+ Step  467 
+ access e miss 
+ Step  468 
+ victim access 6  
+ Step  469 
+ access e miss 
+ Step  470 
+ victim access 6  
+ Step  471 
+ access e miss 
+ Step  472 
+ victim access 6  
+ Step  473 
+ access e miss 
+ Step  474 
+ victim access 6  
+ Step  475 
+ access e miss 
+ Step  476 
+ victim access 6  
+ Step  477 
+ access e miss 
+ Step  478 
+ victim access 6  
+ Step  479 
+ access e miss 
+ Step  480 
+ victim access 6  
+ Step  481 
+ access e miss 
+ Step  482 
+ victim access 6  
+ Step  483 
+ access e miss 
+ Step  484 
+ victim access 6  
+ Step  485 
+ access e miss 
+ Step  486 
+ victim access 6  
+ Step  487 
+ access e miss 
+ Step  488 
+ victim access 6  
+ Step  489 
+ access e miss 
+ Step  490 
+ victim access 6  
+ Step  491 
+ access e miss 
+ Step  492 
+ victim access 6  
+ Step  493 
+ access e miss 
+ Step  494 
+ victim access 6  
+ Step  495 
+ access e miss 
+ Step  496 
+ victim access 6  
+ Step  497 
+ access e miss 
+ Step  498 
+ victim access 6  
+ Step  499 
+ access e miss 
+ Step  500 
+ victim access 6  
+ Step  501 
+ access e miss 
+ Step  502 
+ victim access 6  
+ Step  503 
+ access e miss 
+ Step  504 
+ victim access 6  
+ Step  505 
+ access e miss 
+ Step  506 
+ victim access 6  
+ Step  507 
+ access e miss 
+ Step  508 
+ victim access 6  
+ Step  509 
+ access e miss 
+ Step  510 
+ victim access 6  
+ Step  511 
+ access e miss 
+ Step  512 
+ victim access 6  
+ Step  513 
+ access e miss 
+ Step  514 
+ victim access 6  
+ Step  515 
+ access e miss 
+ Step  516 
+ victim access 6  
+ Step  517 
+ access e miss 
+ Step  518 
+ victim access 6  
+ Step  519 
+ access e miss 
+ Step  520 
+ victim access 6  
+ Step  521 
+ access e miss 
+ Step  522 
+ victim access 6  
+ Step  523 
+ access e miss 
+ Step  524 
+ victim access 6  
+ Step  525 
+ access e miss 
+ Step  526 
+ victim access 6  
+ Step  527 
+ access e miss 
+ Step  528 
+ victim access 6  
+ Step  529 
+ access e miss 
+ Step  530 
+ victim access 6  
+ Step  531 
+ access e miss 
+ Step  532 
+ victim access 6  
+ Step  533 
+ access e miss 
+ Step  534 
+ victim access 6  
+ Step  535 
+ access e miss 
+ Step  536 
+ victim access 6  
+ Step  537 
+ access e miss 
+ Step  538 
+ victim access 6  
+ Step  539 
+ access e miss 
+ Step  540 
+ victim access 6  
+ Step  541 
+ access e miss 
+ Step  542 
+ victim access 6  
+ Step  543 
+ access e miss 
+ Step  544 
+ victim access 6  
+ Step  545 
+ access e miss 
+ Step  546 
+ victim access 6  
+ Step  547 
+ access e miss 
+ Step  548 
+ victim access 6  
+ Step  549 
+ access e miss 
+ Step  550 
+ victim access 6  
+ Step  551 
+ access e miss 
+ Step  552 
+ victim access 6  
+ Step  553 
+ access e miss 
+ Step  554 
+ victim access 6  
+ Step  555 
+ access e miss 
+ Step  556 
+ victim access 6  
+ Step  557 
+ access e miss 
+ Step  558 
+ victim access 6  
+ Step  559 
+ access e miss 
+ Step  560 
+ victim access 6  
+ Step  561 
+ access e miss 
+ Step  562 
+ victim access 6  
+ Step  563 
+ access e miss 
+ Step  564 
+ victim access 6  
+ Step  565 
+ access e miss 
+ Step  566 
+ victim access 6  
+ Step  567 
+ access e miss 
+ Step  568 
+ victim access 6  
+ Step  569 
+ access e miss 
+ Step  570 
+ victim access 6  
+ Step  571 
+ access e miss 
+ Step  572 
+ victim access 6  
+ Step  573 
+ access e miss 
+ Step  574 
+ victim access 6  
+ Step  575 
+ access e miss 
+ Step  576 
+ victim access 6  
+ Step  577 
+ access e miss 
+ Step  578 
+ victim access 6  
+ Step  579 
+ access e miss 
+ Step  580 
+ victim access 6  
+ Step  581 
+ access e miss 
+ Step  582 
+ victim access 6  
+ Step  583 
+ access e miss 
+ Step  584 
+ victim access 6  
+ Step  585 
+ access e miss 
+ Step  586 
+ victim access 6  
+ Step  587 
+ access e miss 
+ Step  588 
+ victim access 6  
+ Step  589 
+ access e miss 
+ Step  590 
+ victim access 6  
+ Step  591 
+ access e miss 
+ Step  592 
+ victim access 6  
+ Step  593 
+ access e miss 
+ Step  594 
+ victim access 6  
+ Step  595 
+ access e miss 
+ Step  596 
+ victim access 6  
+ Step  597 
+ access e miss 
+ Step  598 
+ victim access 6  
+ Step  599 
+ access e miss 
+ Step  600 
+ victim access 6  
+ Step  601 
+ access e miss 
+ Step  602 
+ victim access 6  
+ Step  603 
+ access e miss 
+ Step  604 
+ victim access 6  
+ Step  605 
+ access e miss 
+ Step  606 
+ victim access 6  
+ Step  607 
+ access e miss 
+ Step  608 
+ victim access 6  
+ Step  609 
+ access e miss 

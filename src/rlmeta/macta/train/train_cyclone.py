@@ -124,6 +124,44 @@ def collect(cfg, num_samples):
     #print('features:\n',X,'labels\n',y)
     return X, y
 
+def collect_test(cfg, num_samples):
+    # load agents and 
+    # run environment loop to collect data
+    # return 
+    env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
+    env = env_fac(index=0)
+
+    # Load model
+    # Attacker
+    if len(cfg.attacker_checkpoint) > 0:
+        cfg.model_config["output_dim"] = env.action_space.n
+        attacker_params = torch.load(cfg.attacker_checkpoint)
+        attacker_model = CachePPOTransformerModel(**cfg.model_config)
+        attacker_model.load_state_dict(attacker_params)
+        attacker_model.eval()
+        attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy) # use ppo agent as attacker
+    else:
+        attacker_agent = PrimeProbeAgent(cfg.env_config) # use prime+probe agent as attacker
+    detector_agent = CycloneAgent(cfg.env_config)
+    X, y = [], [] 
+    
+    for trace_file in cfg.test_trace_files:
+        spec_trace = load_trace(trace_file,
+                                limit=cfg.trace_limit,
+                                legacy_trace_format=cfg.legacy_trace_format)
+        benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=cfg.legacy_trace_format)
+        agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
+        for i in tqdm(range(num_samples)):
+            x, label = run_loop(env, agents)
+            X.append(x)
+            y.append(LABEL[label])
+    X = np.array(X) #num_samples, m, n = X.shape
+    X = X.reshape(num_samples*len(cfg.test_trace_files), -1)
+    y = np.array(y)
+    #print('features:\n',X,'labels\n',y)
+    return X, y
+
+
 def train(cfg):
     # run data collection and 
     # train the svm classifier
@@ -131,10 +169,12 @@ def train(cfg):
     
     data_file=None
     #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-22/10-36-30/data.pkl"
+    #data_file = "/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-04/10-13-10/data.pkl"  # whole 641 self-mixes w/ prime offset
+    #data_file = "/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-04/00-39-07/data.pkl" # whole self-mixes w/ prime offset
 
     if data_file is None:
         X_train, y_train = collect(cfg, num_samples=6000)
-        X_test, y_test = collect(cfg, num_samples=10)
+        X_test, y_test = collect_test(cfg, num_samples=100)
         data = {"X_train": X_train,
             "y_train": y_train,
             "X_test": X_test,
