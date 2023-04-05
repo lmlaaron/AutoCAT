@@ -85,7 +85,8 @@ trace_files: [
     # Visualization for self mixes: 548, 631, 638, 641 
     #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'
     #'/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M.txt'
-    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'
+    #'/hdd/shared_traces_022023_631/spectrace_631-2M_631-4M.txt'
+    '/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'
     #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt'
 
     # Visualization for self-mix w/ prime offset
@@ -96,7 +97,7 @@ trace_files: [
 
     # Visualization for self-mix w/ non-prime offset
     #'/home/geunbae/data/MACTA_offset/nonprime/self_548_np/548-2M_548-4M+31.txt'
-    '/home/geunbae/data/MACTA_offset/nonprime/self_631_np/631-2M_631-4M+31.txt'
+    #'/home/geunbae/data/MACTA_offset/nonprime/self_631_np/631-2M_631-4M+31.txt'
     #'/home/geunbae/data/MACTA_offset/nonprime/self_638_np/638-2M_638-4M+31.txt' 
     #'/home/geunbae/data/MACTA_offset/nonprime/self_641_np/641-2M_641-4M+31.txt'
 
