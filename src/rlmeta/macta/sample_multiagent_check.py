@@ -256,7 +256,7 @@ def head2head(env,
 
 
 
-@hydra.main(config_path="./config", config_name="sample_multiagent")
+@hydra.main(config_path="./config", config_name="sample_multiagent_visual")
 def main(cfg):
     # Create env
     cfg.env_config['verbose'] = 1 # 0
