@@ -146,7 +146,7 @@ def collect_test(cfg, num_samples):
     X, y = [], [] 
     
     for trace_file in cfg.test_trace_files:
-        spec_trace = load_trace(trace_file,
+        spec_trace = load_trace(test_trace_file,
                                 limit=cfg.trace_limit,
                                 legacy_trace_format=cfg.legacy_trace_format)
         benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=cfg.legacy_trace_format)
@@ -158,7 +158,7 @@ def collect_test(cfg, num_samples):
     X = np.array(X) #num_samples, m, n = X.shape
     X = X.reshape(num_samples*len(cfg.test_trace_files), -1)
     y = np.array(y)
-    #print('features:\n',X,'labels\n',y)
+    print('features:\n',X,'labels\n',y)
     return X, y
 
 
