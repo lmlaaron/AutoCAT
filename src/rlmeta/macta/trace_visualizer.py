@@ -1,15 +1,14 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 
 def process_file(input_file):
     """read from saved output running sample_mutiagent_check.py
-    i.e. python sample_multiagent_check.py > trace.txt """
+    i.e. python sample_multiagent_check.py > 631s4.txt """
     atk_data = []
     vic_data = []
-    total_steps = 0
-    reset_counter = 0
 
     with open(input_file, 'r') as infile:
 
@@ -17,14 +16,9 @@ def process_file(input_file):
             if "victim address" in line:
                 continue
 
-            elif "Reset...(also the cache state)" in line:  # Increment total_steps when a reset is encountered
-                reset_counter += 1
-                if reset_counter > 1:
-                    total_steps += 64
-
             elif "Step" in line:
                 line = line.replace("Step", "").strip()
-                step = int(line) + total_steps  # Add the current total steps to the steps to get accumulated step number to plot
+                step = int(line) 
                 line = str(step) + ' ' + next(infile).strip()
                 
                 line = line.replace("victim access", "v")
@@ -36,13 +30,27 @@ def process_file(input_file):
                     atk_data.append(row[0:3])
                 elif row[1] == 'v':
                     vic_data.append(row[0:3])
-
-    #print('atk_data: ', atk_data)
-    #print('vic_data: ', vic_data)
+            
+    # Remove the last row from atk_data and vic_data
+    if atk_data:
+        atk_data.pop()
+    if vic_data:
+        vic_data.pop()
     return atk_data, vic_data
 
 
-def update_data(atk_data, vic_data):
+def step_offset(input_file):
+    if input_file.endswith("2.txt"):
+        return 1000000
+    elif input_file.endswith("3.txt"):
+        return 2000000
+    elif input_file.endswith("4.txt"):
+        return 300000
+    else:
+        return 0
+
+
+def update_data(atk_data, vic_data, offset):
     """in numpy format [step, domain_id, set_no]
     as we're running benign traces, latency is not required"""
     conversion_dict = {'a': 10, 'b': 11, 'c': 12, 'd': 13, 'e': 14, 'f': 15}
@@ -50,7 +58,7 @@ def update_data(atk_data, vic_data):
     for i in range(len(atk_data)):
 
         # Update to int form
-        atk_data[i][0] = int(atk_data[i][0])
+        atk_data[i][0] = int(atk_data[i][0]) + offset # step no w/ offset
 
         # Update the domain id to binary int form
         atk_data[i][1] = 1  # if attacker access: change to 1
@@ -63,12 +71,10 @@ def update_data(atk_data, vic_data):
 
     for i in range(len(vic_data)):
 
-        vic_data[i][0] = int(vic_data[i][0])
+        vic_data[i][0] = int(vic_data[i][0]) + offset # step no w/ offset
         vic_data[i][1] = 0  # if victim access: change to 0
         vic_data[i][2] = int(vic_data[i][2]) % 8
 
-    #print('updated atk_data: ', atk_data)
-    #print('updated vic_data: ', vic_data)
     return atk_data, vic_data
     
     
@@ -82,21 +88,30 @@ def draw_heatmap(data, title='Memory access patterns', output_file='graph.png'):
         x_coords.append(x_coord)
         y_coords.append(y_coord)
 
-    plt.figure(figsize=(22, 4))  # (width, height)
+    plt.figure(figsize=(16, 4))  # (width, height)
 
-    hist, x_edges, y_edges, image = plt.hist2d(x_coords, y_coords, bins=[800, 8], cmap='Reds')  # TODO: different color for domain_id
+    hist, x_edges, y_edges, image = plt.hist2d(x_coords, y_coords, bins=[400, 8], cmap='Reds')
     plt.colorbar(label='No of cache accesses')
-    plt.xlabel('Accumulated steps = max step(64) X episodes')
+    plt.xlabel('Steps')
     plt.ylabel('Set_index')
     plt.title(title)
     plt.ylim(0, 7)
+    
+    # Define custom x-axis formatting
+    def format_func(value, tick_number):
+        return f'{int(value / 1000)}K'
+    
+    ax = plt.gca()
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
+    
     plt.tight_layout(rect=[0, 0.1, 1, 0.9])
     plt.savefig(output_file, dpi=400, format='png')
     
 
 def main(input_file, atk_data=None, vic_data=None):
     atk_data, vic_data = process_file(input_file)
-    atk_data, vic_data = update_data(atk_data, vic_data)
+    offset = step_offset(input_file)
+    atk_data, vic_data = update_data(atk_data, vic_data, offset)
     atk_data_np = np.array(atk_data, dtype=int)
     vic_data_np = np.array(vic_data, dtype=int)
     print('atk_data_np')

@@ -1,4 +1,4 @@
-num_episodes: 1000
+num_episodes: 1
 seed: 123 #123 1234 12345
 
 #cyclone
@@ -82,12 +82,73 @@ deterministic_policy: true
 #trace_file: 'home/geunbae/data/548-2M_548_4M+67.txt' #'/home/geunbae/data/631-2M_631-4M.txt'  # "/u/jxcui/remix3.txt" 
 trace_files: [
 
-    # Visualization for self mixes: 548, 631, 638, 641 
-    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'
-    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M.txt'
-    #'/hdd/shared_traces_022023_631/spectrace_631-2M_631-4M.txt'
-    '/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'
-    #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt'
+    # Visualization for test mixes
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt'  # check
+    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M.txt'  # check
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt'  # check
+    #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt'  # check
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_631-2M.txt'  # check
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_638-2M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_641-2M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_638-2M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M.txt'
+
+    # for sampling 
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M_sample_1_20000.txt" # 548s1
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M_sample_1000000_1200000.txt" # 548s2
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M_sample_2000000_2200000.txt' # 548s3
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M_sample_3000000_3200000.txt"  # 548s4
+
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M_sample_1_20000.txt" # 631s1
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M_sample_1000000_1200000.txt" # 631s2
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M_sample_2000000_2200000.txt" # 631s3
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M_sample_3000000_3200000.txt" # 631s4
+
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M_sample_1_20000.txt"  # 638s1
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M_sample_1000000_1200000.txt"  # 638s2
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M_sample_2000000_2200000.txt'  # 638s3
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M_sample_3000000_3200000.txt"  # 638s4
+
+    #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M_sample_1_20000.txt' # 641s1
+    #"/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M_sample_1000000_1200000.txt"  #641s2
+    '/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M_sample_2000000_2200000.txt'  #641s3
+    #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M_sample_3000000_3200000.txt' # 641s4
+
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_1_20000.txt"
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_1000000_1200000.txt'
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_2000000_2200000.txt'
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_3000000_3200000.txt"
+
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_638-2M_sample_1_20000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_638-2M_sample_1000000_1200000.txt"
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_638-2M_sample_2000000_2200000.txt'
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_638-2M_sample_3000000_3200000.txt"
+
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_631-2M_sample_1_20000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_631-2M_sample_1000000_1200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_631-2M_sample_2000000_2200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_631-2M_sample_3000000_3200000.txt"
+
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_641-2M_sample_1_20000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_641-2M_sample_1000000_1200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_641-2M_sample_2000000_2200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_548-2M_641-2M_sample_3000000_3200000.txt"
+    
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_638-2M_sample_1_20000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_638-2M_sample_1000000_1200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_638-2M_sample_2000000_2200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_638-2M_sample_3000000_3200000.txt"
+    
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M_sample_1_20000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M_sample_1000000_1200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M_sample_2000000_2200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_631-2M_641-2M_sample_3000000_3200000.txt"
+    
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_1_20000.txt'
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_1000000_1200000.txt"
+    #"/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_2000000_2200000.txt"
+    #'/home/geunbae/data/MACTA/test/spectrace_638-2M_641-2M_sample_3000000_3200000.txt'
 
     # Visualization for self-mix w/ prime offset
     #'/home/geunbae/data/MACTA_offset/prime/self_548_p/548-2M_548-4M+1187.txt'
