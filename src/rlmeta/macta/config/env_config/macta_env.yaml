@@ -30,6 +30,6 @@ cache_configs:
   mem:
     hit_time: 1000
 
-window_size: 10000
+window_size: 100 # 10000
 
 cache_line_size: 64

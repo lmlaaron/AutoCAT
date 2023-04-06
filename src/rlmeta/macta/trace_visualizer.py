@@ -45,7 +45,7 @@ def step_offset(input_file):
     elif input_file.endswith("3.txt"):
         return 2000000
     elif input_file.endswith("4.txt"):
-        return 300000
+        return 3000000
     else:
         return 0
 
@@ -88,9 +88,9 @@ def draw_heatmap(data, title='Memory access patterns', output_file='graph.png'):
         x_coords.append(x_coord)
         y_coords.append(y_coord)
 
-    plt.figure(figsize=(16, 4))  # (width, height)
+    plt.figure(figsize=(9, 4))  # (width, height) (16, 4) for 10K steps
 
-    hist, x_edges, y_edges, image = plt.hist2d(x_coords, y_coords, bins=[400, 8], cmap='Reds')
+    hist, x_edges, y_edges, image = plt.hist2d(x_coords, y_coords, bins=[20, 8], cmap='Reds')
     plt.colorbar(label='No of cache accesses')
     plt.xlabel('Steps')
     plt.ylabel('Set_index')
@@ -99,7 +99,8 @@ def draw_heatmap(data, title='Memory access patterns', output_file='graph.png'):
     
     # Define custom x-axis formatting
     def format_func(value, tick_number):
-        return f'{int(value / 1000)}K'
+        #return f'{int(value / 1000)}K'
+        return f'{int(value / 1)}'
     
     ax = plt.gca()
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
