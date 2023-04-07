@@ -8,8 +8,10 @@ import hydra
 import torch
 import torch.nn
 import numpy as np
+import argparse
 
 import rlmeta.utils.nested_utils as nested_utils
+from omegaconf import DictConfig
 
 #from rlmeta.agents.ppo.ppo_agent import PPOAgent
 from agent import PPOAgent, SpecAgent, PrimeProbeAgent, EvictReloadAgent, \
@@ -255,9 +257,11 @@ def head2head(env,
     #logging.info("\n\n" + metrics_multidataset.table(info="multi-dataset") + "\n")
 
 
+#@hydra.main(config_path="./config", config_name="sample_multiagent_2")
+@hydra.main(config_path="./config", config_name=None)
+def main(cfg: DictConfig): #def main(cfg):
 
-@hydra.main(config_path="./config", config_name="sample_multiagent_visual")
-def main(cfg):
+    
     # Create env
     cfg.env_config['verbose'] = 1 # 0
     env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
@@ -268,3 +272,18 @@ def main(cfg):
 
 if __name__ == "__main__":
     main()
+    '''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config-name', type=str, required=True, help="The config name for the experiment")
+    args = parser.parse_args()
+    
+    config_name = args.config_name
+    output_file = f"output_{config_name}.txt"
+    
+    with open(output_file, 'w') as f:
+        sys.stdout = f  # Redirect stdout to the file
+        print(f"Running with config: {config_name}")
+        hydra._internal.utils._run_hydra(main, config_path="./config", config_name=config_name)
+
+    sys.stdout = sys.__stdout__  # Reset stdout to its original value
+    '''

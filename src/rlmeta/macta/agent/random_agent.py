@@ -38,11 +38,11 @@ class RandomAgent(Agent):
         self.action_space = action_space
 
     def act(self, timestep: TimeStep) -> Action:
-        action = random.randint(0, self.action_space-1)
+        action = 0 # random.randint(0, self.action_space-1)
         return Action(action, {})
 
     async def async_act(self, timestep: TimeStep) -> Action:
-        action = random.randint(0, self.action_space-1)
+        action = 0 #random.randint(0, self.action_space-1)
 
         return Action(action, {})
 

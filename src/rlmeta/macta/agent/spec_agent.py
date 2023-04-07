@@ -107,7 +107,7 @@ class SpecAgent(Agent):
         assert isinstance(self.domain_id_0, (int, np.int64))
         assert isinstance(self.domain_id_1, (int, np.int64))
 
-        self.start_idx = random.randint(0, self.trace_length - 1)
+        self.start_idx = 0 # random.randint(0, self.trace_length - 1)
         self.step = 0
 
         # print(f"[Agent] cache_line_size = {self.cache_line_size}")
