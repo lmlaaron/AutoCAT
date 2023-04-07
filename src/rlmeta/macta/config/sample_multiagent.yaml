@@ -1,4 +1,4 @@
-num_episodes: 1000
+num_episodes: 10000
 seed: 123 #123 1234 12345
 
 #TEST
@@ -10,7 +10,7 @@ seed: 123 #123 1234 12345
 attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/attacker-1849.pth" #xiaomeng
 
 
-cyclone_path: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-10/10-05-38/cyclone.pkl"
+cyclone_path: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-23/15-49-58/cyclone.pkl"
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-25/06-31-25/detector-1999.pth"
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-13/22-39-14/detector-1999.pth"
 #detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-21/22-06-35/detector-1099.pth" #macta 1 2m 12data /64
@@ -20,29 +20,29 @@ detector_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs
 
 #Tournament
 attackers: [ 
-            ["PrimeProbe", ""],
-            ["IBRPPO-attacker-1","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp1/attacker-1849.pth"],
-            ["IBRPPO-attacker-2","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp2/attacker-1849.pth"],
-            ["IBRPPO-attacker-3","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp3/attacker-1849.pth"],
-            ["AutoCAT-1","/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-39-43/ppo_agent-99.pth"],
-            ["AutoCAT-2","/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-32/ppo_agent-99.pth"],
-            ["AutoCAT-3","/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-57/ppo_agent-99.pth"],
-            ["MACTA-attacker-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp1/attacker-1849.pth"],
-            ["MACTA-attacker-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/attacker-1849.pth"],
-            ["MACTA-attacker-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp3/attacker-1849.pth"],
+#            ["PrimeProbe", ""],
+#            ["IBRPPO-attacker-1","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp1/attacker-1849.pth"],
+#            ["IBRPPO-attacker-2","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp2/attacker-1849.pth"],
+#            ["IBRPPO-attacker-3","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp3/attacker-1849.pth"],
+#            ["AutoCAT-1","/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-39-43/ppo_agent-99.pth"],
+#            ["AutoCAT-2","/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-32/ppo_agent-99.pth"],
+#            ["AutoCAT-3","/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-03/14-57-57/ppo_agent-99.pth"],
+#            ["MACTA-attacker-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp1/attacker-1849.pth"],
+#            ["MACTA-attacker-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/attacker-1849.pth"],
+#            ["MACTA-attacker-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp3/attacker-1849.pth"],
             ["Benign", ""],
            
             ]
 detectors: [ 
-#["IBRPPO-detector-1","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp1/detector-1799.pth"],
-#["IBRPPO-detector-2","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp2/detector-1799.pth"],
-#["IBRPPO-detector-3","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp3/detector-1799.pth"],
-#["MACTA-detector-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp1/detector-1799.pth"],
-#["MACTA-detector-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/detector-1799.pth"],
-#["MACTA-detector-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp3/detector-1799.pth"],
-["Cyclone-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-24/14-51-49/cyclone.pkl"],
-#["Cyclone-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-28/cyclone.pkl"],
-#["Cyclone-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-42/cyclone.pkl"],
+#            ["IBRPPO-detector-1","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp1/detector-1799.pth"],
+#            ["IBRPPO-detector-2","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp2/detector-1799.pth"],
+#            ["IBRPPO-detector-3","/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/ibrppo/exp3/detector-1799.pth"],
+            ["MACTA-detector-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp1/detector-1799.pth"],
+#            ["MACTA-detector-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp2/detector-1799.pth"],
+#            ["MACTA-detector-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/macta/exp3/detector-1799.pth"],
+            ["Cyclone-1", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-23/15-49-58/cyclone.pkl"],
+            ["Cyclone-2", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-28/cyclone.pkl"],
+#           ["Cyclone-3", "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-02-25/16-47-42/cyclone.pkl"],
 #             ["CC-Hunter-1", "n/a"],
 #             ["CC-Hunter-2", "n/a"],
 #             ["CC-Hunter-3", "n/a"],
@@ -70,19 +70,41 @@ trace_files: [
     
     #VAL
     #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_549_607_2000000.txt",
-
+    
     #TEST
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_548-4M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_631-2M_631-4M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_638-2M_638-4M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_548-4M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_631-2M_631-4M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_638-2M_638-4M.txt",
     "/u/jxcui/Documents/spectrace_bug_fix/spectrace_641-2M_641-4M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_631-2M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_638-2M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_641-2M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_631-2M_638-2M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_631-2M_641-2M.txt",
-    "/u/jxcui/Documents/spectrace_bug_fix/spectrace_638-2M_641-2M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_631-2M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_638-2M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_548-2M_641-2M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_631-2M_638-2M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_631-2M_641-2M.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/spectrace_638-2M_641-2M.txt",
+    
+    #Sanity
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+1.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+2.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+3.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+60.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+61.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+62.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+63.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+64.txt",
+    
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+23.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+31.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+44.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+38.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+10.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+18.txt",
+    #"/u/jxcui/Documents/spectrace_bug_fix/631-2M_631-4M+4.txt",
 
+    "/u/jxcui/Documents/spectrace_bug_fix/selfmix_641_offsets/641-2M_641-4M+17.txt",
+    "/u/jxcui/Documents/spectrace_bug_fix/selfmix_641_offsets/641-2M_641-4M+31.txt",
+    "/u/jxcui/Documents/spectrace_bug_fix/selfmix_641_offsets/641-2M_641-4M+47.txt",
+    "/u/jxcui/Documents/spectrace_bug_fix/selfmix_641_offsets/641-2M_641-4M+64.txt",
     ]
 trace_limit: 4000000
 legacy_trace_format: false
