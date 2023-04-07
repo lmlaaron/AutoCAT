@@ -2,9 +2,11 @@
 # which can have high reward for the cache guessing game
 # used to generate the attack sequence that can be detected by cchunter
 # currently it only works for the direct-map cache (associativity=1)
+import random
+import numpy as np
 class PrimeProbeAgent:
 
-    # the config is the same as the config cor cache_guessing_game_env_impl
+    # the config is the same as the config for cache_guessing_game_env_impl
     def __init__(self, env_config):
         self.local_step = 0
         self.lat = []
@@ -28,66 +30,64 @@ class PrimeProbeAgent:
             assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
             assert(self.allow_empty_victim_access == False)
 
-    # initialize the agent with an observation
+
     def observe_init(self, timestep):
-        # initialization doing nothing
         self.local_step = 0
         self.lat = []
         self.no_prime = False
         return
 
 
-    # returns an action
     def act(self, timestep):
         info = {}
         if timestep.observation[0][0][0] == -1:
             #reset the attacker
-            #from IPython import embed; embed()
             self.local_step = 0
             self.lat=[]
             self.no_prime = False
-
+            self.prime_perm = np.random.permutation(self.cache_size)
+            self.probe_perm = np.random.permutation(self.cache_size)
+            #self.prime_perm.sort()
+            #self.probe_perm.sort()
+            
         # do prime
-        if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):#- 1:
-            action = self.local_step # do prime 
+        if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):
+            action = self.local_step # do prime
+            action = self.prime_perm[action]
             self.local_step += 1
             return action, info
 
-        elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
-            action = self.cache_size # do victim access
+        elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):
+            # do victim access
+            action = self.cache_size
             self.local_step += 1
             return action, info
 
-        elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):#- 1 - 1:# do probe
-            action = self.local_step - ( self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ) )#- 1 )  
+        elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):
+            # do probe
+            action = self.local_step - ( self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ) )
             self.local_step += 1
-            #timestep,state i state
-            # timestep.state[0] is [r victim_accessesd original_action self_count]
-            #self.lat.append(timestep.observation[0][0][0])
-            #print(timestep.observation)
-            if action > self.cache_size:
-                action += 1
+            action=self.probe_perm[action]
             return action, info
 
-        elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
-            # timestep is the observation from last step
-            # first timestep not useful
-            action = 2 * self.cache_size # default assume that last is miss
+        elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):
+            # do guess and terminate
+            # first timestep invisible victim latency, and it is not useful
+            action = 2 * self.cache_size
+        
             for addr in range(1, len(self.lat)):
                 if self.lat[addr].int() == 1: # miss
-                    action = addr + self.cache_size 
+                    action = self.probe_perm[addr-1] + self.cache_size + 2 
                     break
             self.local_step = 0
             self.lat=[]
             self.no_prime = True
-            if action > self.cache_size:
-                action+=1
+            self.probe_perm = np.random.permutation(self.cache_size)
             return action, info
         else:        
             assert(False)
-    # is it useful for non-ML agent or not???
+    
     def observe(self, action, timestep):
-        if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
-        ##    self.local_step += 1
+        if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):
             self.lat.append(timestep.observation[0][0])
         return
