@@ -38,7 +38,9 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
     episode_return = 0.0
     detector_count = 0.0
     detector_acc = 0.0
-
+    """
+    oneclass svm uses fully benign dataset
+    """
     env.env.opponent_weights = [1, 0.0]
     if victim_addr == -1:
         timestep = env.reset()
@@ -61,7 +63,7 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
             if not isinstance(action.action, (int, np.int64)):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
-        #print(actions)
+        print(actions)
         timestep = env.step(actions)
 
         for agent_name, agent in agents.items():
@@ -121,7 +123,7 @@ def collect(cfg, num_samples):
     X = np.array(X) #num_samples, m, n = X.shape
     X = X.reshape(num_samples*len(cfg.trace_files), -1)
     y = np.array(y)
-    #print('features:\n',X,'labels\n',y)
+    print('features:\n',X,'\nlabels\n',y)
     return X, y
 
 def train(cfg):
@@ -130,10 +132,9 @@ def train(cfg):
     # report accuracy
     
     data_file=None
-    #data_file = "/u/jxcui/Documents/CacheSimulator/src/rlmeta/macta/outputs/2023-03-22/10-36-30/data.pkl"
 
     if data_file is None:
-        X_train, y_train = collect(cfg, num_samples=6000)
+        X_train, y_train = collect(cfg, num_samples=2000)
         X_test, y_test = collect(cfg, num_samples=10)
         data = {"X_train": X_train,
             "y_train": y_train,
@@ -162,22 +163,6 @@ def train(cfg):
     print("Train Accuracy:",train_accuracy)
     print("Test Accuracy:",test_accuracy)
     
-    '''
-    clf = make_pipeline(
-            StandardScaler(),
-            SVC(
-              C=100,
-              kernel='rbf', 
-              gamma='auto',
-              #max_iter=20000, 
-              )
-          )
-    #sample_weight = 2-y_train
-    #clf.fit(X_train,y_train, svc__sample_weight=sample_weight)
-    clf.fit(X_train, y_train)
-    print("Train Accuracy:", clf.score(X_train,y_train))
-    print("Test Accuracy:", clf.score(X_test, y_test))
-    ''' 
     print("saving the classfier")
     pickle.dump(clf,open('cyclone.pkl','wb'))
     return clf

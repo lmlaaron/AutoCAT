@@ -19,8 +19,12 @@ class CycloneAgent:
                  svm_model_path=None,
                  keep_latency=True,
                  mode='data') -> None:
-
-        self.episode_length = 64
+        """
+        mode:
+            if mode is 'data': collect data, this agent will not act
+            if mode is 'active': this agent will act
+        """
+        self.episode_length = env_config.get("episode_length", 64)
         self.keep_latency = keep_latency
         self.mode = mode # 'data' or 'active'
         self.env_config = env_config
@@ -36,10 +40,17 @@ class CycloneAgent:
         self.observe_init(timestep=None)
 
     def cyclone_detect(self, cyclone_counters):
+        """
+        if the loaded classifier is 
+            svm: model will output 1 for attacker and 0 for benign
+            oneclass svm: model will output -1 for attacker and 1 for benign
+        """
         x = np.array(cyclone_counters).reshape(-1)
         y = self.clf.predict([x])[0]
-        # FIXME
-        y = int(-y/2+0.5)
+        for step in self.clf.steps:
+            if "oneclasssvm" in step:
+                y = int(-y/2+0.5)
+                break
         return y
 
     def observe_init(self, timestep):
@@ -61,15 +72,11 @@ class CycloneAgent:
         info = timestep.info
         if "cyclic_set_index" in info.keys() and info["cyclic_set_index"] != -1: 
             cyclic_set_index = int(info["cyclic_set_index"])
-            #print("step:",self.local_step,info)
             if self.local_step < self.episode_length:
                 self.cyclone_counters[int(cyclic_set_index / self.cyclone_bucket_size)][int((self.local_step-1) / self.cyclone_interval_size)] += 1
 
         if timestep.observation[0][0][-1] >= self.episode_length-1 and self.mode=='active': 
             action = self.cyclone_detect(self.cyclone_counters)
-            #if action==1:
-            #    from IPython import embed; embed()
-            #    print(self.cyclone_counters)
         else:
             action = 0
         return action, info
