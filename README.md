@@ -20,6 +20,9 @@ conda activate macta
 python sample_multiagent.py
 ```
 
+## Benign Trace Generation
+You can test some open-source benign traces. If you want to use [SPEC 2017](https://www.spec.org/cpu2017/), please make sure you have liscence to it and follow the [instructions here](https://code.vt.edu/bearhw-public/rl-mem-trace) to generate the traces. To use the traces, specify the path to the trace files in the configs.
+
 ## Training
 To train MACTA
 ```
