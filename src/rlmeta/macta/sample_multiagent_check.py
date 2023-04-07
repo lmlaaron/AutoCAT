@@ -9,6 +9,7 @@ import torch
 import torch.nn
 import numpy as np
 import argparse
+import yaml
 
 import rlmeta.utils.nested_utils as nested_utils
 from omegaconf import DictConfig
@@ -258,6 +259,8 @@ def head2head(env,
 
 
 #@hydra.main(config_path="./config", config_name="sample_multiagent_2")
+#@hydra.main(config_path="../config", config_name=None)
+#@hydra.main(config_path="/home/geunbae/CacheSimulator/src/rlmeta/macta/config", config_name=None)
 @hydra.main(config_path="./config", config_name=None)
 def main(cfg: DictConfig): #def main(cfg):
 
@@ -272,6 +275,7 @@ def main(cfg: DictConfig): #def main(cfg):
 
 if __name__ == "__main__":
     main()
+
     '''
     parser = argparse.ArgumentParser()
     parser.add_argument('--config-name', type=str, required=True, help="The config name for the experiment")

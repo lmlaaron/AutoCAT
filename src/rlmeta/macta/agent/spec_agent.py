@@ -132,7 +132,7 @@ class SpecAgent(Agent):
         if self.legacy_trace_format:
             line = self.trace[idx]
             domain_id = int(line[0])
-            addr = int(line[3], 16) // self.cache_line_size
+            addr = int(line[3], 16) // self.cache_line_size  # cache_line_size 
         else:
             domain_id, addr = self.trace[idx]
             addr //= self.cache_line_size

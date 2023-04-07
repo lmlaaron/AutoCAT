@@ -1,30 +1,38 @@
 #!/bin/bash
 
-#python trace_visualizer.py 548-631s1.txt
-#python trace_visualizer.py 548-631s2.txt
-#python trace_visualizer.py 548-631s3.txt
-#python trace_visualizer.py 548-631s4.txt
-
-#python trace_visualizer.py 631-638s1.txt
-#python trace_visualizer.py 631-638s2.txt
-#python trace_visualizer.py 631-638s3.txt
-#python trace_visualizer.py 631-638s4.txt
-
-#python trace_visualizer.py 631s1.txt
-#python trace_visualizer.py 631s2.txt
-#python trace_visualizer.py 631s3.txt
-#python trace_visualizer.py 631s4.txt
-
-python trace_visualizer.py 631ps1.txt
-python trace_visualizer.py 631ps2.txt
-python trace_visualizer.py 631ps3.txt
-python trace_visualizer.py 631ps4.txt
-
-#python trace_visualizer.py 638s1.txt
-#python trace_visualizer.py 638s2.txt
-#python trace_visualizer.py 638s3.txt
-#python trace_visualizer.py 638s4.txt
-#python trace_visualizer.py 641s1.txt
-#python trace_visualizer.py 641s2.txt
-#python trace_visualizer.py 641s3.txt
-#python trace_visualizer.py 641s4.txt
+python sample_plotter.py trace_548-548-0-FR.txt
+python sample_plotter.py trace_548-548-0-MD.txt
+python sample_plotter.py trace_548-548-0-RR.txt
+python sample_plotter.py trace_548-548-31-FR.txt
+python sample_plotter.py trace_548-548-31-MD.txt
+python sample_plotter.py trace_548-548-31-RR.txt
+python sample_plotter.py trace_548-548-64-FR.txt
+python sample_plotter.py trace_548-548-64-MD.txt
+python sample_plotter.py trace_548-548-64-RR.txt
+python sample_plotter.py trace_631-631-0-FR.txt
+python sample_plotter.py trace_631-631-0-MD.txt
+python sample_plotter.py trace_631-631-0-RR.txt
+python sample_plotter.py trace_631-631-31-FR.txt
+python sample_plotter.py trace_631-631-31-MD.txt
+python sample_plotter.py trace_631-631-31-RR.txt
+python sample_plotter.py trace_631-631-64-FR.txt
+python sample_plotter.py trace_631-631-64-MD.txt
+python sample_plotter.py trace_631-631-64-RR.txt
+python sample_plotter.py trace_638-638-0-FR.txt
+python sample_plotter.py trace_638-638-0-MD.txt
+python sample_plotter.py trace_638-638-0-RR.txt
+python sample_plotter.py trace_638-638-31-FR.txt
+python sample_plotter.py trace_638-638-31-MD.txt
+python sample_plotter.py trace_638-638-31-RR.txt
+python sample_plotter.py trace_638-638-64-FR.txt
+python sample_plotter.py trace_638-638-64-MD.txt
+python sample_plotter.py trace_638-638-64-RR.txt
+python sample_plotter.py trace_641-641-0-FR.txt
+python sample_plotter.py trace_641-641-0-MD.txt
+python sample_plotter.py trace_641-641-0-RR.txt
+python sample_plotter.py trace_641-641-31-FR.txt
+python sample_plotter.py trace_641-641-31-MD.txt
+python sample_plotter.py trace_641-641-31-RR.txt
+python sample_plotter.py trace_641-641-64-FR.txt
+python sample_plotter.py trace_641-641-64-MD.txt
+python sample_plotter.py trace_641-641-64-RR.txt

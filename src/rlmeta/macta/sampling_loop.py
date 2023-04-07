@@ -1,7 +1,11 @@
+import os
+import glob
 import subprocess
+from tqdm import tqdm
 
-for i in range(22, 23):
-    config_name = f"sample_multiagent_{i}"
+yaml_files = glob.glob("config/*.yaml")
+for yaml_file in tqdm(yaml_files):
+    config_name = os.path.splitext(os.path.basename(yaml_file))[0]
     output_file = f"trace_{config_name}.txt"
     print(f"Running with config: {config_name}")
 
@@ -13,3 +17,4 @@ for i in range(22, 23):
             f.write(line)
         
         process.wait()
+
