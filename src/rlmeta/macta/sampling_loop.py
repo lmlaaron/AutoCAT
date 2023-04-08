@@ -3,7 +3,7 @@ import glob
 import subprocess
 from tqdm import tqdm
 
-yaml_files = glob.glob("config/*.yaml")
+yaml_files = glob.glob("config/*.yaml") #("config/641-641-31-FR.yaml") # ("config/*.yaml")
 for yaml_file in tqdm(yaml_files):
     config_name = os.path.splitext(os.path.basename(yaml_file))[0]
     output_file = f"trace_{config_name}.txt"

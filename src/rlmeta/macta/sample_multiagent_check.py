@@ -261,7 +261,7 @@ def head2head(env,
 #@hydra.main(config_path="./config", config_name="sample_multiagent_2")
 #@hydra.main(config_path="../config", config_name=None)
 #@hydra.main(config_path="/home/geunbae/CacheSimulator/src/rlmeta/macta/config", config_name=None)
-@hydra.main(config_path="./config", config_name=None)
+@hydra.main(config_path="./config", config_name=None) #"641-641-31-FR")# None)
 def main(cfg: DictConfig): #def main(cfg):
 
     
