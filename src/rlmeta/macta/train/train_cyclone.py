@@ -38,7 +38,6 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
     episode_return = 0.0
     detector_count = 0.0
     detector_acc = 0.0
-
     env.env.opponent_weights = [1, 0.0]
     if victim_addr == -1:
         timestep = env.reset()
@@ -146,7 +145,7 @@ def collect_test(cfg, num_samples):
     X, y = [], [] 
     
     for trace_file in cfg.test_trace_files:
-        spec_trace = load_trace(test_trace_file,
+        spec_trace = load_trace(trace_file,
                                 limit=cfg.trace_limit,
                                 legacy_trace_format=cfg.legacy_trace_format)
         benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=cfg.legacy_trace_format)
@@ -173,8 +172,9 @@ def train(cfg):
     #data_file = "/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-04/00-39-07/data.pkl" # whole self-mixes w/ prime offset
 
     if data_file is None:
-        X_train, y_train = collect(cfg, num_samples=6000)
-        X_test, y_test = collect_test(cfg, num_samples=100)
+        X_train, y_train = collect(cfg, num_samples=2000) # 6000
+        X_test, y_test = collect(cfg, num_samples=100) # 100
+        #X_test, y_test = collect_test(cfg, num_samples=10) # 100
         data = {"X_train": X_train,
             "y_train": y_train,
             "X_test": X_test,
