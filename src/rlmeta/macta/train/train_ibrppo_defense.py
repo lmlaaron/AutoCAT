@@ -326,10 +326,14 @@ def main(cfg):
             # Train Attacker
             print('8' * 20)
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
+            print('9' * 20)
             if epoch >= 50:
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
+                print('10' * 20)
                 a_stats = agent.train(0)
+                print('11' * 20)
+                print('train_ibrppo_defense.py, L336: a_stats: ', a_stats)
             # wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         # stats = d_stats

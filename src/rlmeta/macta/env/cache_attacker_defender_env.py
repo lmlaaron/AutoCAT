@@ -47,6 +47,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                                  + 1 + len(self.victim_address_space) + 1)
         self.observation_space = spaces.Box(low=-1, high=self.max_box_value,
                                             shape=(self.window_size, self.feature_size))
+        #self.observation_space = self._env.observation_space
         self.opponent_weights = env_config.get("opponent_weights", [0.5, 0.5])
         self.opponent_agent = random.choices(['benign', 'attacker'], weights=self.opponent_weights, k=1)[0]
         self.action_mask = {'defender': True, 'attacker': self.opponent_agent == 'attacker',

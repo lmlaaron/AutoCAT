@@ -38,7 +38,7 @@ class Cache:
             self.rep_policy = brrip_policy
         elif rep_policy == 'lru_lock_policy':
             self.vprint("use lru_lock")
-            self.rep_policy = lru_lock_policy
+            self.rep_policy = lru_lock_policy 
         else:
             self.rep_policy = lru_policy
             if name == 'cache_1':

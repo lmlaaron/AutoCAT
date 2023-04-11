@@ -18,8 +18,8 @@ cd_server_addr: "127.0.0.1:4733"
 
 train_device: "cuda:0"
 infer_device: "cuda:1"
-train_device_d: "cuda:0" #"cuda:2"
-infer_device_d: "cuda:1" #"cuda:3"
+train_device_d: "cuda:1" #"cuda:0" #"cuda:2"
+infer_device_d: "cuda:0" #"cuda:1" #"cuda:3"
 
 num_train_rollouts: 1 #72 #48 #24
 num_train_workers: 1  #24
@@ -39,7 +39,10 @@ attacker_checkpoint: ""
 # trace_file: "/u/jxcui/remix3.txt"
 # trace_limit: 1000000
 #
-trace_files: ['/home/geunbae/data/remix3.txt']
+trace_files: [
+  #'/home/geunbae/data/remix3.txt',
+  '/home/geunbae/data/MACTA/train/spectrace_500_502_2000000.txt',
+]
 
 #  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500-2M_500-4M.txt",
 #  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502-2M_502-4M.txt",
