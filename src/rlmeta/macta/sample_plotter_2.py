@@ -95,45 +95,36 @@ def calculate_correlation(attacker_data, victim_data):
     return corr_coef
 
 
-def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png'):
+def draw_heatmap(data_np, data_type, title='Memory access patterns', output_file='graph.png'):
     fig, ax = plt.subplots(figsize=(16, 24))  # (width, height)
 
     attacker_data = data_np[data_np[:, 1] == 1]
     victim_data = data_np[data_np[:, 1] == 0]
 
     bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201)
-    bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 4)  # default is 8 
+    bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 7)  # default is 8
 
-    hist_atk, x_edges_atk, y_edges_atk = np.histogram2d(attacker_data[:, 0], 
-                                                        attacker_data[:, 2], 
-                                                        bins=[bins_x, bins_y],
-                                                    )
-    hist_vic, x_edges_vic, y_edges_vic = np.histogram2d(victim_data[:, 0], 
-                                                        victim_data[:, 2], 
-                                                        bins=[bins_x, bins_y],
-                                                    )
-    
-    hist_combined = hist_vic + hist_atk
+    if data_type == 'attacker':
+        data = attacker_data
+        color_map = plt.cm.get_cmap('Reds')
+        label = 'Domain A'
+    elif data_type == 'victim':
+        data = victim_data
+        color_map = plt.cm.get_cmap('Blues')
+        label = 'Domain B'
 
-    color_map = plt.cm.get_cmap('Blues')
+    hist, x_edges, y_edges = np.histogram2d(data[:, 0], 
+                                            data[:, 2], 
+                                            bins=[bins_x, bins_y],
+                                           )
+
     color_map.set_under(color='none')
-    im_vic = ax.imshow(hist_vic.T, origin='lower', cmap=color_map, 
-                       extent=[x_edges_vic[0], x_edges_vic[-1], y_edges_vic[0], y_edges_vic[-1]], 
-                       vmin=0.1)
-    
-    color_map = plt.cm.get_cmap('Reds')
-    color_map.set_under(color='none')
-    im_atk = ax.imshow(hist_atk.T, origin='lower', 
-                       cmap=color_map, extent=[x_edges_atk[0], x_edges_atk[-1], y_edges_atk[0], y_edges_atk[-1]], 
-                       vmin=0.1)
-    
-    corr_coef = calculate_correlation(attacker_data, victim_data)
+    im = ax.imshow(hist.T, origin='lower', cmap=color_map, 
+                   extent=[x_edges[0], x_edges[-1], y_edges[0], y_edges[-1]], 
+                   vmin=0.1)
 
-    legend_elements = [Line2D([0], [0], marker='s', color='w', label='Domain A',
-                              markerfacecolor='darkred', markersize=6, alpha=0.9),
-                       Line2D([0], [0], marker='s', color='w', label='Domain B',
-                              markerfacecolor='darkblue', markersize=6, alpha=0.9),
-                       Line2D([], [], color='none', label=f'Corr. Coef.: {corr_coef:.3f}')]
+    legend_elements = [Line2D([0], [0], marker='s', color='w', label=label,
+                              markerfacecolor=color_map(1.0), markersize=6, alpha=0.9)]
 
     ax.legend(handles=legend_elements, loc='upper right')
     ax.set_xlabel('Steps')
@@ -150,8 +141,6 @@ def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png
     plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
     plt.show()
 
-    
-
 def main(input_file, max_rows=None, data=None):
     data = process_file(input_file)
     offset = step_offset(input_file)
@@ -160,11 +149,14 @@ def main(input_file, max_rows=None, data=None):
 
     # Convert data_limited list to a NumPy array
     data_limited_np = np.array(data_limited, dtype=int)
+    
+    
+    data_types = {'attacker': 'Domain_A', 'victim': 'Domain_B'}
 
-    title = f"Memory access patterns ({input_file})"
-    output_file = f"colormap_{input_file.split('.')[0]}.png"
-    draw_heatmap(data_limited_np, title, output_file)
-
+    for data_type, file_label in data_types.items():
+        title = f"Memory access patterns ({input_file}, {file_label})"
+        output_file = f"colormap_single_{file_label}_{input_file.split('.')[0]}.png"
+        draw_heatmap(data_limited_np, data_type, title, output_file)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
