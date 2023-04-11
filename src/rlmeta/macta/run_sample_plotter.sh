@@ -35,7 +35,7 @@ FILES=(
  #"trace_641-641-31-MD.txt"
  #"trace_641-641-31-RR.txt"
  #"trace_641-641-64-FR.txt"
- #"trace_641-641-64-MD.txt"
+ "trace_641-641-64-MD.txt"
  #"trace_641-641-64-RR.txt"
  #"trace_549-607-0-FR.txt"
  #"trace_549-607-0-MD.txt"

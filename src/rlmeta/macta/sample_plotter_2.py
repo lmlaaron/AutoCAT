@@ -102,7 +102,8 @@ def draw_heatmap(data_np, data_type, title='Memory access patterns', output_file
     victim_data = data_np[data_np[:, 1] == 0]
 
     bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201)
-    bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 7)  # default is 8
+    #bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 8)  # default is 8
+    bins_y = np.linspace(0, 8, 9)
 
     if data_type == 'attacker':
         data = attacker_data
@@ -130,7 +131,7 @@ def draw_heatmap(data_np, data_type, title='Memory access patterns', output_file
     ax.set_xlabel('Steps')
     ax.set_ylabel('Set_index')
     ax.set_title(title)
-    ax.set_ylim(0, 7)  # matches to 8-set
+    ax.set_ylim(0, 8)  # matches to 8-set
     ax.set_aspect(4)
 
     def format_func(value, tick_number):

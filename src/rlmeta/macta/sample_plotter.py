@@ -95,6 +95,7 @@ def calculate_correlation(attacker_data, victim_data):
     return corr_coef
 
 
+
 def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png'):
     fig, ax = plt.subplots(figsize=(16, 24))  # (width, height)
 
@@ -102,7 +103,8 @@ def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png
     victim_data = data_np[data_np[:, 1] == 0]
 
     bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201)
-    bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 4)  # default is 8 
+    #bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 5)  # default is 8 
+    bins_y = np.linspace(0, 8, 9)  # Create 8 bins spanning from 0 to 8
 
     hist_atk, x_edges_atk, y_edges_atk = np.histogram2d(attacker_data[:, 0], 
                                                         attacker_data[:, 2], 
@@ -139,7 +141,7 @@ def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png
     ax.set_xlabel('Steps')
     ax.set_ylabel('Set_index')
     ax.set_title(title)
-    ax.set_ylim(0, 7)  # matches to 8-set
+    ax.set_ylim(0, 8)  # matches to 8-set
     ax.set_aspect(4)
 
     def format_func(value, tick_number):
@@ -147,7 +149,7 @@ def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=400, format='png', facecolor='white', bbox_inches='tight')  # white # none
     plt.show()
 
     
