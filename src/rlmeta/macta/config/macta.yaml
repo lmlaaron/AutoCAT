@@ -28,42 +28,30 @@ num_eval_rollouts: 12 #2
 num_eval_workers: 4 #2
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
-# attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
-#attacker_checkpoint: "/checkpoint/jxcui/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
-#attacker_checkpoint: ""
-attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
+attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
 
-#trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
-
-
-# trace_file: "/u/jxcui/remix3.txt"
-# trace_limit: 1000000
-#
 trace_files: [
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500-2M_500-4M.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502-2M_502-4M.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_505-2M_505-4M.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_2000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_2000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_2000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_6000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_6000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_6000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_10000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_10000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_10000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500-2M_500-4M.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502-2M_502-4M.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_505-2M_505-4M.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_2000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_2000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_2000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_6000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_6000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_6000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_502_10000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_500_505_10000000.txt",
+  "/u/jxcui/Documents/spectrace_bug_fix/spectrace_502_505_10000000.txt",
 ]
 trace_limit: 2000000
 legacy_trace_format: false
 
-# replay_buffer_size: 262144
-# replay_buffer_size: 131072
 replay_buffer_size: 262144
-#replay_buffer_size: 1024
 prefetch: 2
 
 batch_size: 512
-lr: 1e-4 #1e-4
+lr: 1e-4
 entropy_coeff: 0.03 # default 0.01
 learning_starts: 65536
 push_every_n_steps: 10
