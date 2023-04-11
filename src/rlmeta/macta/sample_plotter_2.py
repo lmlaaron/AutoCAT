@@ -95,13 +95,13 @@ def calculate_correlation(attacker_data, victim_data):
     return corr_coef
 
 
-def draw_heatmap(data_np, data_type, title='Memory access patterns', output_file='graph.png'):
+def draw_colormap(data_np, data_type, title='Memory access patterns', output_file='graph.png'):
     fig, ax = plt.subplots(figsize=(16, 24))  # (width, height)
 
     attacker_data = data_np[data_np[:, 1] == 1]
     victim_data = data_np[data_np[:, 1] == 0]
 
-    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201)
+    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 501)
     #bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 8)  # default is 8
     bins_y = np.linspace(0, 8, 9)
 
@@ -156,13 +156,13 @@ def main(input_file, max_rows=None, data=None):
 
     for data_type, file_label in data_types.items():
         title = f"Memory access patterns ({input_file}, {file_label})"
-        output_file = f"colormap_single_{file_label}_{input_file.split('.')[0]}.png"
-        draw_heatmap(data_limited_np, data_type, title, output_file)
+        output_file = f"colormap_single_500_{file_label}_{input_file.split('.')[0]}.png"
+        draw_colormap(data_limited_np, data_type, title, output_file)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
-        max_rows = 400  
+        max_rows = 1000  
         main(input_file, int(max_rows / 2)) # use when specify max_rows
         #main(input_file, max_rows)
     else:

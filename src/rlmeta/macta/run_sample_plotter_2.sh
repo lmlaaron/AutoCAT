@@ -1,7 +1,10 @@
 #!/bin/bash
 
 FILES=(
- #"trace_548-548-0-FR.txt"
+ "trace_500-500-0-FR.txt"
+ "trace_502-502-0-FR.txt"
+ "trace_505-505-0-FR.txt"
+ "trace_548-548-0-FR.txt"
  #"trace_548-548-0-MD.txt"
  #"trace_548-548-0-RR.txt"
  #"trace_548-548-31-FR.txt"
@@ -10,7 +13,7 @@ FILES=(
  #"trace_548-548-64-FR.txt"
  #"trace_548-548-64-MD.txt"
  #"trace_548-548-64-RR.txt"
- #"trace_631-631-0-FR.txt"
+ "trace_631-631-0-FR.txt"
  #"trace_631-631-0-MD.txt"
  #"trace_631-631-0-RR.txt"
  #"trace_631-631-31-FR.txt"
@@ -19,7 +22,7 @@ FILES=(
  #"trace_631-631-64-FR.txt"
  #"trace_631-631-64-MD.txt"
  #"trace_631-631-64-RR.txt"
- #"trace_638-638-0-FR.txt"
+ "trace_638-638-0-FR.txt"
  #"trace_638-638-0-MD.txt"
  #"trace_638-638-0-RR.txt"
  #"trace_638-638-31-FR.txt"
@@ -37,7 +40,7 @@ FILES=(
  #"trace_641-641-64-FR.txt"
  #"trace_641-641-64-MD.txt"
  #"trace_641-641-64-RR.txt"
- #"trace_549-607-0-FR.txt"
+ "trace_549-607-0-FR.txt"
  #"trace_549-607-0-MD.txt"
  #"trace_549-607-0-RR.txt"
  #"trace_549-607-0-FR.txt"

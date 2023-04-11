@@ -39,6 +39,7 @@ def process_file(input_file):
     # Remove the last row from data
     if data:
         data.pop()
+    #data = data[600:]  # to extract certain range from 641
     print('input data: ', data[0:5])
     return data
 
@@ -49,7 +50,7 @@ def step_offset(input_file):
     elif input_file.endswith('RR.txt'):
         return 3600000
     elif input_file.endswith('FR.txt'):
-        return 0
+        return 0 #400 #0
     else:
         return 0
 
@@ -96,14 +97,13 @@ def calculate_correlation(attacker_data, victim_data):
 
 
 
-def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png'):
+def draw_colormap(data_np, title='Memory access patterns', output_file='graph.png'):
     fig, ax = plt.subplots(figsize=(16, 24))  # (width, height)
 
     attacker_data = data_np[data_np[:, 1] == 1]
     victim_data = data_np[data_np[:, 1] == 0]
 
-    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201)
-    #bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 5)  # default is 8 
+    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201) #201)
     bins_y = np.linspace(0, 8, 9)  # Create 8 bins spanning from 0 to 8
 
     hist_atk, x_edges_atk, y_edges_atk = np.histogram2d(attacker_data[:, 0], 
@@ -149,7 +149,7 @@ def draw_heatmap(data_np, title='Memory access patterns', output_file='graph.png
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=400, format='png', facecolor='white', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
     plt.show()
 
     
@@ -164,14 +164,14 @@ def main(input_file, max_rows=None, data=None):
     data_limited_np = np.array(data_limited, dtype=int)
 
     title = f"Memory access patterns ({input_file})"
-    output_file = f"colormap_{input_file.split('.')[0]}.png"
-    draw_heatmap(data_limited_np, title, output_file)
+    output_file = f"colormap_200_{input_file.split('.')[0]}.png"
+    draw_colormap(data_limited_np, title, output_file)
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
-        max_rows = 400  
+        max_rows = 2 * 200 # 400  
         main(input_file, int(max_rows / 2)) # use when specify max_rows
         #main(input_file, max_rows)
     else:
