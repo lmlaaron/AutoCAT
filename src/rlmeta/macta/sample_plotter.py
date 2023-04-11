@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import matplotlib.ticker as ticker
 import re
 from matplotlib.ticker import FuncFormatter, MaxNLocator
@@ -97,13 +98,16 @@ def calculate_correlation(attacker_data, victim_data):
 
 
 
-def draw_colormap(data_np, title='Memory access patterns', output_file='graph.png'):
-    fig, ax = plt.subplots(figsize=(16, 24))  # (width, height)
-
+def draw_colormap(data_np, title='Memory access patterns', output_file='graph.pdf'):
+    #fig, ax = plt.subplots(figsize=(10, 200))  # (width, height)
+    #mpl.rcParams['font.family'] = 'Arial'  # no fonts?
+    plt.figure(figsize=(15, 30))
+    ax = plt.gca()
+    
     attacker_data = data_np[data_np[:, 1] == 1]
     victim_data = data_np[data_np[:, 1] == 0]
 
-    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 201) #201)
+    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 9901) #201)
     bins_y = np.linspace(0, 8, 9)  # Create 8 bins spanning from 0 to 8
 
     hist_atk, x_edges_atk, y_edges_atk = np.histogram2d(attacker_data[:, 0], 
@@ -131,25 +135,27 @@ def draw_colormap(data_np, title='Memory access patterns', output_file='graph.pn
     
     corr_coef = calculate_correlation(attacker_data, victim_data)
 
-    legend_elements = [Line2D([0], [0], marker='s', color='w', label='Domain A',
-                              markerfacecolor='darkred', markersize=6, alpha=0.9),
-                       Line2D([0], [0], marker='s', color='w', label='Domain B',
-                              markerfacecolor='darkblue', markersize=6, alpha=0.9),
+    legend_elements = [Line2D([0], [0], marker='s', color='w', label='Program 1', #'Domain A',
+                              markerfacecolor='darkred', markersize=4, alpha=0.9),
+                       Line2D([0], [0], marker='s', color='w', label='Program 2', #'Domain B',
+                              markerfacecolor='darkblue', markersize=4, alpha=0.9),
                        Line2D([], [], color='none', label=f'Corr. Coef.: {corr_coef:.3f}')]
 
-    ax.legend(handles=legend_elements, loc='upper right')
+    #ax.legend(handles=legend_elements, loc='upper right')
+    ax.legend(handles=legend_elements, loc='lower left', bbox_to_anchor=(1, 1.05))
+
     ax.set_xlabel('Steps')
-    ax.set_ylabel('Set_index')
+    ax.set_ylabel('Set Index')
     ax.set_title(title)
     ax.set_ylim(0, 8)  # matches to 8-set
-    ax.set_aspect(4)
+    ax.set_aspect(380)
 
     def format_func(value, tick_number):
         return f'{int(value / 1)}'
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=1000, format='pdf', facecolor='white', bbox_inches='tight')  # white # none
     plt.show()
 
     
@@ -164,14 +170,14 @@ def main(input_file, max_rows=None, data=None):
     data_limited_np = np.array(data_limited, dtype=int)
 
     title = f"Memory access patterns ({input_file})"
-    output_file = f"colormap_200_{input_file.split('.')[0]}.png"
+    output_file = f"colormap_10K_{input_file.split('.')[0]}.pdf"
     draw_colormap(data_limited_np, title, output_file)
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
-        max_rows = 2 * 200 # 400  
+        max_rows = 2 * 9900 # 400  
         main(input_file, int(max_rows / 2)) # use when specify max_rows
         #main(input_file, max_rows)
     else:
