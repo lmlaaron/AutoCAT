@@ -18,20 +18,20 @@ cd_server_addr: "127.0.0.1:4733"
 
 train_device: "cuda:0"
 infer_device: "cuda:1"
-train_device_d: "cuda:2" #"cuda:2"
-infer_device_d: "cuda:3" #"cuda:3"
+train_device_d: "cuda:0" #"cuda:2"
+infer_device_d: "cuda:1" #"cuda:3"
 
-num_train_rollouts: 72 #72 #48 #24
-num_train_workers: 24  #24
+num_train_rollouts: 1 # 72 #72 #48 #24
+num_train_workers: 1 # 24  #24
 
-num_eval_rollouts: 12 #2
-num_eval_workers: 4 #2
+num_eval_rollouts: 1 # 12 #2
+num_eval_workers: 1 # 4 #2
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
 # attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
 #attacker_checkpoint: "/checkpoint/jxcui/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
-#attacker_checkpoint: ""
-attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
+attacker_checkpoint: ""
+#attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
 
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
 
@@ -40,26 +40,16 @@ attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-
 # trace_limit: 1000000
 #
 trace_files: [
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500-2M_500-4M.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502-2M_502-4M.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_505-2M_505-4M.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_2000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_2000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_2000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_6000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_6000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_6000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_10000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_10000000.txt",
-  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_10000000.txt",
+  
+  '/home/geunbae/data/MACTA/train/spectrace_500_502_2000000.txt',
 ]
-trace_limit: 2000000
+trace_limit: 200 # 2000000
 legacy_trace_format: false
 
 # replay_buffer_size: 262144
 # replay_buffer_size: 131072
-replay_buffer_size: 262144
-#replay_buffer_size: 1024
+#replay_buffer_size: 262144
+replay_buffer_size: 1024
 prefetch: 2
 
 batch_size: 512

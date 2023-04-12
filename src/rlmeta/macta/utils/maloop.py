@@ -169,11 +169,15 @@ class MAAsyncLoop(MALoop, Launchable):
             env: Env,
             agent: Agent, #TODO type check
             episode_callbacks: Optional[EpisodeCallbacks] = None) -> NoReturn:
+        print('maloop.py L172, index: ', index)
+        print('maloop.py L173, env: ', env)
+        print('maloop.py L174, agent: ', agent)
         while True:
             while not self.running:
                 await asyncio.sleep(1)
             stats = await self._run_episode(index, env, agent,
                                             episode_callbacks)
+            #print('maloop.py L180: stats: ', stats)
             if stats is not None:
                 await self._controller.async_add_episode(
                     self._running_phase, stats)

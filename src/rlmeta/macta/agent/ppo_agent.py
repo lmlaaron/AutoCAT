@@ -77,7 +77,7 @@ class PPOAgent(PPOAgent):
 
     def train(self, num_steps: int) -> Optional[StatsDict]:
         #self.controller.set_phase(Phase.TRAIN, reset=True)
-
+        print("def train from ppo_agent.py, L80")
         self.replay_buffer.warm_up(self.learning_starts)
         stats = StatsDict()
 

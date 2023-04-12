@@ -271,6 +271,7 @@ def main(cfg):
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(0)
+                print('train_ibrppo.py, L274: a_stats: ', a_stats)
             #wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         #stats = d_stats
