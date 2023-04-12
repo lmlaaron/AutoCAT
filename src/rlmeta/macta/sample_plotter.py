@@ -6,6 +6,9 @@ import matplotlib.ticker as ticker
 import re
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 from matplotlib.lines import Line2D
+from matplotlib.font_manager import FontProperties
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.cm as cm
 
 
 def process_file(input_file):
@@ -98,16 +101,26 @@ def calculate_correlation(attacker_data, victim_data):
 
 
 
-def draw_colormap(data_np, title='Memory access patterns', output_file='graph.pdf'):
-    #fig, ax = plt.subplots(figsize=(10, 200))  # (width, height)
+def draw_colormap(data_np, 
+                  #title='Memory access patterns', 
+                  output_file='graph.png'):
+    
+    #fig, ax = plt.subplots(figsize=(200, 10))  # (width, height)
     #mpl.rcParams['font.family'] = 'Arial'  # no fonts?
-    plt.figure(figsize=(15, 30))
+    #font = FontProperties(family='DejaVu Sans')
+    
+    plt.figure(figsize=(30, 6))
+    plt.rcParams.update({'font.size': 30})
     ax = plt.gca()
+    #for label in ax.get_xticklabels():  # Apply the font to x-axis tick labels
+    #    label.set_fontproperties(font)
+    #for label in ax.get_yticklabels():  # Apply the font to y-axis tick labels
+    #    label.set_fontproperties(font)
     
     attacker_data = data_np[data_np[:, 1] == 1]
     victim_data = data_np[data_np[:, 1] == 0]
 
-    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 9901) #201)
+    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 129) #201)
     bins_y = np.linspace(0, 8, 9)  # Create 8 bins spanning from 0 to 8
 
     hist_atk, x_edges_atk, y_edges_atk = np.histogram2d(attacker_data[:, 0], 
@@ -121,42 +134,67 @@ def draw_colormap(data_np, title='Memory access patterns', output_file='graph.pd
     
     hist_combined = hist_vic + hist_atk
 
-    color_map = plt.cm.get_cmap('Blues')
-    color_map.set_under(color='none')
-    im_vic = ax.imshow(hist_vic.T, origin='lower', cmap=color_map, 
-                       extent=[x_edges_vic[0], x_edges_vic[-1], y_edges_vic[0], y_edges_vic[-1]], 
-                       vmin=0.1)
+    # Create and register the black colormap
+    black_colors = [(0, 0, 0), (0, 0, 0)]
+    black_cmap = LinearSegmentedColormap.from_list("black", black_colors)
+    cm.register_cmap("black", black_cmap)
+
+    black_cmap.set_under(color='none')
+    im_vic = ax.imshow(hist_vic.T, origin='lower', cmap=black_cmap, extent=[x_edges_vic[0], x_edges_vic[-1], y_edges_vic[0], y_edges_vic[-1]], vmin=0.1)
+
+    # Create and register the light gray colormap
+    gray_colors = [(0.8, 0.8, 0.8), (0.8, 0.8, 0.8)]
+    gray_cmap = LinearSegmentedColormap.from_list("lightgray", gray_colors)
+    cm.register_cmap("lightgray", gray_cmap)
+
+    gray_cmap.set_under(color='none')
+    im_atk = ax.imshow(hist_atk.T, origin='lower', cmap=gray_cmap, extent=[x_edges_atk[0], x_edges_atk[-1], y_edges_atk[0], y_edges_atk[-1]], vmin=0.1)
+
+
+    #color_map = plt.cm.get_cmap('Blues') # 'Blues'
+    #color_map.set_under(color='none')
+    #im_vic = ax.imshow(hist_vic.T, origin='lower', cmap=color_map, 
+    #                   extent=[x_edges_vic[0], x_edges_vic[-1], y_edges_vic[0], y_edges_vic[-1]], 
+    #                   vmin=0.1)
     
-    color_map = plt.cm.get_cmap('Reds')
-    color_map.set_under(color='none')
-    im_atk = ax.imshow(hist_atk.T, origin='lower', 
-                       cmap=color_map, extent=[x_edges_atk[0], x_edges_atk[-1], y_edges_atk[0], y_edges_atk[-1]], 
-                       vmin=0.1)
+    #color_map = plt.cm.get_cmap('Reds') #"Reds"
+    #color_map.set_under(color='none')
+    #im_atk = ax.imshow(hist_atk.T, origin='lower', 
+    #                   cmap=color_map, extent=[x_edges_atk[0], x_edges_atk[-1], y_edges_atk[0], y_edges_atk[-1]], 
+    #                   vmin=0.1)
     
     corr_coef = calculate_correlation(attacker_data, victim_data)
 
-    legend_elements = [Line2D([0], [0], marker='s', color='w', label='Program 1', #'Domain A',
-                              markerfacecolor='darkred', markersize=4, alpha=0.9),
-                       Line2D([0], [0], marker='s', color='w', label='Program 2', #'Domain B',
-                              markerfacecolor='darkblue', markersize=4, alpha=0.9),
-                       Line2D([], [], color='none', label=f'Corr. Coef.: {corr_coef:.3f}')]
+    #legend_elements = [Line2D([0], [0], marker='s', color='w', label='Program 1', #'Domain A',
+    #                          markerfacecolor='darkred', markersize=6, alpha=0.9),
+    #                   Line2D([0], [0], marker='s', color='w', label='Program 2', #'Domain B',
+    #                          markerfacecolor='darkblue', markersize=6, alpha=0.9),
+                       #Line2D([], [], color='none', label=f'Corr. Coef.: {corr_coef:.3f}')
+                       #]
 
     #ax.legend(handles=legend_elements, loc='upper right')
-    ax.legend(handles=legend_elements, loc='lower left', bbox_to_anchor=(1, 1.05))
+    #ax.legend(handles=legend_elements, loc='lower left', bbox_to_anchor=(1, 1.05))
 
-    ax.set_xlabel('Steps')
-    ax.set_ylabel('Set Index')
-    ax.set_title(title)
+    ax.set_xlabel('Steps', 
+                  #fontproperties=font
+                  )
+    ax.set_ylabel('Set Index', 
+                  #fontproperties=font
+                  )
+    #ax.set_title(title)
     ax.set_ylim(0, 8)  # matches to 8-set
-    ax.set_aspect(380)
+    ax.set_aspect(2.5)
+    ax.set_yticks([0,1,2,3,4,5,6,7])
 
     def format_func(value, tick_number):
         return f'{int(value / 1)}'
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=1000, format='pdf', facecolor='white', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
     plt.show()
+
+
 
     
 
@@ -170,14 +208,15 @@ def main(input_file, max_rows=None, data=None):
     data_limited_np = np.array(data_limited, dtype=int)
 
     title = f"Memory access patterns ({input_file})"
-    output_file = f"colormap_10K_{input_file.split('.')[0]}.pdf"
-    draw_colormap(data_limited_np, title, output_file)
+    output_file = f"colormap_128d_{input_file.split('.')[0]}.png"
+    #draw_colormap(data_limited_np, title, output_file)
+    draw_colormap(data_limited_np, output_file)
 
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
-        max_rows = 2 * 9900 # 400  
+        max_rows = 2 * 128 # 400  
         main(input_file, int(max_rows / 2)) # use when specify max_rows
         #main(input_file, max_rows)
     else:
