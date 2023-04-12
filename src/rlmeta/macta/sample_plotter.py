@@ -110,7 +110,7 @@ def draw_colormap(data_np,
     #font = FontProperties(family='DejaVu Sans')
     
     plt.figure(figsize=(30, 6))
-    plt.rcParams.update({'font.size': 30})
+    plt.rcParams.update({'font.size': 40})
     ax = plt.gca()
     #for label in ax.get_xticklabels():  # Apply the font to x-axis tick labels
     #    label.set_fontproperties(font)
@@ -183,7 +183,7 @@ def draw_colormap(data_np,
                   )
     #ax.set_title(title)
     ax.set_ylim(0, 8)  # matches to 8-set
-    ax.set_aspect(2.5)
+    ax.set_aspect(2.4)
     ax.set_yticks([0,1,2,3,4,5,6,7])
 
     def format_func(value, tick_number):
@@ -191,7 +191,7 @@ def draw_colormap(data_np,
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=600, format='png', facecolor='none', bbox_inches='tight')  # white # none
     plt.show()
 
 
