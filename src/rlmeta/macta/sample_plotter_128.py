@@ -109,8 +109,8 @@ def draw_colormap(data_np,
     #mpl.rcParams['font.family'] = 'Arial'  # no fonts?
     #font = FontProperties(family='DejaVu Sans')
     
-    plt.figure(figsize=(30, 6))
-    plt.rcParams.update({'font.size': 40})
+    plt.figure(figsize=(35, 7))
+    plt.rcParams.update({'font.size': 35})
     ax = plt.gca()
     #for label in ax.get_xticklabels():  # Apply the font to x-axis tick labels
     #    label.set_fontproperties(font)
@@ -134,21 +134,22 @@ def draw_colormap(data_np,
     
     hist_combined = hist_vic + hist_atk
 
-    # Create and register the black colormap
-    black_colors = [(0, 0, 0), (0, 0, 0)]
-    black_cmap = LinearSegmentedColormap.from_list("black", black_colors)
-    cm.register_cmap("black", black_cmap)
+    # Create and register the light blue colormap
+    p2_colors = [(0.678, 0.847, 0.902), (0.678, 0.847, 0.902)]
+    p2_cmap = LinearSegmentedColormap.from_list("lightblue", p2_colors)
+    cm.register_cmap("lightblue", p2_cmap)
 
-    black_cmap.set_under(color='none')
-    im_vic = ax.imshow(hist_vic.T, origin='lower', cmap=black_cmap, extent=[x_edges_vic[0], x_edges_vic[-1], y_edges_vic[0], y_edges_vic[-1]], vmin=0.1)
+    p2_cmap.set_under(color='none')
+    im_vic = ax.imshow(hist_vic.T, origin='lower', cmap=p2_cmap, extent=[x_edges_vic[0], x_edges_vic[-1], y_edges_vic[0], y_edges_vic[-1]], vmin=0.1)
 
-    # Create and register the light gray colormap
-    gray_colors = [(0.8, 0.8, 0.8), (0.8, 0.8, 0.8)]
-    gray_cmap = LinearSegmentedColormap.from_list("lightgray", gray_colors)
-    cm.register_cmap("lightgray", gray_cmap)
+    # Create and register the dark red colormap
+    p1_colors = [(0.55, 0, 0), (0.55, 0, 0)]
+    p1_cmap = LinearSegmentedColormap.from_list("darkred", p1_colors)
+    cm.register_cmap("darkred", p1_cmap)
 
-    gray_cmap.set_under(color='none')
-    im_atk = ax.imshow(hist_atk.T, origin='lower', cmap=gray_cmap, extent=[x_edges_atk[0], x_edges_atk[-1], y_edges_atk[0], y_edges_atk[-1]], vmin=0.1)
+    p1_cmap.set_under(color='none')
+    im_atk = ax.imshow(hist_atk.T, origin='lower', cmap=p1_cmap, extent=[x_edges_atk[0], x_edges_atk[-1], y_edges_atk[0], y_edges_atk[-1]], vmin=0.1)
+
 
 
     #color_map = plt.cm.get_cmap('Blues') # 'Blues'
@@ -164,17 +165,21 @@ def draw_colormap(data_np,
     #                   vmin=0.1)
     
     corr_coef = calculate_correlation(attacker_data, victim_data)
+    
 
-    #legend_elements = [Line2D([0], [0], marker='s', color='w', label='Program 1', #'Domain A',
-    #                          markerfacecolor='darkred', markersize=6, alpha=0.9),
-    #                   Line2D([0], [0], marker='s', color='w', label='Program 2', #'Domain B',
-    #                          markerfacecolor='darkblue', markersize=6, alpha=0.9),
-                       #Line2D([], [], color='none', label=f'Corr. Coef.: {corr_coef:.3f}')
-                       #]
+    
+    legend_elements = [Line2D([0], [0], marker='s', color='w', label='Program 1', #'Domain A',
+                              markerfacecolor='darkred', markersize=18, alpha=0.9),
+                       Line2D([0], [0], marker='s', color='w', label='Program 2', #'Domain B',
+                              markerfacecolor='lightblue', markersize=18, alpha=0.9)]
+
+    # Add the legend to the current Axes
+    #ax.legend(handles=legend_elements, loc='best', ncol=2)
+
 
     #ax.legend(handles=legend_elements, loc='upper right')
     #ax.legend(handles=legend_elements, loc='lower left', bbox_to_anchor=(1, 1.05))
-
+    ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1, -0.2), borderaxespad=0)
     ax.set_xlabel('Steps', 
                   #fontproperties=font
                   )
@@ -191,7 +196,7 @@ def draw_colormap(data_np,
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=600, format='png', facecolor='none', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
     plt.show()
 
 
@@ -208,7 +213,7 @@ def main(input_file, max_rows=None, data=None):
     data_limited_np = np.array(data_limited, dtype=int)
 
     title = f"Memory access patterns ({input_file})"
-    output_file = f"colormap_128d_{input_file.split('.')[0]}.png"
+    output_file = f"colormap_128_{input_file.split('.')[0]}.png"
     #draw_colormap(data_limited_np, title, output_file)
     draw_colormap(data_limited_np, output_file)
 

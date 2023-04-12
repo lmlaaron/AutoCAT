@@ -5,6 +5,8 @@ import matplotlib.ticker as ticker
 import re
 from matplotlib.ticker import FuncFormatter, MaxNLocator
 from matplotlib.lines import Line2D
+from matplotlib.colors import LinearSegmentedColormap
+import matplotlib.cm as cm
 
 
 def process_file(input_file):
@@ -95,26 +97,29 @@ def calculate_correlation(attacker_data, victim_data):
     return corr_coef
 
 
-def draw_colormap(data_np, data_type, title='Memory access patterns', output_file='graph.png'):
+def draw_colormap(data_np, data_type, 
+                  #title='Memory access patterns', 
+                  output_file='graph.png'):
     #fig, ax = plt.subplots(figsize=(16, 24))  # (width, height)
-    plt.figure(figsize=(15, 30))
+    plt.figure(figsize=(14, 100))
+    plt.rcParams.update({'font.size': 18})
     ax = plt.gca()
 
     attacker_data = data_np[data_np[:, 1] == 1]
     victim_data = data_np[data_np[:, 1] == 0]
 
-    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 9901)
+    bins_x = np.linspace(min(data_np[:, 0]), max(data_np[:, 0]), 2001)
     #bins_y = np.linspace(min(data_np[:, 2]), max(data_np[:, 2]), 8)  # default is 8
     bins_y = np.linspace(0, 8, 9)
 
     if data_type == 'attacker':
         data = attacker_data
         color_map = plt.cm.get_cmap('Reds')
-        label = 'Domain A'
+        label = 'Program 1'
     elif data_type == 'victim':
         data = victim_data
-        color_map = plt.cm.get_cmap('Blues')
-        label = 'Domain B'
+        color_map = plt.cm.get_cmap('Reds')
+        label = 'Program 2'
 
     hist, x_edges, y_edges = np.histogram2d(data[:, 0], 
                                             data[:, 2], 
@@ -126,24 +131,27 @@ def draw_colormap(data_np, data_type, title='Memory access patterns', output_fil
                    extent=[x_edges[0], x_edges[-1], y_edges[0], y_edges[-1]], 
                    vmin=0.1)
 
-    legend_elements = [Line2D([0], [0], marker='s', color='w', label=label,
-                              markerfacecolor=color_map(1.0), markersize=6, alpha=0.9)]
+    #legend_elements = [Line2D([0], [0], marker='s', color='w', label=label,
+    #                          markerfacecolor=color_map(1.0), markersize=10, alpha=0.9)]
 
     #ax.legend(handles=legend_elements, loc='upper right')
-    ax.legend(handles=legend_elements, loc='lower left', bbox_to_anchor=(1, 1.05))
+    #ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1, 1.05))
+    #ax.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1, -0.2), borderaxespad=0)
+
     ax.set_xlabel('Steps')
     ax.set_ylabel('Set Index')
-    ax.set_title(title)
+    #ax.set_title(title)
     ax.set_ylim(0, 8)  # matches to 8-set
     #ax.set_aspect(4)
-    ax.set_aspect(220)
+    ax.set_aspect(40)
+    ax.set_yticks([0,1,2,3,4,5,6,7])
 
     def format_func(value, tick_number):
         return f'{int(value / 1)}'
 
     ax.xaxis.set_major_formatter(ticker.FuncFormatter(format_func))
     plt.tight_layout()
-    plt.savefig(output_file, dpi=1600, format='png', facecolor='none', bbox_inches='tight')  # white # none
+    plt.savefig(output_file, dpi=400, format='png', facecolor='none', bbox_inches='tight')  # white # none
     plt.show()
 
 def main(input_file, max_rows=None, data=None):
@@ -159,14 +167,16 @@ def main(input_file, max_rows=None, data=None):
     data_types = {'attacker': 'Program 1', 'victim': 'Program 2'}
 
     for data_type, file_label in data_types.items():
-        title = f"(TBD)Memory access patterns ({input_file}, {file_label})"
-        output_file = f"colormap_single_10K_{file_label}_{input_file.split('.')[0]}.png"
-        draw_colormap(data_limited_np, data_type, title, output_file)
+        #title = f"(TBD)Memory access patterns ({input_file}, {file_label})"
+        output_file = f"colormap_single_2K_{file_label}_{input_file.split('.')[0]}.png"
+        draw_colormap(data_limited_np, data_type, 
+                      #title, 
+                      output_file)
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         input_file = sys.argv[1]
-        max_rows = 2 * 9900  
+        max_rows = 2 * 2000  
         main(input_file, int(max_rows / 2)) # use when specify max_rows
         #main(input_file, max_rows)
     else:
