@@ -15,7 +15,7 @@ def_action_reward: 0
 def_latency_reward: -0.1 # increased 10X from -0.01 
 
 # cache simulator config
-verbose: 0
+verbose: 0 #1
 force_victim_hit: false
 flush_inst: false
 allow_victim_multi_access: true #false 
@@ -25,7 +25,7 @@ attacker_addr_e: 3
 victim_addr_s: 4
 victim_addr_e: 7
 reset_limit: 1
-opponent_weights: [0, 1] #[0.5, 0.,5] # [0, 1] # [0,1] = 100% attacker, [1,0] = 100% benign
+opponent_weights: [0.5, 0.5] # [0, 1] # [0,1] = 100% attacker, [1,0] = 100% benign
 
 cache_configs:
   architecture:

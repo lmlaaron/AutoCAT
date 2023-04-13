@@ -20,7 +20,7 @@ from rlmeta.core.types import Action, TimeStep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from model.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
-# from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
+# from env.cache_attacker_DEFENDER_env_factory import CacheAttackerDetectorEnvFactory
 from env.cache_attacker_defender_env_factory import CacheAttackerDefenderEnvFactory  # NOTE
 from utils.ma_metric_callbacks import MACallbacks
 from utils.wandb_logger import WandbLogger, stats_filter
@@ -73,8 +73,8 @@ def main(cfg):
 
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
-    #### detector
-    cfg.model_config["output_dim"] = 2  # output dim = action space
+    #### defender
+    cfg.model_config["output_dim"] = 16 #2  # output dim = action space
     cfg.model_config["step_dim"] += 2  # means dim for episode length. discrete 0 to 63 to 
     train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(  # TODO
         cfg.train_device_d)
@@ -183,7 +183,7 @@ def main(cfg):
 
 
 
-    #### detector agent
+    #### defender agent
     a_model_d = wrap_downstream_model(train_model_d, md_server)
     t_model_d = remote_utils.make_remote(infer_model_d, md_server)
     ea_model_d = remote_utils.make_remote(infer_model_d, md_server)
@@ -207,10 +207,10 @@ def main(cfg):
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list
-    ta_ma_fac = {"benign": t_b_fac, "attacker": ta_agent_fac, "detector": ta_d_fac}
-    td_ma_fac = {"benign": t_b_fac, "attacker": td_agent_fac, "detector": td_d_fac}
-    ea_ma_fac = {"benign": e_b_fac, "attacker": ea_agent_fac, "detector": ea_d_fac}
-    ed_ma_fac = {"benign": e_b_fac, "attacker": ed_agent_fac, "detector": ed_d_fac}
+    ta_ma_fac = {"benign": t_b_fac, "attacker": ta_agent_fac, "defender": ta_d_fac}
+    td_ma_fac = {"benign": t_b_fac, "attacker": td_agent_fac, "defender": td_d_fac}
+    ea_ma_fac = {"benign": e_b_fac, "attacker": ea_agent_fac, "defender": ea_d_fac}
+    ed_ma_fac = {"benign": e_b_fac, "attacker": ed_agent_fac, "defender": ed_d_fac}
     # ta_train attacker 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
@@ -224,7 +224,7 @@ def main(cfg):
     td_loop = MAParallelLoop(env_fac, # change to env_fac_unbalanve
                           td_ma_fac,
                           td_ctrl,
-                          running_phase=Phase.TRAIN_DETECTOR,
+                          running_phase=Phase.TRAIN_DEFENDER,
                           should_update=True,
                           num_rollouts=cfg.num_train_rollouts,
                           num_workers=cfg.num_train_workers,
@@ -242,7 +242,7 @@ def main(cfg):
     ed_loop = MAParallelLoop(env_fac_benign,
                           ed_ma_fac,
                           ed_ctrl,
-                          running_phase=Phase.EVAL_DETECTOR,
+                          running_phase=Phase.EVAL_DEFENDER,
                           should_update=False,
                           num_rollouts=cfg.num_eval_rollouts,
                           num_workers=cfg.num_eval_workers,
@@ -262,14 +262,14 @@ def main(cfg):
         a_stats, d_stats = None, None
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
         if epoch % 100 >= 50:
-            # Train Detector
+            # Train defender
             agent_d.set_use_history(False)
             agent.set_use_history(True)
-            agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
+            agent_d.controller.set_phase(Phase.TRAIN_DEFENDER, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
-            # wandb_logger.save(epoch, train_model_d, prefix="detector-")
-            torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
-            train_stats = {"detector":d_stats}
+            # wandb_logger.save(epoch, train_model_d, prefix="defender-")
+            torch.save(train_model_d.state_dict(), f"defender-{epoch}.pth")
+            train_stats = {"defender":d_stats}
             if epoch % 10 == 9:
                 agent_d.model.push_to_history()
 
@@ -304,7 +304,7 @@ def main(cfg):
         agent_d.set_use_history(False)
         agent.controller.set_phase(Phase.EVAL_ATTACKER, limit=cfg.num_eval_episodes, reset=True)
         a_stats = agent.eval(cfg.num_eval_episodes)
-        agent_d.controller.set_phase(Phase.EVAL_DETECTOR, limit=cfg.num_eval_episodes, reset=True)
+        agent_d.controller.set_phase(Phase.EVAL_DEFENDER, limit=cfg.num_eval_episodes, reset=True)
         d_stats = agent_d.eval(cfg.num_eval_episodes)
         # stats = d_stats
         stats = a_stats
@@ -316,7 +316,7 @@ def main(cfg):
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        eval_stats = {"attacker":a_stats, "detector":d_stats}
+        eval_stats = {"attacker":a_stats, "defender":d_stats}
         time.sleep(1)
 
         # wandb_logger.log(train_stats, eval_stats)

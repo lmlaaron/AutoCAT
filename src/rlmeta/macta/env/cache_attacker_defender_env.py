@@ -36,11 +36,11 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.action_space_size = env_config.get('action_space_size', 16)  # action_space_size = 2 ^ associativity
         self.action_space = spaces.Discrete(self.action_space_size)
         #self.action_space = self._env.action_space
-        self.victim_address_min = env_config.get('victim_addr_s', 9)
-        self.victim_address_max = env_config.get('victim_addr_e', 9)
+        self.victim_address_min = env_config.get('victim_addr_s', 4)
+        self.victim_address_max = env_config.get('victim_addr_e', 7)
         self.victim_address = self._env.victim_address
         self.attacker_address_max = env_config.get('attacker_addr_s', 0)
-        self.attacker_address_min = env_config.get('attacker_addr_e', 7)
+        self.attacker_address_min = env_config.get('attacker_addr_e', 3)
         self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max + 1)
         self.victim_address_space = range(self.victim_address_min, self.victim_address_max + 1)
         self.max_box_value = max(self.window_size + 2, 2 * len(self.attacker_address_space)
@@ -77,7 +77,8 @@ class CacheAttackerDefenderEnv(gym.Env):
                             'attacker': self.opponent_agent == 'attacker',
                             'benign': self.opponent_agent == 'benign'}
         self.step_count = 0
-        opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=True)
+        opponent_obs = self._env.reset(victim_address=-1,# victim_address, 
+                                       reset_cache_state=True)
         self.victim_address = victim_address
         self.defender_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0, 1])
@@ -194,7 +195,7 @@ class CacheAttackerDefenderEnv(gym.Env):
             for set_index in range(0, n_sets):
                 lock_bit = bin((action['defender']))[2:].zfill(self.associativity)
             self._env.lock_l1(set_index, lock_bit)
-        
+            #print('defender actions', action['defender'])
         '''
         for set_index in range(0, n_sets):
             #print('set_index', set_index, 'defenders action: ', action['defender'], action['defender'][set_index])
@@ -227,7 +228,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
 
         if opponent_done:
-            opponent_obs = self._env.reset(reset_cache_state=False)
+            opponent_obs = self._env.reset(reset_cache_state=True)
             self.victim_address = self._env.victim_address
             self.step_count -= 1  # The reset/guess step should not be counted
             
@@ -239,7 +240,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         # attacker
         obs['attacker'] = opponent_obs
         reward['attacker'] = opponent_reward
-        done['attacker'] = defender_done #opponent_done #defender_done #
+        done['attacker'] = defender_done # opponent_done #defender_done #
         info['attacker'] = opponent_info
 
         # benign

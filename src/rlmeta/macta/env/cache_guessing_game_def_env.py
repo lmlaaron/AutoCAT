@@ -36,7 +36,7 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         "victim_addr_s": 5,
         "victim_addr_e": 5,
         "flush_inst": False,
-        "allow_victim_multi_access": False,
+        "allow_victim_multi_access": True, #False,
         "verbose": 0,
         "reset_limit": 1,  # specify how many reset to end an epoch?????
         "cache_configs": {
