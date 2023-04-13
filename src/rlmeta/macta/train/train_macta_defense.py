@@ -20,8 +20,8 @@ from rlmeta.core.types import Action, TimeStep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from model.transformer_model_pool import CachePPOTransformerModelPool, wrap_downstream_model
-# from env.cache_attacker_DEFENDER_env_factory import CacheAttackerDetectorEnvFactory
-from env.cache_attacker_defender_env_factory import CacheAttackerDefenderEnvFactory  # NOTE
+#from env.cache_attacker_detector_env_factory import CacheAttackerDetectorEnvFactory
+from env.cache_attacker_defender_env_factory import CacheAttackerDefenderEnvFactory
 from utils.ma_metric_callbacks import MACallbacks
 from utils.wandb_logger import WandbLogger, stats_filter
 from utils.controller import Phase, Controller
@@ -33,7 +33,7 @@ from agent import SpecAgentFactory
 
 @hydra.main(config_path="../config", config_name="macta_defense")  # TODO: update path to config under macta
 def main(cfg):
-    # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="RLdefense", config=cfg)
     print(f"working_dir = {os.getcwd()}")
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
@@ -267,7 +267,7 @@ def main(cfg):
             agent.set_use_history(True)
             agent_d.controller.set_phase(Phase.TRAIN_DEFENDER, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
-            # wandb_logger.save(epoch, train_model_d, prefix="defender-")
+            wandb_logger.save(epoch, train_model_d, prefix="defender-")
             torch.save(train_model_d.state_dict(), f"defender-{epoch}.pth")
             train_stats = {"defender":d_stats}
             if epoch % 10 == 9:
@@ -282,7 +282,7 @@ def main(cfg):
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(0)
-            # wandb_logger.save(epoch, train_model, prefix="attacker-")
+            wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:
