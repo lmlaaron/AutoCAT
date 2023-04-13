@@ -64,9 +64,9 @@ class MAAsyncLoop(MALoop, Launchable):
         self._seed = seed
 
         self._env_factory = env_factory
-        print("maloop.py, L67: self_env_factory: ", self._env_factory)
+        #print("maloop.py, L67: self_env_factory: ", self._env_factory)
         self._agent_factory = agent_factory
-        print('maloop.py, L69: self._agent_factory: ', self._agent_factory)
+        #print('maloop.py, L69: self._agent_factory: ', self._agent_factory)
         self._envs = []
         self._agents = []
         
@@ -126,7 +126,7 @@ class MAAsyncLoop(MALoop, Launchable):
                 agents[k] = v(self.index_offset + i)
                 agents[k].connect()
             self._agents.append(agents)
-            print('maloop.py, L129: self._agents: ', self._agents)
+            #print('maloop.py, L129: self._agents: ', self._agents)
 
         for obj_name in dir(self):
             obj = getattr(self, obj_name)
@@ -173,15 +173,15 @@ class MAAsyncLoop(MALoop, Launchable):
             env: Env,
             agent: Agent, #TODO type check
             episode_callbacks: Optional[EpisodeCallbacks] = None) -> NoReturn:
-        print('maloop.py L176, index: ', index)
-        print('maloop.py L177, env: ', env)
-        print('maloop.py L178, agent: ', agent)
+        #print('maloop.py L176, index: ', index)
+        #print('maloop.py L177, env: ', env)
+        #print('maloop.py L178, agent: ', agent)
         while True:
             while not self.running:
                 await asyncio.sleep(1)
             stats = await self._run_episode(index, env, agent,
                                             episode_callbacks)
-            print('maloop.py L184: stats: ', stats)
+            #print('maloop.py L184: stats: ', stats)
             #print('stats from maloop, L175', stats)
             if stats is not None:
                 await self._controller.async_add_episode(

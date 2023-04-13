@@ -33,9 +33,9 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.blocks = cache_1_config.get('blocks', 2)
         self.associativity = cache_1_config.get('associativity', 2)
         self.n_sets = int(self.blocks / self.associativity)
-        #self.action_space_size = env_config.get('action_space_size', 16)  # action_space_size = 2 ^ associativity
-        #self.action_space = spaces.Discrete(self.action_space_size)
-        self.action_space = self._env.action_space
+        self.action_space_size = env_config.get('action_space_size', 16)  # action_space_size = 2 ^ associativity
+        self.action_space = spaces.Discrete(self.action_space_size)
+        #self.action_space = self._env.action_space
         self.victim_address_min = env_config.get('victim_addr_s', 9)
         self.victim_address_max = env_config.get('victim_addr_e', 9)
         self.victim_address = self._env.victim_address
@@ -63,10 +63,12 @@ class CacheAttackerDefenderEnv(gym.Env):
         self.def_benign_reward = env_config.get('def_benign_reward', 0)
         self.def_action_reward = env_config.get('def_action_reward', 0)
         self.def_latency_reward = env_config.get('def_latency_reward', -0.01)
+        #self.latency = 0
         # to check the feature size is macta's obs + alpha
         assert 3 + int(self.n_sets) == self.feature_size, f'feature size mismatches w/ width of obs_space'
 
-    def reset(self, victim_address=-1) -> dict:
+
+    def reset(self, victim_address=-1):
 
         """ returned obs = { agent_name : obs } """
         ''' Episode termination: when there is length violation '''
@@ -75,54 +77,52 @@ class CacheAttackerDefenderEnv(gym.Env):
                             'attacker': self.opponent_agent == 'attacker',
                             'benign': self.opponent_agent == 'benign'}
         self.step_count = 0
-        opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=False)
+        opponent_obs = self._env.reset(victim_address=victim_address, reset_cache_state=True)
         self.victim_address = victim_address
         self.defender_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0, 1])
         #self.defender_obs = deque([[-1] * (3 + self.n_sets)] * self.max_step)
-        
-        
-        obs = {'defender': np.array(list(reversed(self.defender_obs))), 'attacker': opponent_obs,
+        obs = {'defender': np.array(list(reversed(self.defender_obs))), 
+               'attacker': opponent_obs,
                'benign': opponent_obs}
         return obs
 
-    def get_defender_obs(self, opponent_obs, opponent_info, action):
 
-        """ Defender's observation: [cache_latency, domain_id, address, step_count, defender's actions]"""
+    def get_defender_obs(self, opponent_obs, opponent_info):
+
+        """ Defender's observation: [cache_latency, domain_id, address, step_count]"""
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
 
         if not np.any(cur_opponent_obs == -1):
 
             if opponent_info.get('invoke_victim'):
                 cur_opponent_obs[0] = opponent_info['victim_latency']
-
-                if cur_opponent_obs[2] == 4:
-                    print('victims latency: ', cur_opponent_obs[0])
-
-                else:
-                    print('attackers latency: ', cur_opponent_obs[0])
-
                 cur_opponent_obs[1] = self.random_domain  # 1
+                #if cur_opponent_obs[2] == 4:
+                #print('victims latency: ', cur_opponent_obs[0])
+                #else:
+                #    print('attackers latency: ', cur_opponent_obs[0])
                 cur_opponent_obs[2] = opponent_info['victim_address']
-                print('victim_address: ', cur_opponent_obs[2], '\n')
+                #print('victim_address: ', cur_opponent_obs[2], '\n')
 
             else:
-                print('attackers latency: ', cur_opponent_obs[0])
+                #print('attackers latency: ', cur_opponent_obs[0])
                 cur_opponent_obs[1] = 1 - self.random_domain  # 0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
+                #print('attackers latency: ', cur_opponent_obs[0])
 
             cur_opponent_obs[3] = self.step_count
             #print('action of attacker: ', cur_opponent_obs[2])
-
             # accommodate different no of actions of defender according to set no
             #for i in range(0, self.n_sets):
             #    cur_opponent_obs[i + 4] = action['defender'][i]
             self.defender_obs.append(cur_opponent_obs)
             self.defender_obs.popleft()
 
-        latency = int(cur_opponent_obs[0])
-
+        latency = int(cur_opponent_obs[0]) #int(cur_opponent_obs[0])
+        #print('latency from obs: ', latency)
         return np.array(list(reversed(self.defender_obs))), latency
+
 
     def compute_reward(self, action, latency, reward, opponent_done, opponent_attack_success=False):
 
@@ -130,38 +130,40 @@ class CacheAttackerDefenderEnv(gym.Env):
         action_attacker = action['attacker']
         defender_success = False
         defender_reward = 0
-
+        
         if action_defender is not None:
 
-            # 1. Gets large reward if attacker gets a wrong guess in time
-            if self.opponent_agent == 'attacker' and opponent_done:
+            # Gets small penalty for no of cache misses
+            #elif self.opponent_agent == 'attacker' or self.opponent_agent == 'benign':
+            if latency == 1:
+                defender_reward = self.def_latency_reward
+                #print('latency_reward: ', defender_reward)
+
+            # Gets large reward if attacker gets a wrong guess in time
+            elif self.opponent_agent == 'attacker' and opponent_done:
                 if not opponent_attack_success:
                     defender_reward = self.def_success_reward
                     defender_success = True
 
-            # 2. Gets large penalty if attacker gets correct guess in time
+            # Gets large penalty if attacker gets correct guess in time
             elif self.opponent_agent == 'attacker' and opponent_done:
                 if opponent_attack_success:
                     defender_reward = self.def_fail_reward
 
-            # 3. Gets 0 penalty if the identify opponent agent as benign
+            # Gets 0 penalty if the identify opponent agent as benign
             elif self.opponent_agent == 'benign':
                 defender_reward = self.def_benign_reward
 
-            # 4. Gets 0 penalty for any defenders action
+            # Gets 0 penalty for any defenders action
             #elif isinstance(action_defender, int):
             elif isinstance(action_defender, int):
                 defender_reward = self.def_action_reward
-
-            # 5. Gets small penalty for no of cache misses
-            elif self.opponent_agent == 'attacker' or self.opponent_agent == 'benign':
-                if latency == 1:
-                    defender_reward = self.def_latency_reward
 
         reward['defender'] = defender_reward * self.defender_reward_scale
         info = {'guess_correct': defender_success}
 
         return reward, info
+
 
     def step(self, action):
 
@@ -229,30 +231,32 @@ class CacheAttackerDefenderEnv(gym.Env):
             self.victim_address = self._env.victim_address
             self.step_count -= 1  # The reset/guess step should not be counted
             
-
         elif self.step_count >= self.max_step:
-            defender_done = True  # will not terminate the episode
+            defender_done = True  # terminate the episode
         else:
             defender_done = False
 
         # attacker
         obs['attacker'] = opponent_obs
         reward['attacker'] = opponent_reward
-        done['attacker'] = opponent_done
+        done['attacker'] = defender_done #opponent_done #defender_done #
         info['attacker'] = opponent_info
 
         # benign
         obs['benign'] = opponent_obs
         reward['benign'] = opponent_reward
-        done['benign'] = opponent_done
+        done['benign'] = defender_done #opponent_done #defender_done  #
         info['benign'] = opponent_info
         opponent_attack_success = opponent_info.get('guess_correct', False)
 
         # obs, reward, done, info
-        obs['defender'], latency = self.get_defender_obs(opponent_obs, opponent_info, action)
-        updated_reward, updated_info = self.compute_reward(action, latency, reward,
+        #obs['defender'] = self.get_defender_obs(opponent_obs, opponent_info) #action)
+        obs['defender'], latency = self.get_defender_obs(opponent_obs, opponent_info)#, action)
+        updated_reward, updated_info = self.compute_reward(action, 
+                                                           latency, 
+                                                           reward,
                                                            opponent_done, opponent_attack_success)
-
+        
         reward['attacker'] = updated_reward['attacker']
         reward['defender'] = updated_reward['defender']
 
@@ -272,10 +276,10 @@ class CacheAttackerDefenderEnv(gym.Env):
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
         #print(info)
-        print('actions: ', action)  
+        #print('actions: ', action)  
         #print('obs: ', obs)
         
-        #print_cache(self._env.l1)
+        #print_cache(self._env.l1) # shows the cache table from cache simulator
         
         return obs, reward, done, info
 

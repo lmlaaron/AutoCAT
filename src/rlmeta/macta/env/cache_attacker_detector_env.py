@@ -174,7 +174,7 @@ class CacheAttackerDetectorEnv(gym.Env):
         else:
             detector_done = False
         if action["detector"] == 1:  # Raise Hard Flag
-            print(type(action['detector']))
+            #print(type(action['detector']))
             detector_done = True  # Terminate the episode
         # attacker
         obs['attacker'] = opponent_obs

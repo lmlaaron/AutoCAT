@@ -36,7 +36,8 @@ from agent import SpecAgentFactory
 
 @hydra.main(config_path="../config", config_name="macta_defense")
 def main(cfg):
-    # wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    #wandb_logger = WandbLogger(project="cache_attack_detect", config=cfg)
+    wandb_logger = WandbLogger(project="RLdefense", config=cfg)
     print(f"working_dir = {os.getcwd()}")
     my_callbacks = MACallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
@@ -50,7 +51,7 @@ def main(cfg):
     benign_env_config = copy.deepcopy(cfg.env_config)
     benign_env_config["opponent_weights"] = [1, 0]  # 100% benign
     env_fac_benign = CacheAttackerDefenderEnvFactory(benign_env_config)
-    print("\033[31m" + "configs check: " + "\033[0m", cfg.env_config)
+    #print("\033[31m" + "configs check: " + "\033[0m", cfg.env_config)
     # =========================================================================
 
     #### Define model
@@ -301,12 +302,12 @@ def main(cfg):
     agent.connect()
     agent_d.connect()
     a_ctrl.connect()
-    print('4' * 20)
+    #print('4' * 20)
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        print('6' * 20)
+        #print('6' * 20)
         if epoch % 100 >= 50:
             '''
             # Train Detector
@@ -316,7 +317,7 @@ def main(cfg):
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             '''
             # Train Defender
-            print('7' * 20)
+            #print('7' * 20)
             agent_d.controller.set_phase(Phase.TRAIN_DEFENDER, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
             # wandb_logger.save(epoch, train_model_d, prefix="defender-")
@@ -324,16 +325,16 @@ def main(cfg):
 
         else:
             # Train Attacker
-            print('8' * 20)
+            #print('8' * 20)
             agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-            print('9' * 20)
+            #print('9' * 20)
             if epoch >= 50:
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
-                print('10' * 20)
+                #print('10' * 20)
                 a_stats = agent.train(0)
-                print('11' * 20)
-                print('train_ibrppo_defense.py, L336: a_stats: ', a_stats)
+                #print('11' * 20)
+                #print('train_ibrppo_defense.py, L336: a_stats: ', a_stats)
             # wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
         # stats = d_stats
@@ -375,7 +376,7 @@ def main(cfg):
 
         # wandb_logger.log(train_stats, eval_stats)
 
-    print('5' * 20)
+    #print('5' * 20)
     loops.terminate()
     servers.terminate()
 

@@ -202,9 +202,9 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
    
     @remote.remote_method(batch_size=None) 
     def set_use_history(self, use_history:bool) -> None:
-        print("set use history", use_history)
+        #print("set use history", use_history)
         self.use_history = use_history
-        print("after setting:", self.use_history)
+        #print("after setting:", self.use_history)
 
 class DownstreamModelPool(DownstreamModel):
     def __init__(self,
