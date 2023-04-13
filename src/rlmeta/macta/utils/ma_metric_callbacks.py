@@ -34,7 +34,6 @@ class MACallbacks(EpisodeCallbacks):
                 self._custom_metrics["num_total_guess"] = float(self.tot_guess)
                 self._custom_metrics["num_total_attacks"] = float(self.acc_guess)
         '''    
-        
         if timestep['defender'].done: # TODO
             self.tot_detect = 1
             self.acc_detect += int(defender_info["guess_correct"])

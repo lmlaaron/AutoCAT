@@ -78,7 +78,7 @@ class CacheAttackerDefenderEnv(gym.Env):
                             'benign': self.opponent_agent == 'benign'}
         self.step_count = 0
         opponent_obs = self._env.reset(victim_address=-1,# victim_address, 
-                                       reset_cache_state=True)
+                                       reset_cache_state=False)
         self.victim_address = victim_address
         self.defender_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0, 1])
@@ -171,7 +171,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         """ Defender's actions: No of actions matches with the lockbits for n-ways
             1. unlock a set using lock_bit == 0000, means all way_no are unlocked
             2. or lock a set using lock_bit == 0001, means lock way_no = 3 """
-
+        self.step_count += 1
         obs = {}
         reward = {}
         done = {'__all__': False}
@@ -228,7 +228,7 @@ class CacheAttackerDefenderEnv(gym.Env):
         opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action[self.opponent_agent])
 
         if opponent_done:
-            opponent_obs = self._env.reset(reset_cache_state=True)
+            opponent_obs = self._env.reset(reset_cache_state=False)
             self.victim_address = self._env.victim_address
             self.step_count -= 1  # The reset/guess step should not be counted
             
@@ -262,11 +262,11 @@ class CacheAttackerDefenderEnv(gym.Env):
         reward['defender'] = updated_reward['defender']
 
         done['defender'] = defender_done
-        info['defender'] = {"guess_correct": updated_info["guess_correct"]} #, "is_guess": bool(action['defender'])}
-        #info['defender'] = {"guess_correct": updated_info["guess_correct"], "is_guess": bool(action['defender'])}
+        #info['defender'] = {"guess_correct": updated_info["guess_correct"]} #, "is_guess": bool(action['defender'])}
+        info['defender'] = {"guess_correct": updated_info["guess_correct"], "is_guess": bool(action['defender'])}
         info['defender'].update(opponent_info)
 
-        self.step_count += 1
+        
         
         # criteria to determine wheather the game is done
         if defender_done:
