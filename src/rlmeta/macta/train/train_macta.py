@@ -266,7 +266,7 @@ def main(cfg):
             agent.set_use_history(True)
             agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
             d_stats = agent_d.train(cfg.steps_per_epoch)
-            #wandb_logger.save(epoch, train_model_d, prefix="detector-")
+            wandb_logger.save(epoch, train_model_d, prefix="detector-")
             torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
             train_stats = {"detector":d_stats}
             if epoch % 10 == 9:
@@ -281,7 +281,7 @@ def main(cfg):
                 a_stats = agent.train(cfg.steps_per_epoch)
             else:
                 a_stats = agent.train(0)
-            #wandb_logger.save(epoch, train_model, prefix="attacker-")
+            wandb_logger.save(epoch, train_model, prefix="attacker-")
             torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
             train_stats = {"attacker":a_stats}
             if epoch % 10 == 9:
@@ -318,7 +318,7 @@ def main(cfg):
         eval_stats = {"attacker":a_stats, "detector":d_stats}
         time.sleep(1)
 
-        # wandb_logger.log(train_stats, eval_stats)
+        wandb_logger.log(train_stats, eval_stats)
 
 
     loops.terminate()
