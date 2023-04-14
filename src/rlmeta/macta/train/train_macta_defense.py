@@ -319,7 +319,7 @@ def main(cfg):
         eval_stats = {"attacker":a_stats, "defender":d_stats}
         time.sleep(1)
 
-        # wandb_logger.log(train_stats, eval_stats)
+        wandb_logger.log(train_stats, eval_stats)
 
 
     loops.terminate()
