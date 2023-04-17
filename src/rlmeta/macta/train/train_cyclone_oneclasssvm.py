@@ -63,7 +63,7 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
             if not isinstance(action.action, (int, np.int64)):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
-        print(actions)
+        #print(actions)
         timestep = env.step(actions)
 
         for agent_name, agent in agents.items():
@@ -123,7 +123,7 @@ def collect(cfg, num_samples):
     X = np.array(X) #num_samples, m, n = X.shape
     X = X.reshape(num_samples*len(cfg.trace_files), -1)
     y = np.array(y)
-    print('features:\n',X,'\nlabels\n',y)
+    #print('features:\n',X,'\nlabels\n',y)
     return X, y
 
 def train(cfg):

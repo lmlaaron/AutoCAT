@@ -61,7 +61,7 @@ def run_loop(env: Env, agents, victim_addr=-1) -> Dict[str, float]:
             if not isinstance(action.action, (int, np.int64)):
                 action = unbatch_action(action)
             actions.update({agent_name:action})
-        print(actions)
+        #print(actions)
         timestep = env.step(actions)
 
         for agent_name, agent in agents.items():
