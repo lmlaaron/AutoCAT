@@ -16,7 +16,8 @@ pip install -r requirements.txt
 ```
 
 ## Quick Start with Pre-trained Models
-To run our pretrained model, simply run
+We provide pretrained models of all methods, checkout the `checkpoints/`.
+To run our pretrained model, simply modify the path to the checkpoints and run
 ```
 cd src/rlmeta/macta
 conda activate macta
