@@ -8,8 +8,11 @@
 
 ## Installation
 ```
-conda env create -f environment.yml
+conda create -n macta python=3.7
 conda activate macta
+pip install -r requirements.txt
+# Install PyTorch
+# Install RLMeta
 ```
 
 ## Quick Start with Pre-trained Models
@@ -21,7 +24,7 @@ python sample_multiagent.py
 ```
 
 ## Benign Trace Generation
-You can test some open-source benign traces. If you want to use [SPEC 2017](https://www.spec.org/cpu2017/), please make sure you have liscence to it and follow the [instructions here](https://code.vt.edu/bearhw-public/rl-mem-trace) to generate the traces. To use the traces, specify the path to the trace files in the configs.
+If you want to use [SPEC 2017](https://www.spec.org/cpu2017/), please make sure you have liscence to it and follow the [instructions here](https://code.vt.edu/bearhw-public/rl-mem-trace) to generate the traces. To use the traces, specify the path to the trace files in the configs. You can also test some open-source datasets as well.
 
 ## Training
 To train MACTA
