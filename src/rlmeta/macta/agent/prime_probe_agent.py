@@ -26,7 +26,7 @@ class PrimeProbeAgent:
             #assert(attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s ) # address space must be shared
             #must be no shared address space
             #assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
-            assert(self.allow_empty_victim_access == False)
+            #assert(self.allow_empty_victim_access == False)
 
     # initialize the agent with an observation
     def observe_init(self, timestep):
@@ -91,3 +91,4 @@ class PrimeProbeAgent:
         ##    self.local_step += 1
             self.lat.append(timestep.observation[0][0])
         return
+

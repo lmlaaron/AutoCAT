@@ -24,7 +24,8 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from env import CacheEnvWrapperFactory
+#from env import CacheEnvWrapperFactory
+from env.cache_env_factory_def import CacheEnvWrapperFactory
 from model import CachePPOTransformerModel
 from metric_callbacks import MetricCallbacks
 
@@ -32,7 +33,7 @@ from utils.wandb_logger import WandbLogger
 
 @hydra.main(config_path="../config", config_name="autocat")
 def main(cfg):
-    wandb_logger = WandbLogger(project="AutoCAT_atk", config=cfg)
+    wandb_logger = WandbLogger(project="AutoCAT_atk_1s4w", config=cfg)
     my_callbacks = MetricCallbacks()
     logging.info(hydra_utils.config_to_json(cfg))
 

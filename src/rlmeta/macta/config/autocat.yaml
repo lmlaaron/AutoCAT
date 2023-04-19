@@ -21,36 +21,36 @@ infer_device: "cuda:1"
 train_device_d: "cuda:2" #"cuda:2"
 infer_device_d: "cuda:3" #"cuda:3"
 
-num_train_rollouts: 72 #72 #48 #24
-num_train_workers: 24  #24
+num_train_rollouts: 16 #72 #72 #48 #24
+num_train_workers: 8 #24  #24
 
-num_eval_rollouts: 12 #2
-num_eval_workers: 4 #2
+num_eval_rollouts: 4 #12 #2
+num_eval_workers: 4 #4 #2
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
-attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
+#attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
 #attacker_checkpoint: "/checkpoint/jxcui/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
-#attacker_checkpoint: ""
+attacker_checkpoint: ""
 
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
-trace_file: "/u/jxcui/remix3.txt"
-trace_limit: 100
+#trace_file: "/u/jxcui/remix3.txt"
+#trace_limit: 100
 legacy_trace_format: false
 
 # replay_buffer_size: 262144
-# replay_buffer_size: 131072
-replay_buffer_size: 262144
+replay_buffer_size: 65536
+#replay_buffer_size: 262144
 #replay_buffer_size: 1024
 prefetch: 2
 
-batch_size: 512
+batch_size: 256 #512
 lr: 1e-4 #1e-4
 entropy_coeff: 0.03 # default 0.01
 learning_starts: 65536
 push_every_n_steps: 10
 
-num_epochs: 3000
-steps_per_epoch: 3000
+num_epochs: 800 #1000
+steps_per_epoch: 1000 #1000
 
 num_eval_episodes: 100
 
@@ -60,5 +60,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: autocat_env
+  - env_config: autocat_1s4w # autocat_env
   - model_config: transformer

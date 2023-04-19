@@ -74,7 +74,7 @@ def main(cfg):
     ctrl = Controller()
     rb = ReplayBuffer(cfg.replay_buffer_size)
     #### defender
-    cfg.model_config["output_dim"] = 16 #2  # output dim = action space
+    cfg.model_config["output_dim"] = 16 #4 #16 #2  # output dim = action space
     cfg.model_config["step_dim"] += 2  # means dim for episode length. discrete 0 to 63 to 
     train_model_d = CachePPOTransformerModelPool(**cfg.model_config).to(  # TODO
         cfg.train_device_d)

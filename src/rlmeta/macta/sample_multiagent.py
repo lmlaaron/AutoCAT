@@ -18,12 +18,9 @@ from rlmeta.core.types import Action
 from rlmeta.envs.env import Env
 from rlmeta.utils.stats_dict import StatsDict
 
-# from env import CacheAttackerDetectorEnvFactory
-from env import CacheAttackerDefenderEnvFactory
-
+from env import CacheAttackerDetectorEnvFactory
 from utils.trace_parser import load_trace
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from cache_ppo_transformer_model import CachePPOTransformerModel
 
 
@@ -124,7 +121,7 @@ def tournament(env,
     
     attacker_list = cfg.attackers
     detector_list = cfg.detectors
-    spec_trace_f = open('/data/home/jxcui/remix3.txt','r') # TODO
+    spec_trace_f = open('/data/home/jxcui/remix3.txt','r')
     spec_trace = spec_trace_f.read().split('\n')[1000000:]
     y = []
     for line in spec_trace:
@@ -188,11 +185,11 @@ def tournament(env,
     f.close()
 
 
-@hydra.main(config_path="./config", config_name="sample_multiagent")  #TODO
+@hydra.main(config_path="./config", config_name="sample_multiagent")
 def main(cfg):
     # Create env
     cfg.env_config['verbose'] = 0 
-    env_fac = CacheAttackerDefenderEnvFactory(cfg.env_config)
+    env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)
     # [1,0] fully benign agents
     # [0,1] fully attacker agents
@@ -208,29 +205,19 @@ def main(cfg):
     attacker_model.eval()
     
     # Detector
-    #cfg.model_config["output_dim"] = 2
-    #cfg.model_config["step_dim"] += 2
-    #detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
-    #detector_model = CachePPOTransformerModel(**cfg.model_config)
-    #detector_model.load_state_dict(detector_params)
-    #detector_model.eval()
-
-    # Defender
     cfg.model_config["output_dim"] = 2
     cfg.model_config["step_dim"] += 2
-    defender_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
-    defender_model = CachePPOTransformerModel(**cfg.model_config)
-    defender_model.load_state_dict(defender_params)
-    defender_model.eval()
-
+    detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
+    detector_model = CachePPOTransformerModel(**cfg.model_config)
+    detector_model.load_state_dict(detector_params)
+    detector_model.eval()
 
     # Create agent
-    #attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
-    attacker_agent = PrimeProbeAgent(cfg.env_config)
+    attacker_agent = PPOAgent(attacker_model, deterministic_policy=cfg.deterministic_policy)
+    #attacker_agent = PrimeProbeAgent(cfg.env_config)
 
-    #detector_agent = RandomAgent(1)
+    detector_agent = RandomAgent(1)
     #detector_agent = PPOAgent(detector_model, deterministic_policy=cfg.deterministic_policy)
-    defender_agent = PPOAgent(defender_model, deterministic_policy=cfg.deterministic_policy)
     #detector_agent = CCHunterAgent(cfg.env_config)
     #detector_agent = CycloneAgent(cfg.env_config, svm_model_path=cfg.cyclone_path, mode='active')
 
@@ -251,13 +238,11 @@ def main(cfg):
                        legacy_trace_format=cfg.legacy_trace_format)
 
     #benign_agent = SpecAgent(cfg.env_config, spec_trace, legacy_trace_format=True)
-    agents = {"attacker": attacker_agent, "defender": defender_agent, "benign": benign_agent}
-    # agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
+    agents = {"attacker": attacker_agent, "detector": detector_agent, "benign": benign_agent}
     metrics = run_loops(env, agents, cfg.num_episodes, cfg.seed)
     logging.info("\n\n" + metrics.table(info="sample") + "\n")
     '''
     tournament(env, cfg)
-
     '''
 if __name__ == "__main__":
     main()

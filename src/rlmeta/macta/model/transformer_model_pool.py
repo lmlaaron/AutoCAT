@@ -41,7 +41,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
         self.history = []
         self.latest = None
         self.use_history = False
-        print("dummy message from transformer_model_pool.py L44")
+        #print("dummy message from transformer_model_pool.py L44")
     # @remote.remote_method(batch_size=128)
     # def act(self, obs: torch.Tensor, deterministic_policy: torch.Tensor,
     #         reload_model: bool

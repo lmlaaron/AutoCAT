@@ -14,16 +14,16 @@ def_benign_reward: 0
 def_action_reward: 0
 def_latency_reward: -0.01
 
-# cache simulator config
+# cache simulator config - FA 2w1s, vic: 0/E, atk: 0,1
 verbose: 0
 force_victim_hit: false
 flush_inst: false
-allow_victim_multi_access: false 
+allow_victim_multi_access: true 
 allow_empty_victim_access: true 
 attacker_addr_s: 0
 attacker_addr_e: 1
-victim_addr_s: 3
-victim_addr_e: 3
+victim_addr_s: 0
+victim_addr_e: 0
 reset_limit: 1
 opponent_weights: [0, 1] # [0,1] = 100% attacker, [1,0] = 100% benign
 

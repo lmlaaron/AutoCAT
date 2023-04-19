@@ -7,6 +7,7 @@ import hydra
 from typing import Any, Dict
 from collections import deque
 import numpy as np
+import logging
 from gym import spaces
 from .cache_guessing_game_def_env import AttackerCacheGuessingGameEnv
 sys.path.append(
@@ -66,7 +67,19 @@ class CacheAttackerDefenderEnv(gym.Env):
         #self.latency = 0
         # to check the feature size is macta's obs + alpha
         assert 3 + int(self.n_sets) == self.feature_size, f'feature size mismatches w/ width of obs_space'
-
+        
+        self.verbose = env_config["verbose"] if "verbose" in env_config else 0
+        self.logger = logging.getLogger()
+        self.fh = logging.FileHandler('log')
+        self.sh = logging.StreamHandler()
+        self.logger.addHandler(self.fh)
+        self.logger.addHandler(self.sh)
+        self.fh_format = logging.Formatter('%(message)s')
+        self.fh.setFormatter(self.fh_format)
+        self.sh.setFormatter(self.fh_format)
+        self.logger.setLevel(logging.INFO)
+        
+        
 
     def reset(self, victim_address=-1):
 
@@ -98,6 +111,7 @@ class CacheAttackerDefenderEnv(gym.Env):
 
             if opponent_info.get('invoke_victim'):
                 cur_opponent_obs[0] = opponent_info['victim_latency']
+                self.vprint("victim latency", cur_opponent_obs[0])
                 cur_opponent_obs[1] = self.random_domain  # 1
                 #if cur_opponent_obs[2] == 4:
                 #print('victims latency: ', cur_opponent_obs[0])
@@ -108,6 +122,7 @@ class CacheAttackerDefenderEnv(gym.Env):
 
             else:
                 #print('attackers latency: ', cur_opponent_obs[0])
+                self.vprint("attacker latency", cur_opponent_obs[0])
                 cur_opponent_obs[1] = 1 - self.random_domain  # 0
                 cur_opponent_obs[2] = opponent_info['attacker_address']
                 #print('attackers latency: ', cur_opponent_obs[0])
@@ -121,6 +136,7 @@ class CacheAttackerDefenderEnv(gym.Env):
             self.defender_obs.popleft()
 
         latency = int(cur_opponent_obs[0]) #int(cur_opponent_obs[0])
+        
         #print('latency from obs: ', latency)
         return np.array(list(reversed(self.defender_obs))), latency
 
@@ -137,28 +153,28 @@ class CacheAttackerDefenderEnv(gym.Env):
             # Gets small penalty for no of cache misses
             #elif self.opponent_agent == 'attacker' or self.opponent_agent == 'benign':
             if latency == 1:
-                defender_reward = self.def_latency_reward
+                defender_reward = self.def_latency_reward  # -0.1
                 #print('latency_reward: ', defender_reward)
 
             # Gets large reward if attacker gets a wrong guess in time
             elif self.opponent_agent == 'attacker' and opponent_done:
                 if not opponent_attack_success:
-                    defender_reward = self.def_success_reward
+                    defender_reward = self.def_success_reward  # 20
                     defender_success = True
 
             # Gets large penalty if attacker gets correct guess in time
             elif self.opponent_agent == 'attacker' and opponent_done:
                 if opponent_attack_success:
-                    defender_reward = self.def_fail_reward
+                    defender_reward = self.def_fail_reward  # -20
 
             # Gets 0 penalty if the identify opponent agent as benign
             elif self.opponent_agent == 'benign':
-                defender_reward = self.def_benign_reward
+                defender_reward = self.def_benign_reward  # 0
 
             # Gets 0 penalty for any defenders action
             #elif isinstance(action_defender, int):
             elif isinstance(action_defender, int):
-                defender_reward = self.def_action_reward
+                defender_reward = self.def_action_reward  # 0
 
         reward['defender'] = defender_reward * self.defender_reward_scale
         info = {'guess_correct': defender_success}
@@ -193,9 +209,15 @@ class CacheAttackerDefenderEnv(gym.Env):
         
         if isinstance(action['defender'], int):
             for set_index in range(0, n_sets):
+                #action['defender'] = 0  # disable locking op
                 lock_bit = bin((action['defender']))[2:].zfill(self.associativity)
+                
             self._env.lock_l1(set_index, lock_bit)
+            self.vprint("defenders action", action['defender'])
+            
+            #self._env.lock_l1(lock_bit)
             #print('defender actions', action['defender'])
+        #assert action['defender'] == 0, f'locking actons included'
         '''
         for set_index in range(0, n_sets):
             #print('set_index', set_index, 'defenders action: ', action['defender'], action['defender'][set_index])
@@ -263,7 +285,7 @@ class CacheAttackerDefenderEnv(gym.Env):
 
         done['defender'] = defender_done
         #info['defender'] = {"guess_correct": updated_info["guess_correct"]} #, "is_guess": bool(action['defender'])}
-        info['defender'] = {"guess_correct": updated_info["guess_correct"], "is_guess": bool(action['defender'])}
+        info['defender'] = {"guess_correct": updated_info["guess_correct"], "is_guess": bool(action['defender']), "latency": latency}
         info['defender'].update(opponent_info)
 
         
@@ -285,6 +307,11 @@ class CacheAttackerDefenderEnv(gym.Env):
         return obs, reward, done, info
 
 
+    def vprint(self, *args):
+        if self.verbose == 1:
+            print(" " + " ".join(map(str, args)) + " ")
+            
+
 @hydra.main(config_path="../config", config_name="macta_defense") 
 def main(cfg):
     # checks the parameter setting for training and cache configuration
@@ -303,19 +330,24 @@ def main(cfg):
     trace = test_action.read().splitlines()
     actions_list = [list(map(int, x.split())) for x in trace]
     actions = [{'attacker': values[0], 'benign': values[1], 'defender': values[2]} for values in actions_list]
-    print('actions: ', actions)
+    #actions = [{'attacker': 0, 'benign': values[1], 'defender': values[2]} for values in actions_list]
+
+    #print('actions: ', actions)
     i = 0
     for k in range(1):
         while not done['__all__'] and i < len(actions):
             print("STEP: ", i)
             action = copy.deepcopy(actions[i])
-            print('attackers action: ', action['attacker'])
+            #print('attackers action: ', action['attacker'])
             obs, reward, done, info = env.step(action)
             for set_index in range(0, env.n_sets):
                 if isinstance(action['defender'], list):
+                    #action['defender'] = 0
                     action['defender'] = [actions[i]['defender'][set_index]]
                 else:
+                    #action['defender'] = 0
                     action['defender'] = [actions[i]['defender']]
+                #action['defender'] = 0
                 # print('defenders action at set_index {}:'.format(set_index), action['defender'])
             #print("observation of defender: ", '\n', obs['defender'])
             print('attackers info:', info['attacker'])
@@ -326,7 +358,7 @@ def main(cfg):
             i += 1
 
         done = {'__all__': False}
-        print(done)
+        #print(done)
 
 
 if __name__ == "__main__":

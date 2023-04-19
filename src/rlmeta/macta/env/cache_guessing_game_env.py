@@ -594,7 +594,7 @@ class CacheGuessingGameEnv(gym.Env):
     return self._randomize_cache(mode="union", seed= seed)
 
 
-  def _randomize_cache(self, mode = "union", seed=-1):
+  def _randomize_cache(self, mode = "random", seed=-1):
     
     # use seed so that we can get identical initialization states
     if seed != -1:
@@ -624,7 +624,8 @@ class CacheGuessingGameEnv(gym.Env):
         #     addr += self.attacker_address_min - self.victim_address_max - 1
 
       elif mode == "random":
-        addr = random.randint(0, sys.maxsize)
+        #addr = random.randint(0, sys.maxsize)
+        addr = random.randint(0, 16)
       else:
         raise RuntimeError from None
       self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step)#, domain_id='X')

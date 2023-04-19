@@ -522,7 +522,7 @@ class AttackerCacheGuessingGameEnv(gym.Env):
     def seed_randomization(self, seed=-1):
         return self._randomize_cache(mode="attacker", seed=seed)
 
-    def _randomize_cache(self, mode="none", seed=-1):
+    def _randomize_cache(self, mode="union", seed=-1):  # TODO: random or union
 
         # use seed so that we can get identical initialization states
         if seed != -1:
@@ -556,7 +556,8 @@ class AttackerCacheGuessingGameEnv(gym.Env):
                 #     addr += self.attacker_address_min - self.victim_address_max - 1
 
             elif mode == "random":
-                addr = random.randint(0, sys.maxsize)
+                #addr = random.randint(0, sys.maxsize)
+                addr = random.randint(0, 15)
             else:
                 raise RuntimeError from None
             self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step)  # , domain_id='X')
@@ -584,11 +585,11 @@ class AttackerCacheGuessingGameEnv(gym.Env):
         victim_addr = 0
         is_victim_random = 0
         if not self.flush_inst:
-            if action < len(self.attacker_address_space):  # if action < 4
+            if action < len(self.attacker_address_space):  # if action < 8
                 address = action
-            elif action == len(self.attacker_address_space):  # if action = 4
+            elif action == len(self.attacker_address_space):  # if action = 8
                 is_victim = 1
-            elif action == len(self.attacker_address_space) + 1:  # if action = 5
+            elif action == len(self.attacker_address_space) + 1:  # if action = 9
                 is_victim_random = 1
             else:  # if action = 6 or 7
                 is_guess = 1
