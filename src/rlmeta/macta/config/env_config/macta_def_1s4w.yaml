@@ -39,6 +39,8 @@ cache_configs:
     rep_policy: "lru_lock_policy"
   mem:
     hit_time: 1000
+    
+cache_line_size: 64
 
 # RL env config
 window_size: 64

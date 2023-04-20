@@ -1,4 +1,4 @@
-num_episodes: 200
+num_episodes: 1
 seed: 123 #123 1234 12345
 
 ### AutoCAT attacker ###
@@ -72,22 +72,22 @@ attackers: [
 defenders: [ #["IBRPPO-detector-1","/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/detector-1999.pth"],
              #["MACTA-defender-1", "/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-15/14-45-36/defender-799.pth"],
              #['MACTA-defender-1', '/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-18/00-16-56/defender-699.pth']
-             #["MACTA-defender-2", "/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-18/00-16-56/defender-799.pth"],
+             ["MACTA-defender-2", "/home/geunbae/CacheSimulator/src/rlmeta/macta/train/outputs/2023-04-18/00-16-56/defender-799.pth"],
              #["CC-Hunter-1", "n/a"],
              #["CC-Hunter-2", "n/a"],
              #["CC-Hunter-3", "n/a"],
-             ["None", "None"],
+             #["None", "None"],
             ]
 
-deterministic_policy: true # false
+deterministic_policy: false
 #trace_file: "/u/jxcui/remix3.txt" # TODO
 trace_files: [
 
     # MACTA test set
-    '/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt',  # check
+    #'/home/geunbae/data/MACTA/test/spectrace_548-2M_548-4M.txt',  # check
     #'/home/geunbae/data/MACTA/test/spectrace_631-2M_631-4M.txt',  # check
     #'/home/geunbae/data/MACTA/test/spectrace_638-2M_638-4M.txt',  # check
-    #'/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt',  # check
+    '/home/geunbae/data/MACTA/test/spectrace_641-2M_641-4M.txt',  # check
     #'/home/geunbae/data/MACTA/test/spectrace_548-2M_631-2M.txt',  # check
     #'/home/geunbae/data/MACTA/test/spectrace_548-2M_638-2M.txt',
     #'/home/geunbae/data/MACTA/test/spectrace_548-2M_641-2M.txt',

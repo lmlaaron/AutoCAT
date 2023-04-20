@@ -280,7 +280,7 @@ def head2head(env,
 def main(cfg):
     
     # Create env
-    cfg.env_config['verbose'] = 1 #1 #1 # 0
+    cfg.env_config['verbose'] = 0 #1 #1 # 0
     env_fac = CacheAttackerDefenderEnvFactory(cfg.env_config)
     #env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)

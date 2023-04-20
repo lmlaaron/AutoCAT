@@ -55,7 +55,7 @@ class PrimeProbeAgent:
         if self.local_step < len(self.attacker_address_space) -  ( len(self.attacker_address_space) if self.no_prime else 0 ):#- 1:
         #if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):
             action = self.local_step # do prime 
-            print('attacker prime', action)
+            #print('attacker prime', action)
             self.local_step += 1
             return action, info
 
@@ -63,7 +63,7 @@ class PrimeProbeAgent:
         #elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
             #action = self.cache_size # do victim access
             action = len(self.attacker_address_space)
-            print('invoke victim')
+            #print('invoke victim')
             self.local_step += 1
             return action, info
 
@@ -71,7 +71,7 @@ class PrimeProbeAgent:
         elif self.local_step < 2 * len(self.attacker_address_space) + 1 - ( len(self.attacker_address_space) if self.no_prime else 0):   
             #action = self.local_step - ( self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ) )#- 1 )  
             action = self.local_step - ( len(self.attacker_address_space) + 1 - ( len(self.attacker_address_space) if self.no_prime else 0))
-            print('attacker probe', action)
+            #print('attacker probe', action)
             self.local_step += 1
             #timestep,state i state
             # timestep.state[0] is [r victim_accessesd original_action self_count]
@@ -88,7 +88,7 @@ class PrimeProbeAgent:
             # first timestep not useful
             #action = 2 * self.cache_size # default assume that last is miss
             action = len(self.attacker_address_space) + 1 + 1
-            print('guess', action)
+            #print('guess', action)
             for addr in range(1, len(self.lat)):
                 if self.lat[addr].int() == 0: # miss
                     #action = addr + self.cache_size 
