@@ -40,7 +40,6 @@ attacker_checkpoint: ""
 # trace_limit: 1000000
 #
 trace_files: [
-  #'/home/geunbae/data/remix3.txt',
   '/home/geunbae/data/MACTA/train/spectrace_500_502_2000000.txt',
   '/home/geunbae/data/MACTA/train/spectrace_500_502_6000000.txt',
   '/home/geunbae/data/MACTA/train/spectrace_500_502_10000000.txt',
@@ -87,7 +86,7 @@ push_every_n_steps: 10
 
 dual_clip: 3.0
 
-num_epochs: 800 # 1000 #1000 #3000
+num_epochs: 1000 # 1000 #1000 #3000
 steps_per_epoch: 1000 #1000 #1000 #3000
 
 num_eval_episodes: 100

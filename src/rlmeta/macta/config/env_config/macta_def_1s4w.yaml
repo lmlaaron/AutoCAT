@@ -12,7 +12,7 @@ def_success_reward: 20
 def_fail_reward: -20
 def_benign_reward: 0
 def_action_reward: 0
-def_latency_reward: -0.1 # increased 10X from -0.01 
+def_latency_reward: -0.5 # increased 10X from -0.01 4/20: adjusted from -0.1 to -0.5
 
 # cache simulator config
 verbose: 0 #1 #0 #1
@@ -25,7 +25,7 @@ attacker_addr_e: 7
 victim_addr_s: 0
 victim_addr_e: 0
 reset_limit: 1
-opponent_weights: [0, 1] # [0.5, 0.5] # [0, 1] # [0,1] = 100% attacker, [1,0] = 100% benign
+opponent_weights: [0.5, 0.5] # [0, 1] # [0.5, 0.5] # [0, 1] # [0,1] = 100% attacker, [1,0] = 100% benign
 
 cache_configs:
   architecture:

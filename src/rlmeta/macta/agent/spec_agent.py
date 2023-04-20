@@ -143,19 +143,19 @@ class SpecAgent(Agent):
         
         if self.block_offset_size > 0:
             block_offset = binary_address[-self.block_offset_size:]  # get the last element
-            index = binary_address[-(self.block_offset_size+self.index_size):-self.block_offset_size]
+            index = binary_address[-(self.block_offset_size+self.index_size + 6):-self.block_offset_size]
             if index == '':
-                index = '0'
+                index = '000000'
             
         else:
             block_offset = '0'
             if self.index_size != 0:
-                index = binary_address[-self.index_size:]
+                index = binary_address[-self.index_size +6:]
                 
             else:
-                index = '0'
+                index = '000000'
                 
-        if index == '0':
+        if index == '000000':
             addr = raw_addr // self.cache_line_size  # for 1 set FA cache config
             #print(addr)
         else:

@@ -27,6 +27,10 @@ class PrimeProbeAgent:
             #must be no shared address space
             #assert( ( attacker_addr_e + 1 == victim_addr_s ) or ( victim_addr_e + 1 == attacker_addr_s ) )
             #assert(self.allow_empty_victim_access == False)
+        self.attacker_address_min = attacker_addr_s
+        self.attacker_address_max = attacker_addr_e
+        self.attacker_address_space = range(self.attacker_address_min, self.attacker_address_max + 1)
+
 
     # initialize the agent with an observation
     def observe_init(self, timestep):
@@ -48,46 +52,65 @@ class PrimeProbeAgent:
             self.no_prime = False
 
         # do prime
-        if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):#- 1:
+        if self.local_step < len(self.attacker_address_space) -  ( len(self.attacker_address_space) if self.no_prime else 0 ):#- 1:
+        #if self.local_step < self.cache_size -  ( self.cache_size if self.no_prime else 0 ):
             action = self.local_step # do prime 
+            print('attacker prime', action)
             self.local_step += 1
             return action, info
 
-        elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
-            action = self.cache_size # do victim access
+        elif self.local_step == len(self.attacker_address_space) - ( len(self.attacker_address_space) if self.no_prime else 0 ):#- 1: # do victim trigger
+        #elif self.local_step == self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1: # do victim trigger
+            #action = self.cache_size # do victim access
+            action = len(self.attacker_address_space)
+            print('invoke victim')
             self.local_step += 1
             return action, info
 
-        elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):#- 1 - 1:# do probe
-            action = self.local_step - ( self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ) )#- 1 )  
+        #elif self.local_step < 2 * self.cache_size + 1 -(self.cache_size if self.no_prime else 0 ):#- 1 - 1:# do probe
+        elif self.local_step < 2 * len(self.attacker_address_space) + 1 - ( len(self.attacker_address_space) if self.no_prime else 0):   
+            #action = self.local_step - ( self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ) )#- 1 )  
+            action = self.local_step - ( len(self.attacker_address_space) + 1 - ( len(self.attacker_address_space) if self.no_prime else 0))
+            print('attacker probe', action)
             self.local_step += 1
             #timestep,state i state
             # timestep.state[0] is [r victim_accessesd original_action self_count]
             #self.lat.append(timestep.observation[0][0][0])
             #print(timestep.observation)
-            if action > self.cache_size:
+            #if action > self.cache_size:
+            if action > len(self.attacker_address_space):    
                 action += 1
             return action, info
 
-        elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
+        #elif self.local_step == 2 * self.cache_size + 1 - (self.cache_size if self.no_prime else 0 ):# - 1 - 1: # do guess and terminate
+        elif self.local_step == 2 * len(self.attacker_address_space) + 1 - (len(self.attacker_address_space) if self.no_prime else 0 ):   
             # timestep is the observation from last step
             # first timestep not useful
-            action = 2 * self.cache_size # default assume that last is miss
+            #action = 2 * self.cache_size # default assume that last is miss
+            action = len(self.attacker_address_space) + 1 + 1
+            print('guess', action)
             for addr in range(1, len(self.lat)):
-                if self.lat[addr].int() == 1: # miss
-                    action = addr + self.cache_size 
+                if self.lat[addr].int() == 0: # miss
+                    #action = addr + self.cache_size 
+                    action = addr #+ len(self.attacker_address_space)
+                    
                     break
             self.local_step = 0
             self.lat=[]
             self.no_prime = True
-            if action > self.cache_size:
+            #if action > self.cache_size:
+            if action > len(self.attacker_address_space):
                 action+=1
             return action, info
         else:        
             assert(False)
     # is it useful for non-ML agent or not???
     def observe(self, action, timestep):
-        if self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 ):#- 1:
+        if (self.local_step < 2 * len(self.attacker_address_space) + 1 + 1 - (len(self.attacker_address_space) if self.no_prime else 0)
+            #self.local_step < 2 * self.cache_size + 1 + 1 - (self.cache_size if self.no_prime else 0 ) 
+            #and self.local_step > self.cache_size - (self.cache_size if self.no_prime else 0 )
+            and self.local_step > len(self.attacker_address_space) - (len(self.attacker_address_space) if self.no_prime else 0)
+            ):
         ##    self.local_step += 1
             self.lat.append(timestep.observation[0][0])
         return
