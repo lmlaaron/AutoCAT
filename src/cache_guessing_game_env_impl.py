@@ -934,5 +934,6 @@ class CacheGuessingGameEnv(gym.Env):
       else:
         is_guess = 1
         victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
-    return [ address, is_guess, is_victim, is_flush, victim_addr ] 
+    
+    return  address, is_guess, is_victim, is_flush, victim_addr  
  
