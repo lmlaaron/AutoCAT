@@ -93,6 +93,7 @@ class CacheGuessingGameEnv(gym.Env):
     # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
+    self.use_one_hot = env_config["use_one_hot"] if "use_one_hot" in env_config else True
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
     self.no_measure_factor = env_config["enable_no_measure_access"] if "enable_no_measure_access" in env_config else 0
     # remapping function for randomized cache
@@ -188,32 +189,44 @@ class CacheGuessingGameEnv(gym.Env):
     '''
     define the action space
     '''
-    # using tightened action space
-    if self.flush_inst == False:
-      # one-hot encoding
-      if self.allow_empty_victim_access == True:
-        # | attacker_addr | v | victim_guess_addr | guess victim not access |
-        self.action_space = spaces.Discrete(
-          ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
-        )
+    if self.use_one_hot == True:
+      # using tightened action space
+      if self.flush_inst == False:
+        # one-hot encoding
+        if self.allow_empty_victim_access == True:
+          # | attacker_addr | v | victim_guess_addr | guess victim not access |
+          self.action_space = spaces.Discrete(
+            ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          )
+        else:
+          # | attacker_addr | v | victim_guess_addr | 
+          self.action_space = spaces.Discrete(
+            ( self.no_measure_factor + 1 )* len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+          )
       else:
-        # | attacker_addr | v | victim_guess_addr | 
-        self.action_space = spaces.Discrete(
-          ( self.no_measure_factor + 1 )* len(self.attacker_address_space) + 1 + len(self.victim_address_space)
-        )
-    else:
-      # one-hot encoding
-      if self.allow_empty_victim_access == True:
-        # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
-        self.action_space = spaces.Discrete(
-          (( self.no_measure_factor + 1 )+ 1) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
-        )
-      else:
-        # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
-        self.action_space = spaces.Discrete(
-          (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
-        )
-    
+        # one-hot encoding
+        if self.allow_empty_victim_access == True:
+          # | attacker_addr | flush_attacker_addr | v | victim_guess_addr | guess victim not access |
+          self.action_space = spaces.Discrete(
+            (( self.no_measure_factor + 1 )+ 1) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
+          )
+        else:
+          # | attacker_addr | flush_attacker_addr | v | victim_guess_addr |
+          self.action_space = spaces.Discrete(
+            (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) 
+          )
+    else: # use 3 times 1 
+          # first number is the access address, -1 is  no access
+          # second number is whether victim access, -1 is no access 
+          # third number is guess address, -1 is no guess
+          # if all of them are -1, then it is termination 
+      self.action_space = spaces.Box(
+        low = -1,
+        high = max(len(self.attacker_address_space), len(self.victim_address_space)),
+        shape = (3,1),
+        dtype = np.int8
+      )
+
     '''
     define the observation space
     '''
@@ -681,27 +694,54 @@ class CacheGuessingGameEnv(gym.Env):
     is_flush = 0
     victim_addr = 0
     no_measure = 0 
-    if self.flush_inst == False:
-      if action < ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
-        address = action % len(self.attacker_address_space) 
-        no_measure  = int(action / len(self.attacker_address_space) )
-      elif action ==  ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
-        is_victim = 1
+    if self.use_one_hot == True:
+      if self.flush_inst == False:
+        if action < ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
+          address = action % len(self.attacker_address_space) 
+          no_measure  = int(action / len(self.attacker_address_space) )
+        elif action ==  ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
+          is_victim = 1
+        else:
+          is_guess = 1
+          victim_addr = action - ( ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 ) 
       else:
-        is_guess = 1
-        victim_addr = action - ( ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 ) 
-    else:
-      if action < ( self.no_measure_factor + 1 )  * len(self.attacker_address_space):
-        address = action % len(self.attacker_address_space) 
-        no_measure  = int( action / len(self.attacker_address_space) )
-      elif action < (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space):
-        is_flush = 1
-        address = action -( self.no_measure_factor + 1 ) * len(self.attacker_address_space) 
-        is_flush = 1
-      elif action == ( self.no_measure_factor + 1 + 1 ) * len(self.attacker_address_space):
-        is_victim = 1
+        if action < ( self.no_measure_factor + 1 )  * len(self.attacker_address_space):
+          address = action % len(self.attacker_address_space) 
+          no_measure  = int( action / len(self.attacker_address_space) )
+        elif action < (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space):
+          is_flush = 1
+          address = action -( self.no_measure_factor + 1 ) * len(self.attacker_address_space) 
+          is_flush = 1
+        elif action == ( self.no_measure_factor + 1 + 1 ) * len(self.attacker_address_space):
+          is_victim = 1
+        else:
+          is_guess = 1
+          victim_addr = action - ( (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 ) 
+    else: # use unified coding
+      
+      address = action[0]
+      
+      if address != -1: # attacker acccess
+        is_guess = 0
+        is_victim = 0
+        is_flush = 0
+        victim_addr = 0
+        no_measure = 0 
       else:
-        is_guess = 1
-        victim_addr = action - ( (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 ) 
+        is_victim = action[1]
+        if is_victim != -1: # victim access
+          is_guess = 0
+          is_victim = 1
+          is_flush = 0
+          victim_addr = 0
+          no_measure = 0
+        else: # guess victim address
+          address = 0
+          victim_addr = action[2]
+          is_guess = 0
+          is_victim = 0
+          is_flush = 0
+          no_measure = 0
+
     return [ address, is_guess, is_victim, is_flush, victim_addr, no_measure ] 
  
