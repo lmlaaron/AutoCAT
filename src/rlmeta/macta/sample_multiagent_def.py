@@ -92,7 +92,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             #print(timestep["defender"])
         def_action_rate = defender_count
         
-    #atk_success_rate = num_total_correct_guess / num_total_guess
+    atk_success_rate = num_total_correct_guess / num_total_guess
         
     metrics = {
         "episode_length": env.env.step_count,
@@ -100,7 +100,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         "num_total_guess": num_total_guess,
         "num_total_correct_guess": num_total_correct_guess,
         "def_action_rate": def_action_rate,
-        #"atk_success_rate" : atk_success_rate,
+        "atk_success_rate" : atk_success_rate,
         "num_total_cache_miss" : num_total_cache_miss,
     }
 
@@ -174,7 +174,8 @@ def tournament(env,
                     attacker_agent = PrimeProbeAgent(cfg.env_config)
                 else:
                     env.env.opponent_weights = [0,1]
-                    cfg.model_config["output_dim"] = env.action_space.n
+                    cfg.model_config["output_dim"] = env.action_space.n # 12 for AutoCAT attacker
+                    print("attacker's output_dim", cfg.model_config["output_dim"])
                     cfg.model_config["step_dim"] = 64
                     attacker_params = torch.load(attacker[1], map_location='cuda:3')
                     attacker_model = CachePPOTransformerModel(**cfg.model_config)
@@ -221,6 +222,7 @@ def head2head(env,
     # Load model
     # Attacker
     cfg.model_config["output_dim"] = env.action_space.n
+    print("attacker's output_dim", cfg.model_config["output_dim"])
     #attacker_params = torch.load(cfg.attacker_checkpoint)
     #attacker_model = CachePPOTransformerModel(**cfg.model_config)
     #print('attacker model: ', attacker_model)

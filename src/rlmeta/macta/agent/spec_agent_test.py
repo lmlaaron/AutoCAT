@@ -1,8 +1,3 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-#
-# This source code is licensed under the MIT license found in the
-# LICENSE file in the root directory of this source tree.
-
 import os
 import random
 import sys
@@ -24,7 +19,6 @@ from rlmeta.core.types import Action, TimeStep
 from rlmeta.core.types import Tensor, NestedTensor
 from rlmeta.utils.stats_dict import StatsDict
 import math
-import hydra
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from utils.trace_parser import load_trace
@@ -32,14 +26,13 @@ from utils.trace_parser import load_trace
 console = Console()
 
 
-class SpecAgent(Agent):
+class SpecAgentTest(Agent):
     def __init__(self, env_config, trace, legacy_trace_format: bool = False):
         super().__init__()
 
         self.local_step = 0
         self.lat = []
         self.no_prime = False  # set to true after first prime
-
         if "cache_configs" in env_config:
             #self.logger.info('Load config from JSON')
             self.configs = env_config["cache_configs"]
@@ -50,18 +43,9 @@ class SpecAgent(Agent):
             victim_addr_s = env_config.get("victim_addr_s", 0)
             victim_addr_e = env_config.get("victim_addr_e", 3)
             flush_inst = env_config.get("flush_inst", False)
-            self.allow_empty_victim_access = env_config.get(
-                "allow_empty_victim_access", False)
-            #self.block_size = self.configs['cache_1']['block_size']  # block_size = 1
+            self.allow_empty_victim_access = env_config.get("allow_empty_victim_access", False)
             self.block_size = env_config.get('block_size', 1)
-            # assert (self.num_ways == 1)  # currently only support direct-map cache
-            assert (flush_inst == False)  # do not allow flush instruction
-            #assert (attacker_addr_e - attacker_addr_s == victim_addr_e - victim_addr_s)  # address space must be shared
-            #must be no shared address space
-            #assert ((attacker_addr_e + 1 == victim_addr_s) or (victim_addr_e + 1 == attacker_addr_s))
-            #assert (self.allow_empty_victim_access == False)
 
-        # self.cache_line_size = 8  #TODO: remove the hardcode
         self.cache_line_size = env_config.get("cache_line_size", 64)
         self.trace = trace
         self.trace_length = (len(self.trace)
@@ -72,83 +56,95 @@ class SpecAgent(Agent):
         self._get_domain_ids()
         assert isinstance(self.domain_id_0, (int, np.int64))
         assert isinstance(self.domain_id_1, (int, np.int64))
-        self.start_idx = random.randint(0, self.trace_length - 1)
-        self.step = 0
-        
-        self.n_sets = int(self.cache_size / self.num_ways)  # 1 if 4 / 4
-        self.block_offset_size = int(math.log(self.block_size, 2))  # 0
-        self.index_size = int(math.log(self.n_sets, 2))  # 0 if self.n_sets = 1
-        # print(f"[Agent] cache_line_size = {self.cache_line_size}")
 
+        #self.start_idx = random.randint(0, self.trace_length - 1)  
+        self.start_idx = 0  # NOTE: for debug use
+        self.step = 0
+        self.num_ways = 1
+        self.n_sets = 4 #int(self.cache_size / self.num_ways)  # 1 if 4 / 4
+        self.block_offset_size = int(math.log(self.block_size, 2))  # 0
+        
+        # NOTE: in FA cache, there is only 1 set so set_index will not exist
+        self.set_index_size = int(math.log(self.n_sets, 2))  # 0 if self.n_sets = 1
+        #print(f"[Agent] cache_line_size = {self.cache_line_size}")
+        
 
     def act(self, timestep: TimeStep) -> Action:
+ 
 
         idx = (self.start_idx + self.step) % self.trace_length
+        print('idx:', idx)
         self.step = (self.step + 1) % self.trace_length
-        
+        print('step num:', self.step)
 
         if self.legacy_trace_format:
             line = self.trace[idx]
             domain_id = int(line[0])
+            # addr = int(line[3], 16) // self.cache_line_size
             raw_addr = int(line[3], 16) // self.cache_line_size
+            
         else:
             domain_id, raw_addr = self.trace[idx]
-            #addr //= self.cache_line_size
-
+            #print('domain_id:', domain_id, 'raw_addr:', raw_addr)
+            
         # follow the logic in parse_address method from cache
-        #_, index, _ = self.Cache.parse_address(hex(raw_addr))
         address_size = len(hex(raw_addr)) * 4
         binary_address = bin(raw_addr)[2:].zfill(address_size)
         
         if self.block_offset_size > 0:
             block_offset = binary_address[-self.block_offset_size:]  # get the last element
-            index = binary_address[-(self.block_offset_size+self.index_size + 6):-self.block_offset_size]
-            if index == '':
-                index = '000000'
+            set_index = binary_address[-(self.block_offset_size+self.set_index_size):-self.block_offset_size]
+            if set_index == '':
+                set_index = '0'
             
         else:
             block_offset = '0'
-            if self.index_size != 0:
-                index = binary_address[-(self.index_size + 6):]
-                
+            if self.set_index_size != 0:
+                set_index = binary_address[-self.set_index_size:]
+                print('index', set_index)
             else:
-                index = '000000'
-                
-        if index == '000000':
-            addr = raw_addr // self.cache_line_size  # for 1 set FA cache config
-            #print(addr)
-        else:
-            return None 
+                set_index = '0'
         
+        # Calculate the addr value based on the set_index
+        addr = (raw_addr // self.cache_line_size) % self.n_sets + int(set_index) * self.num_ways
+               
+        print('domain_id:', domain_id, 'original addr: ', hex(raw_addr), 'raw_addr:', raw_addr, 'block_offset:', block_offset, 'set_index:', set_index) #, 'index: ', index)
         assert isinstance(domain_id, (int, np.int64))
         assert isinstance(addr, (int, np.int64))
 
-        action = addr % self.cache_size
+        action = addr % self.cache_size  # cache_size = 4
         if domain_id == self.domain_id_0:  # attacker access
             action = addr % self.cache_size
+            print('action by domain 0:', action)
             info = {}
         else:  # domain_id = self.domain_id_1: # victim access
             action = self.cache_size
+            print('action by domain 1:', action)
             addr = addr % self.cache_size
             info = {"reset_victim_addr": True, "victim_addr": addr}
         return Action(action, info)
-    
+
 
     async def async_act(self, timestep: TimeStep) -> Action:
         return self.act(timestep)
 
+
     async def async_observe_init(self, timestep: TimeStep) -> None:
         pass
+
 
     async def async_observe(self, action: Action,
                             next_timestep: TimeStep) -> None:
         pass
 
+
     def update(self) -> None:
         pass
 
+
     async def async_update(self) -> None:
         pass
+
 
     def _get_domain_ids(self) -> None:
         self.domain_id_0 = (int(self.trace[0][0])
@@ -174,9 +170,9 @@ class SpecAgentFactory(AgentFactory):
         self.trace_limit = trace_limit
         self.legacy_trace_format = legacy_trace_format
 
-    def __call__(self, index: int) -> SpecAgent:
+    def __call__(self, index: int) -> SpecAgentTest:
         spec_trace = self._load_trace(index)
-        return SpecAgent(self.env_config,
+        return SpecAgentTest(self.env_config,
                          spec_trace,
                          legacy_trace_format=self.legacy_trace_format)
 
@@ -189,13 +185,3 @@ class SpecAgentFactory(AgentFactory):
                                 limit=self.trace_limit,
                                 legacy_trace_format=self.legacy_trace_format)
         return spec_trace
-
-@hydra.main(config_path="../config", config_name="macta_defense")
-def main(cfg):
-    cfg.env_config['verbose'] = 1
-    agent_factory = SpecAgentFactory(cfg["env_config"], cfg["trace_files"], cfg["trace_limit"], cfg["legacy_trace_format"])
-    agent = agent_factory(0)
-    
-    
-if __name__ == '__main__':
-    main()

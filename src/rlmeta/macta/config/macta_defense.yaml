@@ -86,7 +86,7 @@ push_every_n_steps: 10
 
 dual_clip: 3.0
 
-num_epochs: 1000 # 1000 #1000 #3000
+num_epochs: 1200 # 1000 #1000 #3000
 steps_per_epoch: 1000 #1000 #1000 #3000
 
 num_eval_episodes: 100
