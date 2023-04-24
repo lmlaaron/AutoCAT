@@ -28,13 +28,11 @@ num_eval_rollouts: 4 #1 #2
 num_eval_workers: 4 #1 #2
 
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-10-31/18-20-26/ppo_agent-49.pth"
-# attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
+#attacker_checkpoint: "/u/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-12-02/02-27-19/attacker-99.pth"
 #attacker_checkpoint: "/checkpoint/jxcui/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
 attacker_checkpoint: ""
 #attacker_checkpoint: "/checkpoint/yangxm/cache/ICLR2023/ICLR2023-debug-obs/2022-12-02/02-27-19/attacker-99.pth"
-
 #trace_file: "/checkpoint/yangxm/cache/ICLR2023/remix3.txt"
-
 
 # trace_file: "/u/jxcui/remix3.txt"
 # trace_limit: 1000000
@@ -52,23 +50,8 @@ trace_files: [
   '/home/geunbae/data/MACTA/train/spectrace_502_505_10000000.txt',
   '/home/geunbae/data/MACTA/train/spectrace_502-2M_502-4M.txt',
   '/home/geunbae/data/MACTA/train/spectrace_505-2M_505-4M.txt',
-
 ]
 
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500-2M_500-4M.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502-2M_502-4M.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_505-2M_505-4M.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_2000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_2000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_2000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_6000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_6000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_6000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_502_10000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_500_505_10000000.txt",
-#  "/checkpoint/yangxm/cache/ICLR2023/data/spectrace_502_505_10000000.txt",]
-
-# 
 trace_limit: 1000000 #2000
 legacy_trace_format: false
 
@@ -86,7 +69,7 @@ push_every_n_steps: 10
 
 dual_clip: 3.0
 
-num_epochs: 1200 # 1000 #1000 #3000
+num_epochs: 1000 # 1000 #1000 #3000
 steps_per_epoch: 1000 #1000 #1000 #3000
 
 num_eval_episodes: 100
@@ -97,5 +80,5 @@ eval_seed: 456
 table_view: false
 
 defaults:
-  - env_config: macta_def_1s4w # macta_def_1s4w
+  - env_config: macta_def_1s8w # macta_def_1s4w
   - model_config: transformer

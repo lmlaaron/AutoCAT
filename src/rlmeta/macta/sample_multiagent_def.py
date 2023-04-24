@@ -92,7 +92,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
             #print(timestep["defender"])
         def_action_rate = defender_count
         
-    atk_success_rate = num_total_correct_guess / num_total_guess
+    #atk_success_rate = num_total_correct_guess / num_total_guess
         
     metrics = {
         "episode_length": env.env.step_count,
@@ -100,7 +100,7 @@ def run_loop(env: Env, agents: PPOAgent, victim_addr=-1) -> Dict[str, float]:
         "num_total_guess": num_total_guess,
         "num_total_correct_guess": num_total_correct_guess,
         "def_action_rate": def_action_rate,
-        "atk_success_rate" : atk_success_rate,
+        #"atk_success_rate" : atk_success_rate,
         "num_total_cache_miss" : num_total_cache_miss,
     }
 
@@ -282,7 +282,7 @@ def head2head(env,
 def main(cfg):
     
     # Create env
-    cfg.env_config['verbose'] = 0 #1 #1 # 0
+    cfg.env_config['verbose'] = 1 #1 #1 # 0
     env_fac = CacheAttackerDefenderEnvFactory(cfg.env_config)
     #env_fac = CacheAttackerDetectorEnvFactory(cfg.env_config)
     env = env_fac(index=0)

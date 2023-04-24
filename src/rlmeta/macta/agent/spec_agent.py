@@ -62,8 +62,8 @@ class SpecAgent(Agent):
         assert isinstance(self.domain_id_0, (int, np.int64))
         assert isinstance(self.domain_id_1, (int, np.int64))
 
-        self.start_idx = random.randint(0, self.trace_length - 1)  
-        #self.start_idx = 0  # NOTE: for debug use
+        #self.start_idx = random.randint(0, self.trace_length - 1)  
+        self.start_idx = 0  # NOTE: for debug use
         self.step = 0
         self.n_sets = int(self.cache_size / self.num_ways)  # 1 if 4 / 4
         self.block_offset_size = int(math.log(self.block_size, 2))  # 0
@@ -110,15 +110,17 @@ class SpecAgent(Agent):
                 set_index = '0'
         
         # Calculate the addr value based on the set_index
-        addr = (raw_addr // self.cache_line_size) % self.n_sets + int(set_index) * self.num_ways
-               
-        #print('domain_id:', domain_id, 'original addr: ', hex(raw_addr), 'bin_addr: ', binary_address, 'block_offset:', block_offset, 'set_index:', set_index) #, 'index: ', index)
+        #addr = (raw_addr // self.cache_line_size) % self.n_sets + int(set_index) * self.num_ways
+        addr = raw_addr
+        print('addr:', addr)       
+        print('domain_id:', domain_id, 'original addr: ', hex(raw_addr), 'bin_addr: ', binary_address, 'block_offset:', block_offset, 'set_index:', set_index) #, 'index: ', index)
         assert isinstance(domain_id, (int, np.int64))
         assert isinstance(addr, (int, np.int64))
 
         action = addr % self.cache_size
         if domain_id == self.domain_id_0:  # attacker access
             action = addr % self.cache_size
+            print('action by dom_id 0', action)
             #print('action by domain 0:', action)
             info = {}
         else:  # domain_id = self.domain_id_1: # victim access
@@ -126,6 +128,7 @@ class SpecAgent(Agent):
             #print('action by domain 1:', action)
             addr = addr % self.cache_size
             info = {"reset_victim_addr": True, "victim_addr": addr}
+            print('action by dom_id 1', action)
         return Action(action, info)
 
 
