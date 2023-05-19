@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torchvision.models.feature_extraction import get_graph_node_names, \
     create_feature_extractor
-from tensordict.nn import TensorDictModule as Mod, TensorDictSequential as Seq
+from tensordict.nn import TensorDictModule as Mod, TensorDictSequential as Seq, TensorDictModuleBase
 
 from torchrl.modules import LSTMModule
 
@@ -125,11 +125,23 @@ class CachePPOLstmModel(nn.Module):
     def get_backbone(self, in_key="observation"):
         lstm = LSTMModule(lstm=self.encoder, in_keys=["x", "h", "c"], out_keys=["_", "h", "c"])
         lstm = lstm.set_recurrent_mode(True)
+        class PrintTD(TensorDictModuleBase):
+            in_keys = []
+            out_keys = []
+            def forward(self, td):
+                print(td)
+                return td
         out = Seq(
             Mod(
                 lambda obs: obs.to(torch.int64),
                 in_keys=[in_key],
                 out_keys=["_obs"]
+                ),
+            # we need this for LSTM
+            Mod(
+                lambda obs: torch.zeros(obs.shape[:-2], device=obs.device, dtype=torch.bool),
+                in_keys=["_obs"],
+                out_keys=["is_init"]
                 ),
             Mod(
                 lambda obs: torch.flip(obs, dims=(1, )),
@@ -137,18 +149,17 @@ class CachePPOLstmModel(nn.Module):
                 out_keys=["_obs"]
                 ),
             Mod(
-                lambda obs: torch.unbind(obs, dims=-1),
+                lambda obs: torch.unbind(obs, dim=-1),
                 in_keys=["_obs"],
                 out_keys=["l", "v", "act", "_"],
                 ),
-            Mod(lambda stp: (stp == -1), in_keys=["stp"], out_keys=["mask"]),
             Mod(
                 lambda l: self.make_one_hot(l, self.latency_dim, ),
                 in_keys=["l"],
                 out_keys=["l"]
                 ),
             Mod(
-                lambda v, mask: self.make_one_hot(v, self.victim_acc_dim),
+                lambda v: self.make_one_hot(v, self.victim_acc_dim),
                 in_keys=["v"],
                 out_keys=["v"]
                 ),
@@ -176,9 +187,10 @@ class CachePPOLstmModel(nn.Module):
                 out_keys=["x"]
                 ),
             Mod(self.linear_i, in_keys=["x"], out_keys=["x"]),
-            Mod(lambda x: x.transpose(0, 1).contiguous(), in_keys=["x"], out_keys=["x"]),
+            # Mod(lambda x: x.transpose(0, 1).contiguous(), in_keys=["x"], out_keys=["x"]),
             lstm,
-            Mod(lambda h, c: torch.cat((h.mean(1), c.mean(1)), dim=-1), in_keys=["h", "c"], out_keys=["h"] ),
+            Mod(lambda h, c: torch.cat((h.mean(-2), c.mean(-2)), dim=-1), in_keys=["h", "c"], out_keys=["h"] ),
+            PrintTD(),
         )
         return out
 
