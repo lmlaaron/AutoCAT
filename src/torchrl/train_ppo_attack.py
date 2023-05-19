@@ -4,35 +4,29 @@ import os
 import time
 
 import hydra
+import tqdm
 from omegaconf import DictConfig, OmegaConf
+import sys
 
 import torch
 import torch.multiprocessing as mp
 
-import rlmeta.utils.hydra_utils as hydra_utils
-import rlmeta.utils.random_utils as random_utils
-import rlmeta.utils.remote_utils as remote_utils
+import torchrl.collectors
 
-from rlmeta.agents.agent import AgentFactory
-from rlmeta.agents.ppo.ppo_agent import PPOAgent
-# from rlmeta.core.controller import Phase, Controller
-from rlmeta.core.loop import LoopList, ParallelLoop
-from rlmeta.core.model import ModelVersion, RemotableModelPool
-from rlmeta.core.model import make_remote_model, wrap_downstream_model
-from rlmeta.core.replay_buffer import ReplayBuffer, make_remote_replay_buffer
-from rlmeta.core.server import Server, ServerList
-# from rlmeta.core.callbacks import EpisodeCallbacks
-# from rlmeta.core.types import Action, TimeStep
-# from rlmeta.samplers import UniformSampler
-# from rlmeta.storage import TensorCircularBuffer
-# from rlmeta.utils.optimizer_utils import make_optimizer
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torchrl.data import TensorDictReplayBuffer, LazyTensorStorage
+from cache_guessing_game_env_impl import CacheGuessingGameEnv
+from torchrl.envs.libs.gym import GymWrapper
+from torchrl.objectives.value import GAE
+from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
+
+from torchrl.envs import UnsqueezeTransform, Compose, TransformedEnv, \
+    CatFrames, EnvCreator, ParallelEnv
 
 import model_utils
 
-from cache_env_wrapper import CacheEnvWrapperFactory
-from metric_callbacks import MetricCallbacks
-
+from torchrl.objectives import ClipPPOLoss
+from torchrl.objectives.value import GAE
 
 @hydra.main(config_path="./config", config_name="ppo_attack")
 def main(cfg):
@@ -40,107 +34,52 @@ def main(cfg):
         random_utils.manual_seed(cfg.seed)
 
     print(f"workding_dir = {os.getcwd()}")
-    my_callbacks = MetricCallbacks()
-    logging.info(hydra_utils.config_to_json(cfg))
 
-    env_fac = lambda: CacheEnvWrapperFactory(OmegaConf.to_container(cfg.env_config))
-    env = env_fac()  # index is not passed
+    def make_env():
+        return ParallelEnv(cfg.collector.num_workers, EnvCreator(lambda: GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)))))
+
+    env = make_env()
+
+    dummy_env = GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)))
 
     train_model = model_utils.get_model(
         cfg.model_config, cfg.env_config.window_size,
-        env.action_spec.space.n).to(cfg.train_device)
-    infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
-    infer_model.eval()
+        dummy_env.action_spec.space.n).to(cfg.train_device)
+
     optimizer = torch.optim.Adam(train_model.parameters(), **cfg.optimizer)
 
-    # ctrl = Controller()
-    # rb = ReplayBuffer(TensorCircularBuffer(cfg.replay_buffer_size),
-    #                   UniformSampler())
-    rb = TensorDictReplayBuffer(storage=LazyTensorStorage(cfg.replay_buffer_size))
+    rb = TensorDictReplayBuffer(storage=LazyTensorStorage(cfg.replay_buffer_size), sampler=SamplerWithoutReplacement(), batch_size=cfg.batch_size)
 
-    # m_server = Server(cfg.m_server_name, cfg.m_server_addr)
-    # r_server = Server(cfg.r_server_name, cfg.r_server_addr)
-    # c_server = Server(cfg.c_server_name, cfg.c_server_addr)
-    # m_server.add_service(RemotableModelPool(infer_model, seed=cfg.seed))
-    # r_server.add_service(rb)
-    # c_server.add_service(ctrl)
-    # servers = ServerList([m_server, r_server, c_server])
-    #
-    # a_model = wrap_downstream_model(train_model, m_server)
-    # t_model = make_remote_model(infer_model, m_server)
-    # e_model = make_remote_model(infer_model, m_server)
-    #
-    # a_ctrl = remote_utils.make_remote(ctrl, c_server)
-    # t_ctrl = remote_utils.make_remote(ctrl, c_server)
-    # e_ctrl = remote_utils.make_remote(ctrl, c_server)
-    #
-    # a_rb = make_remote_replay_buffer(rb, r_server, prefetch=cfg.prefetch)
-    # t_rb = make_remote_replay_buffer(rb, r_server)
+    actor = train_model.get_actor()
 
-    agent = PPOAgent(a_model,
-                     replay_buffer=a_rb,
-                     controller=a_ctrl,
-                     optimizer=optimizer,
-                     batch_size=cfg.batch_size,
-                     learning_starts=cfg.get("learning_starts", None),
-                     entropy_coeff=cfg.get("entropy_coeff", 0.01),
-                     model_push_period=cfg.model_push_period)
-    t_agent_fac = AgentFactory(PPOAgent, t_model, replay_buffer=t_rb)
-    e_agent_fac = AgentFactory(PPOAgent, e_model, deterministic_policy=True)
-
-    t_loop = ParallelLoop(env_fac,
-                          t_agent_fac,
-                          t_ctrl,
-                          running_phase=Phase.TRAIN,
-                          should_update=True,
-                          num_rollouts=cfg.num_train_rollouts,
-                          num_workers=cfg.num_train_workers,
-                          seed=cfg.seed,
-                          episode_callbacks=my_callbacks)
-    e_loop = ParallelLoop(env_fac,
-                          e_agent_fac,
-                          e_ctrl,
-                          running_phase=Phase.EVAL,
-                          should_update=False,
-                          num_rollouts=cfg.num_eval_rollouts,
-                          num_workers=cfg.num_eval_workers,
-                          seed=(None if cfg.seed is None else cfg.seed +
-                                cfg.num_train_rollouts),
-                          episode_callbacks=my_callbacks)
-    loops = LoopList([t_loop, e_loop])
-
-    servers.start()
-    loops.start()
-    agent.connect()
-
-    start_time = time.perf_counter()
-    for epoch in range(cfg.num_epochs):
-        stats = agent.train(cfg.steps_per_epoch)
-        cur_time = time.perf_counter() - start_time
-        info = f"T Epoch {epoch}"
-        if cfg.table_view:
-            logging.info("\n\n" + stats.table(info, time=cur_time) + "\n")
-        else:
-            logging.info(
-                stats.json(info, phase="Train", epoch=epoch, time=cur_time))
-        time.sleep(1)
-
-        stats = agent.eval(cfg.num_eval_episodes, keep_training_loops=True)
-        cur_time = time.perf_counter() - start_time
-        info = f"E Epoch {epoch}"
-        if cfg.table_view:
-            logging.info("\n\n" + stats.table(info, time=cur_time) + "\n")
-        else:
-            logging.info(
-                stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-
-        torch.save(train_model.state_dict(), f"ppo_agent-{epoch}.pth")
-        time.sleep(1)
-
-    loops.terminate()
-    servers.terminate()
-
+    value_net = train_model.get_value()
+    value_head = train_model.get_value_head()
+    loss_fn = ClipPPOLoss(
+        actor,
+        value_head,
+    )
+    gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
+    dataloader = torchrl.collectors.SyncDataCollector(
+        env,
+        policy=actor,
+        frames_per_batch=cfg.collector.frames_per_batch,
+        total_frames=cfg.collector.total_frames,
+    )
+    pbar = tqdm.tqdm(dataloader, total=cfg.num_epochs)
+    for data in pbar:
+        pbar.set_description(f"reward: {data['next', 'reward'].mean(): 4.4f}")
+        for i in range(cfg.num_epochs):
+            # we can safely flatten the data, GAE supports that
+            data = gae(data.view(-1))
+            rb.extend(data.view(-1))
+            for batch in rb:
+                loss_vals = loss_fn(batch)
+                loss_val = sum(loss_vals.values())
+                loss_val.backward()
+                optimizer.step()
+                optimizer.zero_grad()
+        dataloader.update_policy_weights_()
+        # testdata = env.rollout(actor)
 
 if __name__ == "__main__":
-    mp.set_start_method("spawn")
     main()
