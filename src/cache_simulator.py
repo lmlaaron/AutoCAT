@@ -1,3 +1,8 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This software may be used and distributed according to the terms of the
+# GNU General Public License version 2.
+
 #!/usr/bin/env python
 
 import yaml, cache, argparse, logging, pprint
@@ -265,7 +270,6 @@ def build_cache(configs, name, next_level_cache, logger):
                 logger,
                 next_level_cache,
                 rep_policy = configs[name]['rep_policy'] if 'rep_policy' in configs[name] else '',
-                prefetcher = configs[name]['prefetcher'] if 'prefetcher' in configs[name] else "none",
                 verbose = configs['verbose'] if 'verbose' in configs else 'False' )
 
 
