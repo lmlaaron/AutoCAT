@@ -100,7 +100,6 @@ class CacheGuessingGameEnv(gym.Env):
     # enable HPC-based-detection escaping setalthystreamline
     self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
     self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
-    self.victim_miss_reward = env_config["victim_miss_reward"] if "victim_miss_reward" in env_config else self.victim_access_reward
     self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
     self.wrong_reward = env_config["wrong_reward"] if "wrong_reward" in env_config else -9999
     self.step_reward = env_config["step_reward"] if "step_reward" in env_config else 0
@@ -249,14 +248,10 @@ class CacheGuessingGameEnv(gym.Env):
             self.vprint("victim make a empty access!") # do not need to actually do something
             t = 1 # empty access will be treated as HIT??? does that make sense???
             #t = self.l1.read(str(self.victim_address), self.current_step).time 
-        if t > 500:   # for LRU attack, has to force victim access being hit
-          self.current_step += 1
-          reward = self.victim_miss_reward #-5000
-          done = False
-        else:
-          self.current_step += 1
-          reward = self.victim_access_reward #-10
-          done = False
+        
+        self.current_step += 1
+        reward = self.victim_access_reward #-10
+        done = False
       else:
         if is_guess == True:
           r = 2  #
@@ -328,18 +323,6 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.step_count += 1
     
-    '''
-    support for multiple guess per episode
-    '''
-    if done == True:
-      self.reset_time += 1
-      if self.reset_time == self.reset_limit:  # really need to end the simulation
-        self.reset_time = 0
-        done = True                            # reset will be called by the agent/framework
-      else:
-        done = False                           # fake reset
-        self._reset()                          # manually reset
-
     if self.super_verbose == True:
       for cache in self.hierarchy:
         if self.hierarchy[cache].next_level:
@@ -356,17 +339,12 @@ class CacheGuessingGameEnv(gym.Env):
             reset_observation=True,
             seed = -1):
 
-    if self.cache_state_reset or reset_cache_state or seed != -1:
-      self.vprint('Reset...(also the cache state)')
-      self.hierarchy = build_hierarchy(self.configs, self.logger)
-      self.l1 = self.hierarchy['cache_1']
-      # check multicore
-      self.lv = self.hierarchy['cache_1']
-
-      self._randomize_cache()
-    else:
-      self.vprint('Reset...(cache state the same)')
-
+    self.vprint('Reset...(also the cache state)')
+    self.hierarchy = build_hierarchy(self.configs, self.logger)
+    self.l1 = self.hierarchy['cache_1']
+    # check multicore
+    self.lv = self.hierarchy['cache_1']
+    self._randomize_cache()
     self._reset(victim_address)  # fake reset
 
     '''
