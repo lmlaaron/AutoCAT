@@ -65,7 +65,6 @@ class CacheGuessingGameEnv(gym.Env):
   def __init__(self, env_config={
    "length_violation_reward":-10000,
    "double_victim_access_reward": -10000,
-   "force_victim_hit": False,
    "victim_access_reward":-10,
    "correct_reward":200,
    "wrong_reward":-9999,
@@ -97,20 +96,11 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
-    # prefetcher
-    # pretetcher: "none" "nextline" "stream"
-    # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
-    self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
 
-    # set-based channel or address-based channel
-    self.allow_empty_victim_access = env_config["allow_empty_victim_access"] if "allow_empty_victim_access" in env_config else False
     # enable HPC-based-detection escaping setalthystreamline
-    self.force_victim_hit =env_config["force_victim_hit"] if "force_victim_hit" in env_config else False
     self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
     self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
-    self.victim_miss_reward = env_config["victim_miss_reward"] if "victim_miss_reward" in env_config else -10000 if self.force_victim_hit else self.victim_access_reward
-    self.double_victim_access_reward = env_config["double_victim_access_reward"] if "double_victim_access_reward" in env_config else -10000
-    self.allow_victim_multi_access = env_config["allow_victim_multi_access"] if "allow_victim_multi_access" in env_config else True
+    self.victim_miss_reward = env_config["victim_miss_reward"] if "victim_miss_reward" in env_config else self.victim_access_reward
     self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
     self.wrong_reward = env_config["wrong_reward"] if "wrong_reward" in env_config else -9999
     self.step_reward = env_config["step_reward"] if "step_reward" in env_config else 0
@@ -150,9 +140,6 @@ class CacheGuessingGameEnv(gym.Env):
     if "rep_policy" not in self.configs['cache_1']:
       self.configs['cache_1']['rep_policy'] = 'lru'
     
-    #with open_dict(self.configs):
-    self.configs['cache_1']['prefetcher'] = self.prefetcher
-
     '''
     check window size
     '''
@@ -207,20 +194,6 @@ class CacheGuessingGameEnv(gym.Env):
     self.victim_address = random.randint(self.victim_address_min, self.victim_address_max)
     self._randomize_cache()
     
-    '''
-    internal guessing buffer
-    does not change after reset
-    '''
-    self.guess_buffer_size = 100
-    self.guess_buffer = [False] * self.guess_buffer_size
-    self.last_state = None
-
-  '''
-  set the seed for randomization
-  '''
-  def seed(self, seed):
-      random.seed(seed)
-
   '''
   gym API: step
   this is the function that implements most of the logic
@@ -257,7 +230,6 @@ class CacheGuessingGameEnv(gym.Env):
     4. check if it is a guess, if so, evaluate the guess, if not go to 5. if not, terminate
     5. do the access, first check if it is a flush, if so do flush, if not, do normal access
     '''
-    victim_latency = None
     # if self.current_step > self.window_size : # if current_step is too long, terminate
     if self.step_count >= self.window_size - 1:
       r = 2 #
@@ -266,39 +238,25 @@ class CacheGuessingGameEnv(gym.Env):
       done = True
     else:
       if is_victim == True:
-        if self.allow_victim_multi_access == True or self.victim_accessed == False:
-          r = 2 #
-          self.victim_accessed = True
-
-          if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
-            if self.victim_address <= self.victim_address_max:
-              self.vprint("victim access (hex) %x " % self.victim_address)
-              t, _ = self.lv.read(hex(self.victim_address)[2:], self.current_step)#, domain_id='v')
-              t = t.time # do not need to lock again
-            else:
-              self.vprint("victim make a empty access!") # do not need to actually do something
-              t = 1 # empty access will be treated as HIT??? does that make sense???
-              #t = self.l1.read(str(self.victim_address), self.current_step).time 
-          if t > 500:   # for LRU attack, has to force victim access being hit
-            victim_latency = 1
-            self.current_step += 1
-            reward = self.victim_miss_reward #-5000
-            if self.force_victim_hit == True:
-              done = True
-              self.vprint("victim access has to be hit! terminate!")
-            else:
-              done = False
+        r = 2 #
+        self.victim_accessed = True
+        if True: #self.configs['cache_1']["rep_policy"] == "plru_pl": no need to distinuish pl and normal rep_policy
+          if self.victim_address <= self.victim_address_max:
+            self.vprint("victim access (hex) %x " % self.victim_address)
+            t, _ = self.lv.read(hex(self.victim_address)[2:], self.current_step)#, domain_id='v')
+            t = t.time # do not need to lock again
           else:
-            victim_latency = 0
-            self.current_step += 1
-            reward = self.victim_access_reward #-10
-            done = False
-        else:
-          r = 2
-          self.vprint("does not allow multi victim access in this config, terminate!")
+            self.vprint("victim make a empty access!") # do not need to actually do something
+            t = 1 # empty access will be treated as HIT??? does that make sense???
+            #t = self.l1.read(str(self.victim_address), self.current_step).time 
+        if t > 500:   # for LRU attack, has to force victim access being hit
           self.current_step += 1
-          reward = self.double_victim_access_reward # -10000
-          done = True
+          reward = self.victim_miss_reward #-5000
+          done = False
+        else:
+          self.current_step += 1
+          reward = self.victim_access_reward #-10
+          done = False
       else:
         if is_guess == True:
           r = 2  #
@@ -313,9 +271,6 @@ class CacheGuessingGameEnv(gym.Env):
                 self.vprint("correct guess (hex) " + victim_addr)
               else:
                 self.vprint("correct guess empty access!")
-              # update the guess buffer 
-              self.guess_buffer.append(True)
-              self.guess_buffer.pop(0)
               reward = self.correct_reward # 200
               done = True
           else:
@@ -323,9 +278,6 @@ class CacheGuessingGameEnv(gym.Env):
                 self.vprint("wrong guess (hex) " + victim_addr )
               else:
                 self.vprint("wrong guess empty access!")
-              # update the guess buffer 
-              self.guess_buffer.append(False)
-              self.guess_buffer.pop(0)
               reward = self.wrong_reward #-9999
               done = True
         elif is_flush == False or self.flush_inst == False:
@@ -357,6 +309,7 @@ class CacheGuessingGameEnv(gym.Env):
         info["guess_correct"] = False
     else:
       info["is_guess"] = False
+
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
@@ -383,7 +336,6 @@ class CacheGuessingGameEnv(gym.Env):
       if self.reset_time == self.reset_limit:  # really need to end the simulation
         self.reset_time = 0
         done = True                            # reset will be called by the agent/framework
-        #self.vprint('correct rate:' + str(self.calc_correct_rate()))
       else:
         done = False                           # fake reset
         self._reset()                          # manually reset
@@ -411,10 +363,7 @@ class CacheGuessingGameEnv(gym.Env):
       # check multicore
       self.lv = self.hierarchy['cache_1']
 
-      if seed == -1:
-        self._randomize_cache()
-      else:
-        self.seed_randomization(seed)
+      self._randomize_cache()
     else:
       self.vprint('Reset...(cache state the same)')
 
@@ -429,24 +378,12 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.reset_time = 0
 
-    self.last_state = None
-
     if self.super_verbose == True:
       for cache in self.hierarchy:
         if self.hierarchy[cache].next_level:
           print_cache(self.hierarchy[cache])
 
     return np.array(list(reversed(self.state)))
-
-  '''
-  function to calculate the correctness rate
-  using a sliding window
-  '''
-  def calc_correct_rate(self):
-    return self.guess_buffer.count(True) / len(self.guess_buffer)
-
-  def set_victim(self, victim_address=-1):
-    self.victim_address = victim_address
 
   '''
   fake reset the environment, just set a new victim addr 
@@ -460,13 +397,6 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("victim address (hex) " + hex(self.victim_address))
     else:
       self.vprint("victim has empty access")
-
-  '''
-  use a given seed to randomize the cache
-  so that we can set the same state for randomization
-  '''
-  def seed_randomization(self, seed=-1):    
-    return self._randomize_cache(mode="union", seed=seed)
 
   '''
   randomize the cache so that the attacker has to do a prime step
