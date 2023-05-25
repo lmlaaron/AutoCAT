@@ -88,7 +88,7 @@ def main(cfg):
     for k, data in enumerate(datacollector):
         if k % eval_freq == 0:
             with set_exploration_type(ExplorationType.MODE), torch.no_grad():
-                tdout = env.rollout(actor)
+                tdout = env.rollout(1000, actor)
                 test_rewards.append(tdout.get(('next', 'reward')).mean())
                 logger.log_scalar(
                     "test_reward",
