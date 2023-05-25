@@ -9,7 +9,7 @@ from torchvision.models.feature_extraction import get_graph_node_names, \
 from tensordict.nn import TensorDictModule as Mod, TensorDictSequential as Seq, TensorDictModuleBase
 
 from torchrl.modules import LSTMModule
-
+from tensordict.prototype import symbolic_trace
 
 class CachePPOLstmModel(nn.Module):
     def __init__(self,
@@ -190,8 +190,8 @@ class CachePPOLstmModel(nn.Module):
             # Mod(lambda x: x.transpose(0, 1).contiguous(), in_keys=["x"], out_keys=["x"]),
             lstm,
             Mod(lambda h, c: torch.cat((h.mean(-2), c.mean(-2)), dim=-1), in_keys=["h", "c"], out_keys=["h"] ),
-            PrintTD(),
         )
+        out = symbolic_trace(out)
         return out
 
     def get_actor_head(self):
