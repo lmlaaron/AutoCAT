@@ -112,6 +112,7 @@ def main(cfg):
                 loss_val = sum(loss_vals.values())
                 loss_val.backward()
                 pbar.set_description(
+                    f"collection {k}, epoch {i}, batch {j}, "
                     f"reward: {data['next', 'reward'].mean(): 4.4f}, "
                     f"loss critic: {loss_vals['loss_critic'].item(): 4.4f}"
                     f"test reward: {test_rewards[-1]: 4.4f}"
