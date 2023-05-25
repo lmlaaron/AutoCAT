@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tensordict.nn import TensorDictModule as Mod, TensorDictSequential as Seq
+from tensordict.prototype import symbolic_trace
 
 
 class CachePPOTransformerModel(nn.Module):
@@ -179,6 +180,7 @@ class CachePPOTransformerModel(nn.Module):
             Mod(self.encoder, in_keys=["x"], out_keys=["x"]),
             Mod(lambda x: x.mean(-2), in_keys=["x"], out_keys=["mean"]),
         )
+        out = symbolic_trace(out)
         return out
 
     def get_actor_head(self):
