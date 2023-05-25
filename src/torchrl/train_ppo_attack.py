@@ -77,7 +77,7 @@ def main(cfg):
     )
     gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
     datacollector = torchrl.collectors.MultiSyncDataCollector(
-        [make_env] * cfg.collector.num_workers,
+        [EnvCreator(make_env)] * cfg.collector.num_workers,
         policy=actor,
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
