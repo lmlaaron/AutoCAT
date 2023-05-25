@@ -23,6 +23,7 @@ from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 
 from torchrl.envs import UnsqueezeTransform, Compose, TransformedEnv, \
     CatFrames, EnvCreator, ParallelEnv
+from torchrl.envs import set_exploration_type, ExplorationType
 
 import model_utils
 
@@ -46,7 +47,7 @@ def main(cfg):
     frames_per_batch = cfg.collector.frames_per_batch
     total_frames = cfg.collector.total_frames
     num_epochs = cfg.num_epochs
-    batch_size = cfg.batch_size
+    eval_freq = cfg.eval_freq
 
     env = make_env()
 
@@ -58,7 +59,10 @@ def main(cfg):
 
     optimizer = torch.optim.Adam(train_model.parameters(), **cfg.optimizer)
 
-    rb = TensorDictReplayBuffer(storage=LazyTensorStorage(cfg.replay_buffer_size), sampler=SamplerWithoutReplacement(), batch_size=batch_size)
+    replay_buffer_size = cfg.rb.size
+    prefetch = cfg.rb.prefetch
+    batch_size = cfg.rb.batch_size
+    rb = TensorDictReplayBuffer(storage=LazyTensorStorage(replay_buffer_size), sampler=SamplerWithoutReplacement(), batch_size=batch_size, prefetch=prefetch)
 
     actor = train_model.get_actor()
 
@@ -80,7 +84,7 @@ def main(cfg):
     total_updates = total_batches * num_epochs * num_batches
     pbar = tqdm.tqdm(total=total_updates)
     frames = 0
-    for data in datacollector:
+    for k, data in enumerate(datacollector):
         frames += data.numel()
         pbar.set_description(f"reward: {data['next', 'reward'].mean(): 4.4f}")
 
@@ -101,8 +105,18 @@ def main(cfg):
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
         logger.log_scalar("frames", frames)
+        logger.log_scalar("train_reward", data.get(('next', 'reward')).mean())
         for key, val in td_log.items():
             logger.log_scalar(key, val.mean())
+        if k % eval_freq == 0:
+            with set_exploration_type(ExplorationType.MODE), torch.no_grad():
+                tdout = env.rollout(actor)
+                logger.log_scalar(
+                    "test_reward",
+                    tdout.get(('next', 'reward')).mean()
+                    )
+            del tdout
+
         # testdata = env.rollout(actor)
 
 if __name__ == "__main__":

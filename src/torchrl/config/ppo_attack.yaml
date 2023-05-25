@@ -6,33 +6,24 @@ collector:
   frames_per_batch: 1_000
   num_workers: 4
 
-num_train_rollouts: 4
-num_train_workers: 2
-
-num_eval_rollouts: 2
-num_eval_workers: 1
-
-replay_buffer_size: 1000
-prefetch: 2
-
-batch_size: 64
+rb:
+  size: 10000
+  prefetch: 8
+  batch_size: 64
 
 optimizer:
   lr: 1e-4
 
-learning_starts: 65536
-model_push_period: 10
-
+# what to do with this?
 entropy_coeff: 0.02
 
 num_epochs: 100
-steps_per_epoch: 3000
-
-num_eval_episodes: 100
 
 seed: null
 
 table_view: false
+
+eval_freq: 10
 
 defaults:
   - env_config: hpca_ae_exp_4_1
