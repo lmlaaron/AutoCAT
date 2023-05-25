@@ -39,9 +39,6 @@ def main(cfg):
 
     print(f"workding_dir = {os.getcwd()}")
 
-    def make_env():
-        return GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)))
-
     logger = WandbLogger(exp_name='rl4cache')
 
     frames_per_batch = cfg.collector.frames_per_batch
@@ -49,6 +46,9 @@ def main(cfg):
     num_epochs = cfg.num_epochs
     eval_freq = cfg.eval_freq
     device = cfg.device
+
+    def make_env():
+        return GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)), device=device)
 
     env = make_env()
 

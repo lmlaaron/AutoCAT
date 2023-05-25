@@ -1,5 +1,4 @@
-train_device: "cpu"
-infer_device: "cpu"
+device: "cpu"
 
 collector:
   total_frames: 1_000_000
