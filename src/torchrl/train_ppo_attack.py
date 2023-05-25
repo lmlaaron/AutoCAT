@@ -62,6 +62,8 @@ def main(cfg):
     replay_buffer_size = cfg.rb.size
     prefetch = cfg.rb.prefetch
     batch_size = cfg.rb.batch_size
+    if replay_buffer_size is None:
+        replay_buffer_size = frames_per_batch
     rb = TensorDictReplayBuffer(storage=LazyTensorStorage(replay_buffer_size), sampler=SamplerWithoutReplacement(), batch_size=batch_size, prefetch=prefetch)
 
     actor = train_model.get_actor()
