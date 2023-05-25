@@ -46,9 +46,11 @@ def main(cfg):
     num_epochs = cfg.num_epochs
     eval_freq = cfg.eval_freq
     device = cfg.device
+    env_config = cfg.env_config
+    env_config = OmegaConf.to_container(env_config)
 
     def make_env():
-        return GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)), device=device)
+        return GymWrapper(CacheGuessingGameEnv(env_config), device=device)
 
     env = make_env()
 
