@@ -191,7 +191,7 @@ class CachePPOLstmModel(nn.Module):
             lstm,
             Mod(lambda h, c: torch.cat((h.mean(-2), c.mean(-2)), dim=-1), in_keys=["h", "c"], out_keys=["h"] ),
         )
-        out = symbolic_trace(out)
+        # out = symbolic_trace(out)
         return out
 
     def get_actor_head(self):
