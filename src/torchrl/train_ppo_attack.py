@@ -84,9 +84,19 @@ def main(cfg):
     total_updates = total_batches * num_epochs * num_batches
     pbar = tqdm.tqdm(total=total_updates)
     frames = 0
+    test_rewards = []
     for k, data in enumerate(datacollector):
+        if k % eval_freq == 0:
+            with set_exploration_type(ExplorationType.MODE), torch.no_grad():
+                tdout = env.rollout(actor)
+                test_rewards.append(tdout.get(('next', 'reward')).mean())
+                logger.log_scalar(
+                    "test_reward",
+                    test_rewards[-1]
+                    )
+            del tdout
+
         frames += data.numel()
-        pbar.set_description(f"reward: {data['next', 'reward'].mean(): 4.4f}")
 
         td_log = TensorDict({}, batch_size=[num_epochs, num_batches])
 
@@ -101,6 +111,11 @@ def main(cfg):
                     td_log[i, j][key] = lv.mean().detach()
                 loss_val = sum(loss_vals.values())
                 loss_val.backward()
+                pbar.set_description(
+                    f"reward: {data['next', 'reward'].mean(): 4.4f}, "
+                    f"loss critic: {loss_vals['loss_critic'].item(): 4.4f}"
+                    f"test reward: {test_rewards[-1]: 4.4f}"
+                )
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
@@ -108,14 +123,6 @@ def main(cfg):
         logger.log_scalar("train_reward", data.get(('next', 'reward')).mean())
         for key, val in td_log.items():
             logger.log_scalar(key, val.mean())
-        if k % eval_freq == 0:
-            with set_exploration_type(ExplorationType.MODE), torch.no_grad():
-                tdout = env.rollout(actor)
-                logger.log_scalar(
-                    "test_reward",
-                    tdout.get(('next', 'reward')).mean()
-                    )
-            del tdout
 
         # testdata = env.rollout(actor)
 
