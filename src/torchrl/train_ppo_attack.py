@@ -116,7 +116,7 @@ def main(cfg):
                 pbar.set_description(
                     f"collection {k}, epoch {i}, batch {j}, "
                     f"reward: {data['next', 'reward'].mean(): 4.4f}, "
-                    f"loss critic: {loss_vals['loss_critic'].item(): 4.4f}"
+                    f"loss critic: {loss_vals['loss_critic'].item(): 4.4f}, "
                     f"test reward: {test_rewards[-1]: 4.4f}"
                 )
                 optimizer.step()
