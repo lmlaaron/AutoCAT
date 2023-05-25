@@ -40,7 +40,7 @@ def main(cfg):
     print(f"workding_dir = {os.getcwd()}")
 
     def make_env():
-        return ParallelEnv(cfg.collector.num_workers, EnvCreator(lambda: GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)))))
+        return GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)))
 
     logger = WandbLogger(exp_name='rl4cache')
 
@@ -48,14 +48,15 @@ def main(cfg):
     total_frames = cfg.collector.total_frames
     num_epochs = cfg.num_epochs
     eval_freq = cfg.eval_freq
+    device = cfg.device
 
     env = make_env()
 
-    dummy_env = GymWrapper(CacheGuessingGameEnv(OmegaConf.to_container(cfg.env_config)))
+    dummy_env = make_env()
 
     train_model = model_utils.get_model(
         cfg.model_config, cfg.env_config.window_size,
-        dummy_env.action_spec.space.n).to(cfg.train_device)
+        dummy_env.action_spec.space.n).to(device)
 
     optimizer = torch.optim.Adam(train_model.parameters(), **cfg.optimizer)
 
@@ -75,11 +76,12 @@ def main(cfg):
         value_head,
     )
     gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
-    datacollector = torchrl.collectors.SyncDataCollector(
-        env,
+    datacollector = torchrl.collectors.MultiSyncDataCollector(
+        [make_env] * cfg.collector.num_workers,
         policy=actor,
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
+        device=device,
     )
     total_batches = total_frames // frames_per_batch
     num_batches = -(frames_per_batch // -batch_size)
@@ -96,6 +98,10 @@ def main(cfg):
                     "test_reward",
                     test_rewards[-1]
                     )
+                logger.log_scalar(
+                    "test traj len",
+                    tdout.numel(),
+                )
             del tdout
 
         frames += data.numel()
@@ -107,6 +113,7 @@ def main(cfg):
             data = gae(data.view(-1))
             rb.extend(data.view(-1))
             for j, batch in enumerate(rb):
+                batch = batch.to(device)
                 pbar.update(1)
                 loss_vals = loss_fn(batch)
                 for key, lv in loss_vals.items():
