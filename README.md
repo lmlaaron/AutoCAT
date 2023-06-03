@@ -89,13 +89,28 @@ To install the latest version of TorchRL and tensordict, execute these commands:
 Alternatively, we have prebuilt a docker image that can be deployed on a AWS g5.xlarge instance with Deep Learning AMI GPU PyTorch 2.0.0 (Ubuntu 20.04) 20230401 image (ami-0a4caa099fc23090f). Please follow this on installing the latest version of docker engine. The docker image can be pulled by
 
 ```
-$ docker pull ml2558/autocat-autocat
+$ docker pull ml2558/autocat-torchrl:gpu
 ```
 
-Run the docker image
+Run the docker image 
 
 ```
-$ docker run -it --gpus all ml2558/autocat-autocat /bin/bash
+$ docker run -it --gpus all ml2558/autocat-torchrl:gpu /bin/bash
+```
+
+
+For X86 machine without CPU, use the following to launch and run 
+
+```
+$ docker pull ml2558/autocat-torchrl:cpu
+$ docker run -it ml2558/autocat-torchrl:cpu /bin/bash
+```
+
+For Apple m series chip use the following to launch and run 
+
+```
+$ docker pull ml2558/autocat-torchrl:apple-m1
+$ docker run -it ml2558/autocat-torchrl:apple-m1 /bin/bash
 ```
 
 Inside the docker containeer, set the conda environment variables and activate py38 environment.
