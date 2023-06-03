@@ -83,7 +83,7 @@ To install the latest version of TorchRL and tensordict, execute these commands:
 
 ```
 (py38) $ pip install git+https://github.com/pytorch-labs/tensordict
-(py38) $ pip install git+https://github.com/pytorch/torchrl
+(py38) $ pip install git+https://github.com/pytorch/rl
 ```
 
 Alternatively, we have prebuilt a docker image that can be deployed on a AWS g5.xlarge instance with Deep Learning AMI GPU PyTorch 2.0.0 (Ubuntu 20.04) 20230401 image (ami-0a4caa099fc23090f). Please follow this on installing the latest version of docker engine. The docker image can be pulled by
