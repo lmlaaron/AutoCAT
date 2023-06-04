@@ -16,29 +16,16 @@ class Cache:
         self.n_blocks = n_blocks
         self.associativity = associativity
         self.hit_time = hit_time
-        self.cflush_time = hit_time # assume flush is as fast as hit since
+        self.clflush_time = hit_time # assume flush is as fast as hit since
         self.write_time = write_time
         self.write_back = write_back
         self.logger = logger
-        self.same_level_caches = []
         self.logger.disabled = False#True
         self.set_rep_policy = {}
         self.verbose = verbose
         if rep_policy == 'lru':
             self.vprint("use lru") 
             self.rep_policy = lru_policy
-        elif rep_policy == 'tree_plru':
-            self.vprint("use tree_plru") 
-            self.rep_policy = tree_plru_policy
-        elif rep_policy == 'rand':
-            self.vprint("use rand") 
-            self.rep_policy = rand_policy
-        elif rep_policy == 'plru_pl':
-            self.vprint("use plru_pl") 
-            self.rep_policy = plru_pl_policy
-        elif rep_policy == 'brrip':
-            self.vprint("use brrip")
-            self.rep_policy = brrip_policy
         else:
             self.rep_policy = lru_policy
             if name == 'cache_1':
@@ -79,12 +66,11 @@ class Cache:
 
     # flush the cache line that contains the address from all cache hierachy
     # since flush is does not affect memory domain_id
-    def cflush(self, address, current_step):
+    def clflush(self, address, current_step):
         address = address.zfill(8) 
- 
-        r = response.Response({self.name:True}, self.cflush_time) #flush regardless 
+        r = response.Response({self.name:True}, self.clflush_time) #flush regardless 
         #Parse our address to look through this cache
-        block_offset, index, tag = self.parse_address(address)
+        block_offset, index, tag = self._parse_address(address)
         #Get the tags in this set
         in_cache = []
         for i in range( 0, len(self.data[index]) ):
@@ -103,24 +89,10 @@ class Cache:
 
         # clflush from the next level of memory
         if self.next_level != None and self.next_level.name != "mem":
-            self.next_level.cflush(address, current_step)
-
+            self.next_level.clflush(address, current_step)
         return r 
 
-    # for multicore caches, if two same levels are connected to the shared caches then add
-    def add_same_level_cache(self, cache):
-        self.same_level_caches.append(cache)
-
-    # prefetch is treated as a read without return
-    def prefetch(self, address, current_step ):
-        self.read_no_prefetch(address, current_step )
-
-    # read with prefetcher
     def read(self, address, current_step):
-            ret = self.read_no_prefetch(hex(int(address, 16) + 1)[2:], current_step )
-            return ret 
-
-    def read_no_prefetch(self, address, current_step ):
         r = None
         #Check if this is main memory
         #Main memory is always a hit
@@ -129,10 +101,8 @@ class Cache:
             evict_addr = -1
         else:
             #Parse our address to look through this cache
-            block_offset, index, tag = self.parse_address(address)
-            #print(block_offset)
-            #print(index)
-            #print(tag)
+            block_offset, index, tag = self._parse_address(address)
+            
             #Get the tags in this set
             in_cache = []
             for i in range( 0, len(self.data[index]) ):
@@ -153,41 +123,8 @@ class Cache:
             else:
                 #Read from the next level of memory
                 r, evict_addr = self.next_level.read(address, current_step )
-                
-                # coherent eviction
-                # inclusive eviction (evicting in L1 if evicted by the higher level)
-                if evict_addr != -1:
-                    ###print('evict_addr '+ evict_addr)
-                    ###print(evict_addr)
-                    #assert(False)
-                    evict_block_offset, evict_index, evict_tag = self.parse_address(hex(int(evict_addr,2))[2:].zfill(8))#9 - len(hex(int(evict_addr,2))[2:])))
-                    ####print(evict_block_offset)
-                    ####print(evict_index)
-                    ####print(evict_tag)
-                    for i in range(0,len(self.data[evict_index])):
-                        if self.data[evict_index][i][0] == evict_tag:
-                            
-                            #print('\tEvict addr ' + evict_addr + ' for inclusive cache')
-                            self.data[evict_index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, 'x'))
-                            self.set_rep_policy[evict_index].invalidate(evict_tag)
-                            #self.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
-                            break
-                
-                    # cohenrent eviction for otehr cache lines
-                    for slc in self.same_level_caches:
-                        evict_block_offset, evict_index, evict_tag = slc.parse_address(hex(int(evict_addr,2))[2:].zfill(8))#9 - len(hex(int(evict_addr,2))[2:])))
-                        for i in range(0,len(slc.data[evict_index])):
-                            if slc.data[evict_index][i][0] == evict_tag:
-                                #slc.logger.info
-                                #print('\tcoherent Evict addr ' + evict_addr + ' for inclusive cache')
-                                slc.data[evict_index][i] = (INVALID_TAG, block.Block(slc.block_size, current_step, False, 'x'))
-                                slc.set_rep_policy[evict_index].invalidate(evict_tag)
-                                #slc.set_rep_policy[evict_index].instantiate_entry(INVALID_TAG, current_step)
-                                break
-
                 r.deepen(self.write_time, self.name)
 
-                # refresh in_cache afeter coherent eviction
                 in_cache = []
                 for i in range( 0, len(self.data[index]) ):
                     if self.data[index][i][0] != INVALID_TAG:#'x':
@@ -200,21 +137,11 @@ class Cache:
                         if self.data[index][i][0] == INVALID_TAG:#'x':
                             self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
                             break
-
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
                     
-                    ###if inst_victim_tag != INVALID_TAG: #instantiated entry sometimes does not replace an empty tag
-                    ####we have to evict it from the cache in this scenario
-                    ###    del self.data[index][inst_victim_tag]
-                        
                 else:
-                    #print('B')
-                    #print(len(in_cache))
                     #Find the victim block and replace it
                     victim_tag = self.set_rep_policy[index].find_victim(current_step)
-                    ##print('victim tag '+ victim_tag)
-                    #print('index ' + index )
-                    # pl cache may find the victim that is partition locked
                     if victim_tag != INVALID_TAG: 
                         # Write the block back down if it's dirty and we're using write back
                         if self.write_back:
@@ -235,102 +162,16 @@ class Cache:
                         else:
                             indexi = index
                         evict_addr = victim_tag  + indexi  + '0' *  int(math.log(self.block_size,2))# assume line size is always 1B for different level
-                        #print('index ' + index)
-                        #print('victim tag ' + victim_tag)
                         self.set_rep_policy[index].invalidate(victim_tag)
                         self.set_rep_policy[index].instantiate_entry(tag, current_step)
                     else:
                         evict_addr = -1
-                
-        #if evict_addr != -1:
-            #print(evict_addr)
-            #evict_addr = hex(int(evict_addr))[2:].zfill(8 - len(hex(int(evict_addr))[2:]))
-            #print('evict_addr ' + evict_addr)
         return r, evict_addr
 
     def write(self, address, from_cpu, current_step ):
+        return NotImplementedError('write not implemented')
 
-        address = address.zfill(8) 
-        #wat is cache pls
-        r = None
-        if not self.next_level:
-            r = response.Response({self.name:True}, self.write_time)
-        else:
-            block_offset, index, tag = self.parse_address(address)
-            in_cache = []
-            for i in range( 0, len(self.data[index]) ):
-                if self.data[index][i][0] != INVALID_TAG:#'x':
-                    in_cache.append(self.data[index][i][0])
-
-            if tag in in_cache:
-                #Set dirty bit to true if this block was in cache
-                for i in range( 0, len(self.data[index])):
-                    if self.data[index][i][0] == tag:
-                        self.data[index][i][1].write(current_step)
-                        break
-
-                self.set_rep_policy[index].touch(tag, current_step) # touch in the replacement policy
-                
-                if self.write_back:
-                    r = response.Response({self.name:True}, self.write_time)
-                else:
-                    #Send to next level cache and deepen results if we have write through
-                    self.logger.info('\tWriting through block ' + address + ' to ' + self.next_level.name)
-                    r = self.next_level.write(address, from_cpu, current_step)
-                    r.deepen(self.write_time, self.name)
-            
-            elif len(in_cache) < self.associativity:
-                #If there is space in this set, create a new block and set its dirty bit to true if this write is coming from the CPU
-                for i in range( 0, len(self.data[index])):
-                    if self.data[index][i][0] == INVALID_TAG:#'x':
-                        self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
-                        break
-                
-                self.set_rep_policy[index].instantiate_entry(tag, current_step)
-                if self.write_back:
-                    r = response.Response({self.name:False}, self.write_time)
-                else:
-                    self.logger.info('\tWriting through block ' + address + ' to ' + self.next_level.name)
-                    r = self.next_level.write(address, from_cpu, current_step)
-                    r.deepen(self.write_time, self.name)
-            
-            elif len(in_cache) == self.associativity:
-                
-                #If this set is full, find the oldest block, write it back if it's dirty, and replace it
-                victim_tag = self.set_rep_policy[index].find_victim(current_step) 
-                    
-                # pl cache may find the victim that is partition locked
-                # the Pl cache condition for write is not tested
-                if victim_tag != INVALID_TAG: 
-                    if self.write_back:
-                        for i in range( 0, len(self.data[index])):
-                            if self.data[index][i][0] == victim_tag:
-                                if self.data[index][i][1].is_dirty():  
-                        #if self.data[index][victim_tag].is_dirty():
-                                    self.logger.info('\tWriting back block ' + address + ' to ' + self.next_level.name)
-                                    r, _, _ = self.next_level.write(self.data[index][i][1].address, from_cpu, current_step)
-                                    r.deepen(self.write_time, self.name)
-                                    break
-                    else:
-                        self.logger.info('\tWriting through block ' + address + ' to ' + self.next_level.name)
-                        r = self.next_level.write(address, from_cpu, current_step)
-                        r.deepen(self.write_time, self.name)
-
-                    for i in range( 0, len(self.data[index])):
-                        if self.data[index][i][0] == victim_tag:
-                            self.data[index][i] = (tag, block.Block(self.block_size, current_step, False, address))
-                            break
-
-                    print('victim_tag '+ victim_tag)
-                    self.set_rep_policy[index].invalidate(victim_tag)
-                    self.set_rep_policy[index].instantiate_entry(tag, current_step)
-
-                if not r:
-                    r = response.Response({self.name:False}, self.write_time)
-
-        return r 
-
-    def parse_address(self, address):
+    def _parse_address(self, address):
         #Calculate our address length and convert the address to binary string
         address_size = len(address) * 4
         binary_address = bin(int(address, 16))[2:].zfill(address_size)

@@ -288,9 +288,9 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
-          self.l1.cflush(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='X')
-          #cflush = 1
-          self.vprint("cflush (hex) " + address )
+          self.l1.clflush(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='X')
+          #clflush = 1
+          self.vprint("clflush (hex) " + address )
           r = 2
           self.current_step += 1
           reward = self.step_reward
