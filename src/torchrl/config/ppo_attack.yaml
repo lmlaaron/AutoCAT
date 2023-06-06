@@ -1,7 +1,7 @@
-device: "cpu"
+device: "cuda"
 
 collector:
-  total_frames: 1_000_000
+  total_frames: 10_000_000
   frames_per_batch: 1_000
   num_workers: 4
 

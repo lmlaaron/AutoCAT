@@ -48,6 +48,7 @@ def main(cfg):
     device = cfg.device
     env_config = cfg.env_config
     env_config = OmegaConf.to_container(env_config)
+    num_workers = cfg.collector.num_workers
 
     def make_env():
         return GymWrapper(CacheGuessingGameEnv(env_config), device=device)
@@ -67,7 +68,11 @@ def main(cfg):
     batch_size = cfg.rb.batch_size
     if replay_buffer_size is None:
         replay_buffer_size = frames_per_batch
-    rb = TensorDictReplayBuffer(storage=LazyTensorStorage(replay_buffer_size), sampler=SamplerWithoutReplacement(), batch_size=batch_size, prefetch=prefetch)
+    rb = TensorDictReplayBuffer(
+        storage=LazyTensorStorage(replay_buffer_size),
+        sampler=SamplerWithoutReplacement(),
+        batch_size=batch_size,
+        prefetch=prefetch)
 
     actor = train_model.get_actor()
 
@@ -76,10 +81,11 @@ def main(cfg):
     loss_fn = ClipPPOLoss(
         actor,
         value_head,
+        entropy_coef=cfg.entropy_coeff,
     )
     gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
     datacollector = torchrl.collectors.MultiSyncDataCollector(
-        [EnvCreator(make_env)] * cfg.collector.num_workers,
+        [EnvCreator(make_env)] * num_workers,
         policy=actor,
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
@@ -112,8 +118,10 @@ def main(cfg):
 
         for i in range(num_epochs):
             # we can safely flatten the data, GAE supports that
-            data = gae(data.view(-1))
-            rb.extend(data.view(-1))
+            data = gae(data)
+            rb.extend(data.reshape(-1))
+            if len(rb) != data.numel():
+                raise RuntimeError("rb size does not match the data size.")
             for j, batch in enumerate(rb):
                 batch = batch.to(device)
                 pbar.update(1)
