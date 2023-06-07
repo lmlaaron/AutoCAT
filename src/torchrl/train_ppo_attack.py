@@ -22,7 +22,7 @@ from torchrl.objectives.value import GAE
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 
 from torchrl.envs import UnsqueezeTransform, Compose, TransformedEnv, \
-    CatFrames, EnvCreator, ParallelEnv
+    CatFrames, EnvCreator, ParallelEnv, RewardSum
 from torchrl.envs import set_exploration_type, ExplorationType
 
 import model_utils
@@ -34,8 +34,6 @@ from torchrl.record.loggers.wandb import WandbLogger
 
 @hydra.main(config_path="./config", config_name="ppo_attack")
 def main(cfg):
-    if cfg.seed is not None:
-        random_utils.manual_seed(cfg.seed)
 
     print(f"workding_dir = {os.getcwd()}")
 
@@ -51,7 +49,12 @@ def main(cfg):
     num_workers = cfg.collector.num_workers
 
     def make_env():
-        return GymWrapper(CacheGuessingGameEnv(env_config), device=device)
+        return TransformedEnv(
+            GymWrapper(CacheGuessingGameEnv(env_config), device=device),
+            Compose(
+                RewardSum(),
+            )
+        )
 
     env = make_env()
 
@@ -97,7 +100,11 @@ def main(cfg):
     pbar = tqdm.tqdm(total=total_updates)
     frames = 0
     test_rewards = []
+    ep_reward = []
     for k, data in enumerate(datacollector):
+        episode_reward = data.get(("next", "episode_reward"))[data.get(("next", "done"))]
+        if episode_reward.numel():
+            ep_reward.append(episode_reward.mean())
         if k % eval_freq == 0:
             with set_exploration_type(ExplorationType.MODE), torch.no_grad():
                 tdout = env.rollout(1000, actor)
@@ -126,8 +133,7 @@ def main(cfg):
                 batch = batch.to(device)
                 pbar.update(1)
                 loss_vals = loss_fn(batch)
-                for key, lv in loss_vals.items():
-                    td_log[i, j][key] = lv.mean().detach()
+                td_log[i, j] = loss_vals.detach()
                 loss_val = sum(loss_vals.values())
                 loss_val.backward()
                 pbar.set_description(
@@ -140,9 +146,11 @@ def main(cfg):
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
         logger.log_scalar("frames", frames)
-        logger.log_scalar("train_reward", data.get(('next', 'reward')).mean())
+        if ep_reward:
+            logger.log_scalar("episode reward", ep_reward[-1])
+        logger.log_scalar("train_reward", data.get(('next', 'reward')).mean(), step=frames)
         for key, val in td_log.items():
-            logger.log_scalar(key, val.mean())
+            logger.log_scalar(key, val.mean(), step=frames)
 
         # testdata = env.rollout(actor)
 
