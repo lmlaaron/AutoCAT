@@ -114,19 +114,22 @@ def main(cfg):
             with set_exploration_type(ExplorationType.MODE), torch.no_grad():
                 tdout = env.rollout(1000, actor)
                 test_rewards.append(tdout.get(('next', 'reward')).mean())
+                done = tdout['next', 'done']
+                sc = tdout['next', 'step_count'][done].float().mean()
+                er = tdout['next', 'episode_reward'][done].mean()
                 logger.log_scalar(
                     "test reward",
                     test_rewards[-1],
                     step=frames,
                     )
                 logger.log_scalar(
-                    "test traj len",
-                    tdout['next', 'step_count'][tdout['next', 'done']].float().mean(),
+                    "test_traj_len",
+                    sc,
                     step=frames,
                 )
                 logger.log_scalar(
-                    "test episode reward",
-                    tdout['next', 'episode_reward'][tdout['next', 'done']].mean(),
+                    "test_episode_reward",
+                    er,
                     step=frames,
                 )
             del tdout
@@ -150,7 +153,8 @@ def main(cfg):
                     f"collection {k}, epoch {i}, batch {j}, "
                     f"reward: {data['next', 'reward'].mean(): 4.4f}, "
                     f"loss critic: {loss_vals['loss_critic'].item(): 4.4f}, "
-                    f"test reward: {test_rewards[-1]: 4.4f}"
+                    f"test reward: {test_rewards[-1]: 4.4f}, "
+                    f"test ep reward: {er.item()}"
                 )
                 optimizer.step()
                 optimizer.zero_grad()
