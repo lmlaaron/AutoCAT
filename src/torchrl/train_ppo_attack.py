@@ -155,9 +155,9 @@ def main(cfg):
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
-        logger.log_scalar("frames", frames)
+        logger.log_scalar("frames", frames, step=frames)
         if ep_reward:
-            logger.log_scalar("episode reward", ep_reward[-1])
+            logger.log_scalar("episode reward", ep_reward[-1], step=frames)
         logger.log_scalar("train_reward", data.get(('next', 'reward')).mean(), step=frames)
         for key, val in td_log.items():
             logger.log_scalar(key, val.mean(), step=frames)
