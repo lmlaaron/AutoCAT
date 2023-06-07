@@ -53,7 +53,7 @@ def main(cfg):
         GymWrapper(CacheGuessingGameEnv(env_config), device=device),
         ObservationNorm(in_keys=["observation"], standard_normal=True)
     )
-    dummy_env.transform.init_stats(num_iter=1000, reduce_dim=[0, 1], cat_dim=0, keep_dims=[1, 2])
+    dummy_env.transform.init_stats(num_iter=1000, reduce_dim=[0, 1], cat_dim=0, keep_dims=[1])
     loc, scale = dummy_env.transform.loc, dummy_env.transform.scale
     print("loc", loc, "scale", scale)
 
