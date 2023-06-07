@@ -134,7 +134,7 @@ def main(cfg):
                 )
             del tdout
 
-        td_log = TensorDict({}, batch_size=[num_epochs, num_batches])
+        td_log = TensorDict({'grad norm': torch.zeros(num_epochs, num_batches)}, batch_size=[num_epochs, num_batches])
 
         for i in range(num_epochs):
             # we can safely flatten the data, GAE supports that
