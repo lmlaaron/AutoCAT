@@ -2,8 +2,8 @@ device: "cuda"
 
 collector:
   total_frames: 10_000_000
-  frames_per_batch: 1_000
-  num_workers: 4
+  frames_per_batch: 1024
+  num_workers: 16
 
 rb:
   size:
@@ -11,16 +11,14 @@ rb:
   batch_size: 64
 
 optimizer:
-  lr: 1e-4
+  lr: 2e-4
 
 # what to do with this?
 entropy_coeff: 0.02
 
-num_epochs: 10
+num_epochs: 5
 
 seed: null
-
-table_view: false
 
 eval_freq: 10
 

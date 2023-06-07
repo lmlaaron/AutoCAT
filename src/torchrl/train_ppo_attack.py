@@ -22,7 +22,7 @@ from torchrl.objectives.value import GAE
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 
 from torchrl.envs import UnsqueezeTransform, Compose, TransformedEnv, \
-    CatFrames, EnvCreator, ParallelEnv, RewardSum
+    CatFrames, EnvCreator, ParallelEnv, RewardSum, StepCounter
 from torchrl.envs import set_exploration_type, ExplorationType
 
 import model_utils
@@ -50,9 +50,10 @@ def main(cfg):
 
     def make_env():
         return TransformedEnv(
-            GymWrapper(CacheGuessingGameEnv(env_config), device=device),
+            ParallelEnv(4, lambda: GymWrapper(CacheGuessingGameEnv(env_config), device=device)),
             Compose(
                 RewardSum(),
+                StepCounter(),
             )
         )
 
@@ -102,24 +103,33 @@ def main(cfg):
     test_rewards = []
     ep_reward = []
     for k, data in enumerate(datacollector):
+
+        frames += data.numel()
+
         episode_reward = data.get(("next", "episode_reward"))[data.get(("next", "done"))]
         if episode_reward.numel():
             ep_reward.append(episode_reward.mean())
+
         if k % eval_freq == 0:
             with set_exploration_type(ExplorationType.MODE), torch.no_grad():
                 tdout = env.rollout(1000, actor)
                 test_rewards.append(tdout.get(('next', 'reward')).mean())
                 logger.log_scalar(
-                    "test_reward",
-                    test_rewards[-1]
+                    "test reward",
+                    test_rewards[-1],
+                    step=frames,
                     )
                 logger.log_scalar(
                     "test traj len",
-                    tdout.numel(),
+                    tdout['next', 'step_count'][tdout['next', 'done']].float().mean(),
+                    step=frames,
+                )
+                logger.log_scalar(
+                    "test episode reward",
+                    tdout['next', 'episode_reward'][tdout['next', 'done']].mean(),
+                    step=frames,
                 )
             del tdout
-
-        frames += data.numel()
 
         td_log = TensorDict({}, batch_size=[num_epochs, num_batches])
 
