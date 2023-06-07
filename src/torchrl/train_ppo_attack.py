@@ -158,7 +158,7 @@ def main(cfg):
                     f"test ep reward: {er.item()}"
                 )
                 td_log[i, j] = loss_vals.detach()
-                td_log.set_at_('grad norm', torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), 10.0), [i, j])
+                td_log['grad norm'][i, j] = torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), 10.0)
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
