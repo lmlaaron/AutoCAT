@@ -188,10 +188,18 @@ class CachePPOTransformerModel(nn.Module):
         return out
 
     def get_actor_head(self):
+        def lsf(p: torch.Tensor):
+            if (~p.isfinite()).any():
+                print("orig", p)
+            p = F.log_softmax(p, dim=-1)
+            if (~p.isfinite()).any():
+                print("result", p)
+            return p
+
         out = Seq(
             Mod(self.action_head, in_keys=["mean"], out_keys=["logits"]),
             Mod(
-                lambda p: F.log_softmax(p, dim=-1),
+                lsf,
                 in_keys=["logits"],
                 out_keys=["logits"]
                 )
