@@ -22,7 +22,7 @@ from torchrl.objectives.value import GAE
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 
 from torchrl.envs import UnsqueezeTransform, Compose, TransformedEnv, \
-    CatFrames, EnvCreator, ParallelEnv, RewardSum, StepCounter
+    CatFrames, EnvCreator, ParallelEnv, RewardSum, StepCounter, ObservationNorm
 from torchrl.envs import set_exploration_type, ExplorationType
 
 import model_utils
@@ -48,10 +48,20 @@ def main(cfg):
     env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
 
+    # Get normalization constants
+    dummy_env = TransformedEnv(
+        GymWrapper(CacheGuessingGameEnv(env_config), device=device),
+        ObservationNorm(in_keys=["observation"], standard_normal=True)
+    )
+    dummy_env.transform.init_stats(num_iter=1000, reduce_dim=[0, 1], cat_dim=0, keep_dims=[1, 2])
+    loc, scale = dummy_env.transform.loc, dummy_env.transform.scale
+    print("loc", loc, "scale", scale)
+
     def make_env():
         return TransformedEnv(
             GymWrapper(CacheGuessingGameEnv(env_config), device=device),
             Compose(
+                ObservationNorm(loc=loc, scale=scale, in_keys=["observation"], standard_normal=True),
                 RewardSum(),
                 StepCounter(),
             )
