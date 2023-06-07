@@ -138,7 +138,8 @@ def main(cfg):
 
         for i in range(num_epochs):
             # we can safely flatten the data, GAE supports that
-            data = gae(data)
+            with torch.no_grad():
+                data = gae(data).cpu()
             rb.extend(data.reshape(-1))
             if len(rb) != data.numel():
                 raise RuntimeError("rb size does not match the data size.")
