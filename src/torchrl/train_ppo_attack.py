@@ -65,7 +65,6 @@ def main(cfg):
         cfg.model_config, cfg.env_config.window_size,
         dummy_env.action_spec.space.n).to(device)
 
-    optimizer = torch.optim.Adam(train_model.parameters(), **cfg.optimizer)
 
     replay_buffer_size = cfg.rb.size
     prefetch = cfg.rb.prefetch
@@ -87,6 +86,7 @@ def main(cfg):
         value_head,
         entropy_coef=cfg.entropy_coeff,
     )
+    optimizer = torch.optim.Adam(loss_fn.parameters(), **cfg.optimizer)
     gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
     datacollector = torchrl.collectors.MultiSyncDataCollector(
         [EnvCreator(make_env)] * num_workers,
