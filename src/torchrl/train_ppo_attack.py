@@ -37,7 +37,7 @@ def main(cfg):
 
     print(f"workding_dir = {os.getcwd()}")
 
-    logger = WandbLogger(exp_name='rl4cache')
+    logger = WandbLogger(exp_name="-".join([cfg.logger.exp_name, cfg.logger.exp_suffix]))
 
     frames_per_batch = cfg.collector.frames_per_batch
     total_frames = cfg.collector.total_frames
