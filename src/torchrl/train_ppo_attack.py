@@ -112,7 +112,7 @@ def main(cfg):
 
         if k % eval_freq == 0:
             with set_exploration_type(ExplorationType.MODE), torch.no_grad():
-                tdout = env.rollout(1000, actor)
+                tdout = env.rollout(1000, actor, break_when_any_done=False)
                 test_rewards.append(tdout.get(('next', 'reward')).mean())
                 done = tdout['next', 'done']
                 sc = tdout['next', 'step_count'][done].float().mean()
