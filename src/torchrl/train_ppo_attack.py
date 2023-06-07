@@ -156,6 +156,7 @@ def main(cfg):
                     f"test reward: {test_rewards[-1]: 4.4f}, "
                     f"test ep reward: {er.item()}"
                 )
+                td_log.set_at_('grad norm', torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), 10.0), [i, j])
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
