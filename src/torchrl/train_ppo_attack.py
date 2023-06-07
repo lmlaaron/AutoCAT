@@ -143,10 +143,11 @@ def main(cfg):
             if len(rb) != data.numel():
                 raise RuntimeError("rb size does not match the data size.")
             for j, batch in enumerate(rb):
+                if j >= num_batches:
+                    raise RuntimeError('too many batches')
                 batch = batch.to(device)
                 pbar.update(1)
                 loss_vals = loss_fn(batch)
-                td_log[i, j] = loss_vals.detach()
                 loss_val = sum(loss_vals.values())
                 loss_val.backward()
                 pbar.set_description(
@@ -156,6 +157,7 @@ def main(cfg):
                     f"test reward: {test_rewards[-1]: 4.4f}, "
                     f"test ep reward: {er.item()}"
                 )
+                td_log[i, j] = loss_vals.detach()
                 td_log.set_at_('grad norm', torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), 10.0), [i, j])
                 optimizer.step()
                 optimizer.zero_grad()
