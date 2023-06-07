@@ -166,12 +166,12 @@ def simulate(hierarchy, trace, logger, result_file=''):
             r, _, _= l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        #Call cflush
+        #Call clflush
         elif op == 'F' or op == 'F2':
             ## multilcore not implemented
             #assert(op == 'F')
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
-            r, _, _ = l1.cflush(address, current_step)
+            r, _, _ = l1.clflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
         else:
             raise InvalidOpError

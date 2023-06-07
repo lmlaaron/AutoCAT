@@ -47,7 +47,7 @@ Observation:
 
 Actions:
   action is one-hot encoding
-  v = | attacker_addr | ( flush_attacker_addr ) | v | victim_guess_addr | ( guess victim not access ) |
+  v = | attacker_addr | v | victim_guess_addr |
 
 Reward:
 
@@ -74,7 +74,6 @@ class CacheGuessingGameEnv(gym.Env):
    "attacker_addr_e":7,
    "victim_addr_s":0,
    "victim_addr_e":3,
-   "flush_inst": False,
    "allow_victim_multi_access": True,
    "verbose":0,
    "reset_limit": 1,    # specify how many reset to end an epoch?????
@@ -110,7 +109,6 @@ class CacheGuessingGameEnv(gym.Env):
     attacker_addr_e = env_config["attacker_addr_e"] if "attacker_addr_e" in env_config else 7
     victim_addr_s = env_config["victim_addr_s"] if "victim_addr_s" in env_config else 0
     victim_addr_e = env_config["victim_addr_e"] if "victim_addr_e" in env_config else 3
-    flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False
     self.verbose = env_config["verbose"] if "verbose" in env_config else 0
     self.super_verbose = env_config["super_verbose"] if "super_verbose" in env_config else 0
     self.logger = logging.getLogger()
@@ -133,7 +131,6 @@ class CacheGuessingGameEnv(gym.Env):
     # cahce configuration
     self.num_ways = self.configs['cache_1']['associativity'] 
     self.cache_size = self.configs['cache_1']['blocks']
-    self.flush_inst = flush_inst
     self.reset_time = 0
 
     if "rep_policy" not in self.configs['cache_1']:
@@ -275,7 +272,7 @@ class CacheGuessingGameEnv(gym.Env):
                 self.vprint("wrong guess empty access!")
               reward = self.wrong_reward #-9999
               done = True
-        elif is_flush == False or self.flush_inst == False:
+        elif is_flush == False:
           lat, _ = self.l1.read(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
@@ -287,9 +284,8 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = self.step_reward #-1 
           done = False
-        else:    # is_flush == True
+        else:    
           self.l1.clflush(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='X')
-          #clflush = 1
           self.vprint("clflush (hex) " + address )
           r = 2
           self.current_step += 1
