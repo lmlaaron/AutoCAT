@@ -138,6 +138,7 @@ def main(cfg):
 
         for i in range(num_epochs):
             # we can safely flatten the data, GAE supports that
+            rb.empty()
             with torch.no_grad():
                 data_gae = gae(
                     data.to(device, non_blocking=True)
