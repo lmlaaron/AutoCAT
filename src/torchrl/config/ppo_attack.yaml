@@ -3,7 +3,7 @@ device: "cuda"
 collector:
   total_frames: 10_000_000
   frames_per_batch: 1024
-  num_workers: 16
+  num_workers: 32
 
 rb:
   size:

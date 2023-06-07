@@ -50,7 +50,7 @@ def main(cfg):
 
     def make_env():
         return TransformedEnv(
-            ParallelEnv(4, lambda: GymWrapper(CacheGuessingGameEnv(env_config), device=device)),
+            GymWrapper(CacheGuessingGameEnv(env_config), device=device),
             Compose(
                 RewardSum(),
                 StepCounter(),
