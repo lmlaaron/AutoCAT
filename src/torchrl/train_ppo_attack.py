@@ -112,6 +112,7 @@ def main(cfg):
     for k, data in enumerate(datacollector):
 
         frames += data.numel()
+        data = data.reshape(-1)
 
         episode_reward = data.get(("next", "episode_reward"))[data.get(("next", "done"))]
         if episode_reward.numel():
@@ -150,7 +151,7 @@ def main(cfg):
                 data_gae = gae(
                     data
                 ).to("cpu", non_blocking=True)
-            rb.extend(data_gae.reshape(-1))
+            rb.extend(data_gae)
             if len(rb) != data.numel():
                 raise RuntimeError("rb size does not match the data size.")
             for j, batch in enumerate(rb):
