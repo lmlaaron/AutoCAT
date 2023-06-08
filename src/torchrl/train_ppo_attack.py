@@ -79,10 +79,6 @@ def main(cfg):
 
     actor = train_model.get_actor()
 
-    # get a rollout
-    rollout = ParallelEnv(2, make_env).rollout(10, actor)
-    print("rollout", rollout)
-
     value_net = train_model.get_value()
     value_head = train_model.get_value_head()
     loss_fn = ClipPPOLoss(
@@ -92,8 +88,15 @@ def main(cfg):
     )
     optimizer = torch.optim.Adam(loss_fn.parameters(), **cfg.optimizer)
     gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
-    datacollector = torchrl.collectors.MultiSyncDataCollector(
-        [EnvCreator(make_env)] * num_workers,
+    # datacollector = torchrl.collectors.MultiSyncDataCollector(
+    #     [EnvCreator(make_env)] * num_workers,
+    #     policy=actor,
+    #     frames_per_batch=frames_per_batch,
+    #     total_frames=total_frames,
+    #     device=device,
+    # )
+    datacollector = torchrl.collectors.SyncDataCollector(
+        ParallelEnv(num_workers, EnvCreator(make_env)),
         policy=actor,
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
