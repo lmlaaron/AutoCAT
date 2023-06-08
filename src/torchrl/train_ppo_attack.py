@@ -48,6 +48,7 @@ def main(cfg):
     env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
     collector_device = cfg.collector.device
+    clip_grad_norm = cfg.loss.clip_grad_norm
 
     def make_env():
         return TransformedEnv(
@@ -67,11 +68,9 @@ def main(cfg):
         dummy_env.action_spec.space.n).to(device)
 
 
-    replay_buffer_size = cfg.rb.size
     prefetch = cfg.rb.prefetch
     batch_size = cfg.rb.batch_size
-    if replay_buffer_size is None:
-        replay_buffer_size = frames_per_batch
+    replay_buffer_size = frames_per_batch
     rb = TensorDictReplayBuffer(
         storage=LazyTensorStorage(replay_buffer_size),
         sampler=SamplerWithoutReplacement(),
@@ -85,10 +84,11 @@ def main(cfg):
     loss_fn = ClipPPOLoss(
         actor,
         value_head,
-        entropy_coef=cfg.entropy_coeff,
+        entropy_coef=cfg.loss.entropy_coeff,
+        loss_critic_type=cfg.loss.loss_critic_type,
     )
     optimizer = torch.optim.Adam(loss_fn.parameters(), **cfg.optimizer)
-    gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95)
+    gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95, average_gae=True)
     # datacollector = torchrl.collectors.MultiSyncDataCollector(
     #     [EnvCreator(make_env)] * num_workers,
     #     policy=actor,
@@ -173,7 +173,7 @@ def main(cfg):
                     f"test ep reward: {er.item()}"
                 )
                 td_log[i, j] = loss_vals.detach()
-                td_log['grad norm'][i, j] = torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), 10.0)
+                td_log['grad norm'][i, j] = torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), clip_grad_norm)
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
