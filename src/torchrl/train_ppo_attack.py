@@ -32,7 +32,7 @@ from torchrl.objectives.value import GAE
 
 from torchrl.record.loggers.wandb import WandbLogger
 
-@hydra.main(config_path="./config", config_name="ppo_attack")
+@hydra.main(config_path="./config", config_name="ppo_attack", version_base="1.1")
 def main(cfg):
 
     print(f"workding_dir = {os.getcwd()}")
