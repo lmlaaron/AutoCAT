@@ -47,6 +47,7 @@ def main(cfg):
     env_config = cfg.env_config
     env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
+    collector_device = cfg.collector.device
 
     def make_env():
         return TransformedEnv(
@@ -100,7 +101,7 @@ def main(cfg):
         policy=actor.eval(),
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
-        device=device,
+        device=collector_device,
     )
     total_batches = total_frames // frames_per_batch
     num_batches = -(frames_per_batch // -batch_size)
