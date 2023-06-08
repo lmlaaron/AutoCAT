@@ -53,11 +53,7 @@ class CachePPOTransformerModel(nn.Module):
         self.encoder = nn.TransformerEncoder(encoder_layer, self.num_layers, )
 
         self.action_head = nn.Linear(self.hidden_dim, self.output_dim)
-        self.action_head.bias.data.fill_(0.0)
-        self.action_head.weight.data.normal_(0.0, 1e-4)
         self.value_head = nn.Linear(self.hidden_dim, 1)
-        self.value_head.bias.data.fill_(0.0)
-        self.value_head.weight.data.normal_(0.0, 1e-4)
 
         self._device = None
 
