@@ -152,7 +152,7 @@ def main(cfg):
             rb.empty()
             with torch.no_grad():
                 data_gae = gae(
-                    data
+                    data.to(device)
                 ).to("cpu", non_blocking=True)
             rb.extend(data_gae)
             if len(rb) != data.numel():
