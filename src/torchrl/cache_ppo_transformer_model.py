@@ -43,8 +43,6 @@ class CachePPOTransformerModel(nn.Module):
         self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
 
         self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
-        # self.linear_o = nn.Linear(self.hidden_dim * self.window_size,
-        #                           self.hidden_dim)
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=self.hidden_dim,

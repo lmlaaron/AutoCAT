@@ -48,20 +48,10 @@ def main(cfg):
     env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
 
-    # Get normalization constants
-    dummy_env = TransformedEnv(
-        GymWrapper(CacheGuessingGameEnv(env_config), device=device),
-        ObservationNorm(in_keys=["observation"], standard_normal=True)
-    )
-    dummy_env.transform.init_stats(num_iter=1000, reduce_dim=[0, 1], cat_dim=0)
-    loc, scale = dummy_env.transform.loc, dummy_env.transform.scale
-    print("loc", loc, "scale", scale)
-
     def make_env():
         return TransformedEnv(
             GymWrapper(CacheGuessingGameEnv(env_config), device=device),
             Compose(
-                ObservationNorm(loc=loc, scale=scale, in_keys=["observation"], standard_normal=True),
                 RewardSum(),
                 StepCounter(),
             )
