@@ -97,7 +97,7 @@ def main(cfg):
     # )
     datacollector = torchrl.collectors.SyncDataCollector(
         ParallelEnv(num_workers, EnvCreator(make_env)),
-        policy=actor,
+        policy=actor.eval(),
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
         device=device,
@@ -144,6 +144,8 @@ def main(cfg):
 
         td_log = TensorDict({'grad norm': torch.zeros(num_epochs, num_batches)}, batch_size=[num_epochs, num_batches])
 
+        actor.train()
+
         for i in range(num_epochs):
             # we can safely flatten the data, GAE supports that
             rb.empty()
@@ -174,6 +176,8 @@ def main(cfg):
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
+        actor.eval()
+
         logger.log_scalar("frames", frames, step=frames)
         if ep_reward:
             logger.log_scalar("episode reward", ep_reward[-1], step=frames)
