@@ -79,6 +79,10 @@ def main(cfg):
 
     actor = train_model.get_actor()
 
+    # get a rollout
+    rollout = ParallelEnv(2, make_env).rollout(10, actor)
+    print("rollout", rollout)
+
     value_net = train_model.get_value()
     value_head = train_model.get_value_head()
     loss_fn = ClipPPOLoss(
