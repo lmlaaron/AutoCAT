@@ -39,7 +39,7 @@ def main(cfg):
 
     print(f"workding_dir = {os.getcwd()}")
 
-    logger = WandbLogger(exp_name="-".join([cfg.logger.exp_name, cfg.logger.exp_suffix]))
+    logger = WandbLogger(exp_name="-".join([cfg.logger.exp_name, cfg.logger.exp_suffix]), config=cfg)
 
     frames_per_batch = cfg.collector.frames_per_batch
     total_frames = cfg.collector.total_frames
@@ -51,7 +51,6 @@ def main(cfg):
     num_workers = cfg.collector.num_workers
     collector_device = cfg.collector.device
     clip_grad_norm = cfg.loss.clip_grad_norm
-    wandb.config.update(cfg)
 
     def make_env():
         return TransformedEnv(
