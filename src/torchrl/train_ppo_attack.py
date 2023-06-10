@@ -72,7 +72,7 @@ def main(cfg):
     batch_size = cfg.rb.batch_size
     replay_buffer_size = frames_per_batch
     rb = TensorDictReplayBuffer(
-        storage=LazyTensorStorage(replay_buffer_size),
+        storage=LazyTensorStorage(replay_buffer_size, device=device),
         sampler=SamplerWithoutReplacement(),
         batch_size=batch_size,
         prefetch=prefetch)
@@ -96,20 +96,22 @@ def main(cfg):
     #     total_frames=total_frames,
     #     device=device,
     # )
-    # datacollector = torchrl.collectors.SyncDataCollector(
-    #     ParallelEnv(num_workers, EnvCreator(make_env)),
-    #     policy=actor.eval(),
-    #     frames_per_batch=frames_per_batch,
-    #     total_frames=total_frames,
-    #     device=collector_device,
-    # )
-    datacollector = torchrl.collectors.SyncDataCollector(
-        make_env(),
-        policy=actor.eval(),
-        frames_per_batch=frames_per_batch,
-        total_frames=total_frames,
-        device=collector_device,
-    )
+    if num_workers > 1:
+        datacollector = torchrl.collectors.SyncDataCollector(
+            ParallelEnv(num_workers, EnvCreator(make_env)),
+            policy=actor.eval(),
+            frames_per_batch=frames_per_batch,
+            total_frames=total_frames,
+            device=collector_device,
+        )
+    else:
+        datacollector = torchrl.collectors.SyncDataCollector(
+            make_env(),
+            policy=actor.eval(),
+            frames_per_batch=frames_per_batch,
+            total_frames=total_frames,
+            device=collector_device,
+        )
     total_batches = total_frames // frames_per_batch
     num_batches = -(frames_per_batch // -batch_size)
     total_updates = total_batches * num_epochs * num_batches
@@ -118,9 +120,8 @@ def main(cfg):
     test_rewards = []
     ep_reward = []
     for k, data in enumerate(datacollector):
-        data = data.unsqueeze(0)
         frames += data.numel()
-        data = data.reshape(-1)
+        data = data.reshape(-1)  # [time x others]
 
         episode_reward = data.get(("next", "episode_reward"))[data.get(("next", "done"))]
         if episode_reward.numel():
