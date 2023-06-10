@@ -96,8 +96,15 @@ def main(cfg):
     #     total_frames=total_frames,
     #     device=device,
     # )
+    # datacollector = torchrl.collectors.SyncDataCollector(
+    #     ParallelEnv(num_workers, EnvCreator(make_env)),
+    #     policy=actor.eval(),
+    #     frames_per_batch=frames_per_batch,
+    #     total_frames=total_frames,
+    #     device=collector_device,
+    # )
     datacollector = torchrl.collectors.SyncDataCollector(
-        ParallelEnv(num_workers, EnvCreator(make_env)),
+        make_env(),
         policy=actor.eval(),
         frames_per_batch=frames_per_batch,
         total_frames=total_frames,
@@ -111,7 +118,7 @@ def main(cfg):
     test_rewards = []
     ep_reward = []
     for k, data in enumerate(datacollector):
-
+        data = data.unsqueeze(0)
         frames += data.numel()
         data = data.reshape(-1)
 
@@ -153,14 +160,13 @@ def main(cfg):
             with torch.no_grad():
                 data_gae = gae(
                     data.to(device, non_blocking=True)
-                ).to("cpu", non_blocking=True)
+                )
             rb.extend(data_gae)
             if len(rb) != data.numel():
                 raise RuntimeError("rb size does not match the data size.")
             for j, batch in enumerate(rb):
                 if j >= num_batches:
                     raise RuntimeError('too many batches')
-                batch = batch.to(device)
                 pbar.update(1)
                 loss_vals = loss_fn(batch)
                 loss_val = sum(loss_vals.values())
