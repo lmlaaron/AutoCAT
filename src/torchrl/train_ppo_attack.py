@@ -14,6 +14,8 @@ import torch.multiprocessing as mp
 import torchrl.collectors
 from tensordict import TensorDict
 
+from torchrl.record.loggers import wandb
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torchrl.data import TensorDictReplayBuffer, LazyTensorStorage
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
@@ -49,6 +51,7 @@ def main(cfg):
     num_workers = cfg.collector.num_workers
     collector_device = cfg.collector.device
     clip_grad_norm = cfg.loss.clip_grad_norm
+    wandb.config.update(cfg)
 
     def make_env():
         return TransformedEnv(
