@@ -5,14 +5,14 @@ logger:
   exp_suffix:
 
 collector:
-  total_frames: 10_000_000
-  frames_per_batch: 1024
+  total_frames: 1_000_000
+  frames_per_batch: 16384
   num_workers: 32
   device: "cuda"
 
 rb:
   prefetch:
-  batch_size: 64
+  batch_size: 128
 
 optimizer:
   lr: 2e-4
@@ -27,7 +27,7 @@ num_epochs: 5
 
 seed: null
 
-eval_freq: 10
+eval_freq: 2
 
 defaults:
   - env_config: hpca_ae_exp_4_1
