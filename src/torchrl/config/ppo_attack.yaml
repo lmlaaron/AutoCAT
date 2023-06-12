@@ -8,6 +8,7 @@ collector:
   total_frames: 1_000_000
   frames_per_batch: 16384
   num_workers: 32
+  envs_per_collector:
   device: "cuda"
 
 rb:

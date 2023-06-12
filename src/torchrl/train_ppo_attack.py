@@ -49,6 +49,7 @@ def main(cfg):
     env_config = cfg.env_config
     env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
+    envs_per_collector = cfg.collector.envs_per_collector
     collector_device = cfg.collector.device
     clip_grad_norm = cfg.loss.clip_grad_norm
 
@@ -98,7 +99,16 @@ def main(cfg):
     #     total_frames=total_frames,
     #     device=device,
     # )
-    if num_workers > 1:
+    if num_workers > 1 and envs_per_collector:
+        datacollector = torchrl.collectors.MultiSyncDataCollector(
+            envs_per_collector*[ParallelEnv(num_workers // envs_per_collector, EnvCreator(make_env))],
+            policy=actor.eval(),
+            frames_per_batch=frames_per_batch,
+            total_frames=total_frames,
+            device=collector_device,
+            preemptive_threshold=0.75,
+        )
+    elif num_workers > 1:
         datacollector = torchrl.collectors.SyncDataCollector(
             ParallelEnv(num_workers, EnvCreator(make_env)),
             policy=actor.eval(),
