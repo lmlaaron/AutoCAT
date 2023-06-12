@@ -101,7 +101,7 @@ def main(cfg):
     # )
     if num_workers > 1 and envs_per_collector:
         datacollector = torchrl.collectors.MultiSyncDataCollector(
-            envs_per_collector*[ParallelEnv(num_workers // envs_per_collector, EnvCreator(make_env))],
+            (num_workers // envs_per_collector) * [ParallelEnv(envs_per_collector, EnvCreator(make_env))],
             policy=actor.eval(),
             frames_per_batch=frames_per_batch,
             total_frames=total_frames,
