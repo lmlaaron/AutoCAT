@@ -12,14 +12,14 @@ collector:
 
 rb:
   prefetch:
-  batch_size: 128
+  batch_size: 512
 
 optimizer:
-  lr: 2e-4
+  lr: 1e-4
   weight_decay: 0.0
 
 loss:
-  entropy_coeff: 0.1
+  entropy_coeff: 0.02
   clip_grad_norm: 1000.0
   loss_critic_type: l2
 
