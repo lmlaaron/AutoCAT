@@ -170,7 +170,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.action_space = spaces.Discrete(
       len(self.attacker_address_space) + 1 + len(self.victim_address_space)
     )
-   
+    # change for student for add flush 
     '''
     define the observation space
     '''
@@ -284,7 +284,8 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = self.step_reward #-1 
           done = False
-        else:    
+        else:   
+          ### remove for student to add 
           self.l1.clflush(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='X')
           self.vprint("clflush (hex) " + address )
           r = 2
@@ -417,6 +418,7 @@ class CacheGuessingGameEnv(gym.Env):
     address = 0
     is_guess = 0
     is_victim = 0
+    # need student to add flush instruction
     is_flush = 0
     victim_addr = 0 
     if action < len(self.attacker_address_space):
