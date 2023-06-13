@@ -43,8 +43,6 @@ class CachePPOTransformerModel(nn.Module):
         self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
 
         self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
-        # self.linear_o = nn.Linear(self.hidden_dim * self.window_size,
-        #                           self.hidden_dim)
 
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=self.hidden_dim,
@@ -63,19 +61,27 @@ class CachePPOTransformerModel(nn.Module):
         self, src: torch.Tensor, num_classes: int,
         mask: torch.Tensor
         ) -> torch.Tensor:
-        # mask = (src == -1)
-        src = src.masked_fill(mask, 0)
-        ret = F.one_hot(src, num_classes)
-        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+        try:
+            # mask = (src == -1)
+            src1 = src.masked_fill(mask, 0)
+            ret = F.one_hot(src1, num_classes)
+            return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+        except Exception as e:
+            torch.save({'src': src, 'num_classes': num_classes, 'mask': mask}, 'dump.pt')
+            raise e
 
     def make_embedding(
         self, src: torch.Tensor, embed: nn.Embedding,
         mask: torch.Tensor
         ) -> torch.Tensor:
-        # mask = (src == -1)
-        src = src.masked_fill(mask, 0)
-        ret = embed(src)
-        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+        try:
+            # mask = (src == -1)
+            src1 = src.masked_fill(mask, 0)
+            ret = embed(src1)
+            return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+        except Exception as e:
+            torch.save({'src': src, 'embed': embed, 'mask': mask}, 'dump.pt')
+            raise e
 
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         obs = obs.to(torch.int64)
