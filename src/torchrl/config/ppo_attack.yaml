@@ -1,0 +1,29 @@
+device: "cpu"
+
+collector:
+  total_frames: 1_000_000
+  frames_per_batch: 1_000
+  num_workers: 4
+
+rb:
+  size:
+  prefetch: 8
+  batch_size: 64
+
+optimizer:
+  lr: 1e-4
+
+# what to do with this?
+entropy_coeff: 0.02
+
+num_epochs: 10
+
+seed: null
+
+table_view: false
+
+eval_freq: 10
+
+defaults:
+  - env_config: hpca_ae_exp_4_1
+  - model_config: transformer

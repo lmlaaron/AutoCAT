@@ -1,3 +1,8 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This software may be used and distributed according to the terms of the
+# GNU General Public License version 2.
+
 #!/usr/bin/env python
 
 import yaml, cache, argparse, logging, pprint
@@ -161,12 +166,12 @@ def simulate(hierarchy, trace, logger, result_file=''):
             r, _, _= l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        #Call cflush
+        #Call clflush
         elif op == 'F' or op == 'F2':
             ## multilcore not implemented
             #assert(op == 'F')
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
-            r, _, _ = l1.cflush(address, current_step)
+            r, _, _ = l1.clflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
         else:
             raise InvalidOpError
@@ -265,7 +270,6 @@ def build_cache(configs, name, next_level_cache, logger):
                 logger,
                 next_level_cache,
                 rep_policy = configs[name]['rep_policy'] if 'rep_policy' in configs[name] else '',
-                prefetcher = configs[name]['prefetcher'] if 'prefetcher' in configs[name] else "none",
                 verbose = configs['verbose'] if 'verbose' in configs else 'False' )
 
 
