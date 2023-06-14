@@ -3,6 +3,7 @@ device: "cuda"
 logger:
   exp_name: ppo_attack
   exp_suffix:
+  save_frequency: 10
 
 collector:
   total_frames: 1_000_000

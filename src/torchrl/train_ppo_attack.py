@@ -46,13 +46,15 @@ def main(cfg):
     num_epochs = cfg.num_epochs
     eval_freq = cfg.eval_freq
     device = cfg.device
-    env_config = cfg.env_config
-    env_config = OmegaConf.to_container(env_config)
+    env_config_name = cfg.env_config
+    model_config_name = cfg.model_config
+    env_config = OmegaConf.to_container(env_config_name)
     num_workers = cfg.collector.num_workers
     envs_per_collector = cfg.collector.envs_per_collector
     preemptive_threshold = cfg.collector.preemptive_threshold
     collector_device = cfg.collector.device
     clip_grad_norm = cfg.loss.clip_grad_norm
+    save_freq = cfg.logger.save_frequency
 
     def make_env():
         return TransformedEnv(
@@ -93,13 +95,6 @@ def main(cfg):
     )
     optimizer = torch.optim.Adam(loss_fn.parameters(), **cfg.optimizer)
     gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95, average_gae=True, shifted=True)
-    # datacollector = torchrl.collectors.MultiSyncDataCollector(
-    #     [EnvCreator(make_env)] * num_workers,
-    #     policy=actor,
-    #     frames_per_batch=frames_per_batch,
-    #     total_frames=total_frames,
-    #     device=device,
-    # )
     if num_workers > 1 and envs_per_collector:
         datacollector = torchrl.collectors.MultiSyncDataCollector(
             (num_workers // envs_per_collector) * [ParallelEnv(envs_per_collector, EnvCreator(make_env))],
@@ -125,15 +120,14 @@ def main(cfg):
             total_frames=total_frames,
             device=collector_device,
         )
-    total_batches = total_frames // frames_per_batch
     num_batches = -(frames_per_batch // -batch_size)
-    total_updates = total_batches * num_epochs * num_batches
-    pbar = tqdm.tqdm(total=total_updates)
+    pbar = tqdm.tqdm(total=total_frames)
     frames = 0
     test_rewards = []
     ep_reward = []
     for k, data in enumerate(datacollector):
         frames += data.numel()
+        pbar.update(data.numel())
         data = data.reshape(-1)  # [time x others]
 
         episode_reward = data.get(("next", "episode_reward"))[data.get(("next", "done"))]
@@ -181,7 +175,6 @@ def main(cfg):
             for j, batch in enumerate(rb):
                 if j >= num_batches:
                     raise RuntimeError('too many batches')
-                pbar.update(1)
                 loss_vals = loss_fn(batch)
                 loss_val = sum(loss_vals.values())
                 loss_val.backward()
@@ -206,7 +199,10 @@ def main(cfg):
         for key, val in td_log.items():
             logger.log_scalar(key, val.mean(), step=frames)
 
-        # testdata = env.rollout(actor)
+        if k % save_freq == 0:
+            # save parameters as a memory-mapped array
+            td = TensorDict.from_module(actor)
+            td.memmap_(f"./saved_{env_config_name}_{model_config_name}/")
 
 if __name__ == "__main__":
     main()
