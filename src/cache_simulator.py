@@ -1,8 +1,3 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-#
-# This software may be used and distributed according to the terms of the
-# GNU General Public License version 2.
-
 #!/usr/bin/env python
 
 import yaml, cache, argparse, logging, pprint
@@ -139,7 +134,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
                 l = l1_c2
             else:
                 l = l1
-            r, _, _, _ = l.read(address, current_step)
+            r, _  = l.read(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         elif op == 'RL' or op == 'RL2':      # pl cache lock cacheline
@@ -147,7 +142,7 @@ def simulate(hierarchy, trace, logger, result_file=''):
             # multilcore not implemented
             assert(op == 'RL')
             logger.info(str(current_step) + ':\tReading ' + address + ' ' + op)
-            r, _, _, _ = l1.read(address, current_step, pl_opt = PL_LOCK )
+            r, _  = l1.read(address, current_step, pl_opt = PL_LOCK )
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
         elif op == 'RU' or op == 'RU2':      # pl cache unlock cacheline
@@ -166,12 +161,12 @@ def simulate(hierarchy, trace, logger, result_file=''):
             r, _, _= l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
-        #Call clflush
+        #Call cflush
         elif op == 'F' or op == 'F2':
             ## multilcore not implemented
             #assert(op == 'F')
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
-            r, _, _ = l1.clflush(address, current_step)
+            r  = l1.clflush(address, current_step)
             #logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')            
         else:
             raise InvalidOpError

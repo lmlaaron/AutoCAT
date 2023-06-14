@@ -10,7 +10,7 @@ c_server_addr: "127.0.0.1:4413"
 train_device: "cuda:0"
 infer_device: "cuda:0"
 
-num_train_rollouts: 4
+num_train_rollouts: 4 
 num_train_workers: 2
 
 num_eval_rollouts: 2

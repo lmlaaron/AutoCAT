@@ -97,6 +97,7 @@ class CacheGuessingGameEnv(gym.Env):
 ):
 
     # enable HPC-based-detection escaping setalthystreamline
+    self.flush_inst = env_config["flush_inst"] if "flush_inst" in env_config else False 
     self.length_violation_reward = env_config["length_violation_reward"] if "length_violation_reward" in env_config else -10000
     self.victim_access_reward = env_config["victim_access_reward"] if "victim_access_reward" in env_config else -10
     self.correct_reward = env_config["correct_reward"] if "correct_reward" in env_config else 200
@@ -166,11 +167,17 @@ class CacheGuessingGameEnv(gym.Env):
     '''
     # using tightened action space
     ####  # one-hot encoding
-        # | attacker_addr | v | victim_guess_addr | 
-    self.action_space = spaces.Discrete(
-      len(self.attacker_address_space) + 1 + len(self.victim_address_space)
-    )
-    # change for student for add flush 
+        # | attacker_addr | v | victim_guess_addr |
+    if self.flush_inst == False: 
+      self.action_space = spaces.Discrete(
+        len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+      )
+    else: # flush_inst == True:
+        # change for student for add flush 
+      self.action_space = spaces.Discrete(
+        2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+      )
+ 
     '''
     define the observation space
     '''
@@ -284,10 +291,12 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = self.step_reward #-1 
           done = False
-        else:   
+        else:  # is_flush == True  
           ### remove for student to add 
-          self.l1.clflush(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='X')
-          self.vprint("clflush (hex) " + address )
+          #print_cache(self.lv)
+          self.lv.clflush(hex(int('0x' + address, 16))[2:], self.current_step)#, domain_id='X')
+          self.vprint("clflush (hex) " + hex(int('0x' + address, 16))[2:] )
+          #print_cache(self.lv)
           r = 2
           self.current_step += 1
           reward = self.step_reward
@@ -420,13 +429,29 @@ class CacheGuessingGameEnv(gym.Env):
     is_victim = 0
     # need student to add flush instruction
     is_flush = 0
-    victim_addr = 0 
-    if action < len(self.attacker_address_space):
-      address = action
-    elif action == len(self.attacker_address_space):
-      is_victim = 1
-    else:
-      is_guess = 1
-      victim_addr = action - ( len(self.attacker_address_space) + 1 ) 
+    victim_addr = 0
+    if self.flush_inst == False: 
+      if action < len(self.attacker_address_space):
+        address = action
+      elif action == len(self.attacker_address_space):
+        is_victim = 1
+      else:
+        is_guess = 1
+        victim_addr = action - ( len(self.attacker_address_space) + 1 ) 
+    else: # self.flush_inst == True:
+      if action < len(self.attacker_address_space):
+        address = action
+      elif action < 2 * len(self.attacker_address_space):
+        address = action - len(self.attacker_address_space) 
+        is_flush = 1
+      elif action == 2 * len(self.attacker_address_space):
+        is_victim = 1
+      else:
+        is_guess = 1
+        victim_addr = action - ( 2 * len(self.attacker_address_space) + 1 ) 
+
+
+    
+    
     return [ address, is_guess, is_victim, is_flush, victim_addr ] 
  

@@ -67,7 +67,8 @@ class Cache:
     # flush the cache line that contains the address from all cache hierachy
     # since flush is does not affect memory domain_id
     def clflush(self, address, current_step):
-        address = address.zfill(8) 
+        #address = address.zfill(8)
+        #print(address) 
         r = response.Response({self.name:True}, self.clflush_time) #flush regardless 
         #Parse our address to look through this cache
         block_offset, index, tag = self._parse_address(address)
