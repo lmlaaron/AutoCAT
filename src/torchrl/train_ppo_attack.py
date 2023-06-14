@@ -46,9 +46,8 @@ def main(cfg):
     num_epochs = cfg.num_epochs
     eval_freq = cfg.eval_freq
     device = cfg.device
-    env_config_name = cfg.env_config
-    model_config_name = cfg.model_config
-    env_config = OmegaConf.to_container(env_config_name)
+    env_config = cfg.env_config
+    env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
     envs_per_collector = cfg.collector.envs_per_collector
     preemptive_threshold = cfg.collector.preemptive_threshold
@@ -202,7 +201,7 @@ def main(cfg):
         if k % save_freq == 0:
             # save parameters as a memory-mapped array
             td = TensorDict.from_module(actor)
-            td.memmap_(f"./saved_{env_config_name}_{model_config_name}/")
+            td.memmap_(f"./saved_{logger.exp_name}/")
 
 if __name__ == "__main__":
     main()
