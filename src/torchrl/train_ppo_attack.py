@@ -41,6 +41,9 @@ def main(cfg):
         config=cfg
         )
 
+    # save the config
+    torch.save(cfg, f"{HERE}/saved_{logger.exp_name}/cfg.pt")
+
     frames_per_batch = cfg.collector.frames_per_batch
     total_frames = cfg.collector.total_frames
     num_epochs = cfg.num_epochs
