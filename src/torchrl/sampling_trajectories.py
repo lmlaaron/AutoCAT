@@ -22,7 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 def main(cfg, num_rollouts, saved_path):
     env_config = cfg.env_config
     env_config = OmegaConf.to_container(env_config)
-    env_config.verbose = True
+    env_config['verbose'] = True
     device = cfg.device
 
     def make_env():
