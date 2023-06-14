@@ -1,30 +1,21 @@
-import copy
-import logging
 import os
-import time
 
 import hydra
-import tqdm
-from omegaconf import DictConfig, OmegaConf
 import sys
-
 import torch
-import torch.multiprocessing as mp
-
 import torchrl.collectors
+import tqdm
+from omegaconf import OmegaConf
 from tensordict import TensorDict
-
-from torchrl.record.loggers import wandb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torchrl.data import TensorDictReplayBuffer, LazyTensorStorage
 from cache_guessing_game_env_impl import CacheGuessingGameEnv
 from torchrl.envs.libs.gym import GymWrapper
-from torchrl.objectives.value import GAE
 from torchrl.data.replay_buffers.samplers import SamplerWithoutReplacement
 
-from torchrl.envs import UnsqueezeTransform, Compose, TransformedEnv, \
-    CatFrames, EnvCreator, ParallelEnv, RewardSum, StepCounter, ObservationNorm
+from torchrl.envs import Compose, TransformedEnv, \
+    EnvCreator, ParallelEnv, RewardSum, StepCounter
 from torchrl.envs import set_exploration_type, ExplorationType
 
 import model_utils
@@ -34,12 +25,21 @@ from torchrl.objectives.value import GAE
 
 from torchrl.record.loggers.wandb import WandbLogger
 
-@hydra.main(config_path="./config", config_name="ppo_attack", version_base="1.1")
-def main(cfg):
+HERE = os.path.dirname(os.path.abspath(__file__))
 
+
+@hydra.main(
+    config_path="./config",
+    config_name="ppo_attack",
+    version_base="1.1"
+    )
+def main(cfg):
     print(f"workding_dir = {os.getcwd()}")
 
-    logger = WandbLogger(exp_name="-".join([cfg.logger.exp_name, cfg.logger.exp_suffix]), config=cfg)
+    logger = WandbLogger(
+        exp_name="-".join([cfg.logger.exp_name, cfg.logger.exp_suffix]),
+        config=cfg
+        )
 
     frames_per_batch = cfg.collector.frames_per_batch
     total_frames = cfg.collector.total_frames
@@ -70,8 +70,8 @@ def main(cfg):
 
     train_model = model_utils.get_model(
         cfg.model_config, cfg.env_config.window_size,
-        dummy_env.action_spec.space.n).to(device)
-
+        dummy_env.action_spec.space.n
+    ).to(device)
 
     prefetch = cfg.rb.prefetch
     batch_size = cfg.rb.batch_size
@@ -80,7 +80,8 @@ def main(cfg):
         storage=LazyTensorStorage(replay_buffer_size, device=device),
         sampler=SamplerWithoutReplacement(),
         batch_size=batch_size,
-        prefetch=prefetch)
+        prefetch=prefetch
+    )
 
     actor = train_model.get_actor()
 
@@ -93,10 +94,17 @@ def main(cfg):
         loss_critic_type=cfg.loss.loss_critic_type,
     )
     optimizer = torch.optim.Adam(loss_fn.parameters(), **cfg.optimizer)
-    gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95, average_gae=True, shifted=True)
+    gae = GAE(
+        value_network=value_net,
+        gamma=0.99,
+        lmbda=0.95,
+        average_gae=True,
+        shifted=True
+        )
     if num_workers > 1 and envs_per_collector:
         datacollector = torchrl.collectors.MultiSyncDataCollector(
-            (num_workers // envs_per_collector) * [ParallelEnv(envs_per_collector, EnvCreator(make_env))],
+            (num_workers // envs_per_collector) * [
+                ParallelEnv(envs_per_collector, EnvCreator(make_env))],
             policy=actor.eval(),
             frames_per_batch=frames_per_batch,
             total_frames=total_frames,
@@ -129,7 +137,8 @@ def main(cfg):
         pbar.update(data.numel())
         data = data.reshape(-1)  # [time x others]
 
-        episode_reward = data.get(("next", "episode_reward"))[data.get(("next", "done"))]
+        episode_reward = data.get(("next", "episode_reward"))[
+            data.get(("next", "done"))]
         if episode_reward.numel():
             ep_reward.append(episode_reward.mean())
 
@@ -144,7 +153,7 @@ def main(cfg):
                     "test reward",
                     test_rewards[-1],
                     step=frames,
-                    )
+                )
                 logger.log_scalar(
                     "test_traj_len",
                     sc,
@@ -157,7 +166,10 @@ def main(cfg):
                 )
             del tdout
 
-        td_log = TensorDict({'grad norm': torch.zeros(num_epochs, num_batches)}, batch_size=[num_epochs, num_batches])
+        td_log = TensorDict(
+            {'grad norm': torch.zeros(num_epochs, num_batches)},
+            batch_size=[num_epochs, num_batches]
+            )
 
         actor.train()
 
@@ -185,7 +197,10 @@ def main(cfg):
                     f"test ep reward: {er.item()}"
                 )
                 td_log[i, j] = loss_vals.detach()
-                td_log['grad norm'][i, j] = torch.nn.utils.clip_grad_norm_(loss_fn.parameters(), clip_grad_norm)
+                td_log['grad norm'][i, j] = torch.nn.utils.clip_grad_norm_(
+                    loss_fn.parameters(),
+                    clip_grad_norm
+                    )
                 optimizer.step()
                 optimizer.zero_grad()
         datacollector.update_policy_weights_()
@@ -194,14 +209,19 @@ def main(cfg):
         logger.log_scalar("frames", frames, step=frames)
         if ep_reward:
             logger.log_scalar("episode reward", ep_reward[-1], step=frames)
-        logger.log_scalar("train_reward", data.get(('next', 'reward')).mean(), step=frames)
+        logger.log_scalar(
+            "train_reward",
+            data.get(('next', 'reward')).mean(),
+            step=frames
+            )
         for key, val in td_log.items():
             logger.log_scalar(key, val.mean(), step=frames)
 
         if k % save_freq == 0:
             # save parameters as a memory-mapped array
             td = TensorDict.from_module(actor)
-            td.memmap_(f"./saved_{logger.exp_name}/")
+            td.memmap_(f"{HERE}/saved_{logger.exp_name}/")
+
 
 if __name__ == "__main__":
     main()
