@@ -50,6 +50,7 @@ def main(cfg):
     env_config = OmegaConf.to_container(env_config)
     num_workers = cfg.collector.num_workers
     envs_per_collector = cfg.collector.envs_per_collector
+    preemptive_threshold = cfg.collector.preemptive_threshold
     collector_device = cfg.collector.device
     clip_grad_norm = cfg.loss.clip_grad_norm
 
@@ -91,7 +92,7 @@ def main(cfg):
         loss_critic_type=cfg.loss.loss_critic_type,
     )
     optimizer = torch.optim.Adam(loss_fn.parameters(), **cfg.optimizer)
-    gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95, average_gae=True)
+    gae = GAE(value_network=value_net, gamma=0.99, lmbda=0.95, average_gae=True, shifted=True)
     # datacollector = torchrl.collectors.MultiSyncDataCollector(
     #     [EnvCreator(make_env)] * num_workers,
     #     policy=actor,
@@ -106,7 +107,7 @@ def main(cfg):
             frames_per_batch=frames_per_batch,
             total_frames=total_frames,
             device=collector_device,
-            preemptive_threshold=0.75,
+            preemptive_threshold=preemptive_threshold,
         )
     elif num_workers > 1:
         datacollector = torchrl.collectors.SyncDataCollector(

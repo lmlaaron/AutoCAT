@@ -9,6 +9,7 @@ collector:
   frames_per_batch: 16384
   num_workers: 32
   envs_per_collector:
+  preemptive_threshold: 1.0
   device: "cuda"
 
 rb:
