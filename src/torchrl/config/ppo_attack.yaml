@@ -2,7 +2,7 @@ device: "cuda"
 
 logger:
   exp_name: ppo_attack
-  exp_suffix:
+  exp_suffix: exp0
   save_frequency: 10
 
 collector:
