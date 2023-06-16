@@ -61,27 +61,17 @@ class CachePPOTransformerModel(nn.Module):
         self, src: torch.Tensor, num_classes: int,
         mask: torch.Tensor
         ) -> torch.Tensor:
-        try:
-            # mask = (src == -1)
-            src1 = src.masked_fill(mask, 0)
-            ret = F.one_hot(src1, num_classes)
-            return ret.masked_fill(mask.unsqueeze(-1), 0.0)
-        except Exception as e:
-            torch.save({'src': src, 'num_classes': num_classes, 'mask': mask}, 'dump.pt')
-            raise e
+        src1 = src.masked_fill(mask, 0)
+        ret = F.one_hot(src1, num_classes)
+        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
     def make_embedding(
         self, src: torch.Tensor, embed: nn.Embedding,
         mask: torch.Tensor
         ) -> torch.Tensor:
-        try:
-            # mask = (src == -1)
-            src1 = src.masked_fill(mask, 0)
-            ret = embed(src1)
-            return ret.masked_fill(mask.unsqueeze(-1), 0.0)
-        except Exception as e:
-            torch.save({'src': src, 'embed': embed, 'mask': mask}, 'dump.pt')
-            raise e
+        src1 = src.masked_fill(mask, 0)
+        ret = embed(src1)
+        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         obs = obs.to(torch.int64)
