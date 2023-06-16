@@ -160,7 +160,7 @@ def main(cfg):
         # dimension to time.
         # We just need to make sure that trajectories are marked as finished
         # when truncated
-        data[..., -1]['next', 'done'] = True
+        data['next', 'done'][..., -1] = True
         data = data.reshape(-1)  # [time x others]
 
         episode_reward = data.get(("next", "episode_reward"))[
