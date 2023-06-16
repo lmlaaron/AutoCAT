@@ -2,13 +2,15 @@ device: "cuda"
 
 logger:
   exp_name: ppo_attack
-  exp_suffix:
+  exp_suffix: exp0
+  save_frequency: 10
 
 collector:
   total_frames: 1_000_000
   frames_per_batch: 16384
   num_workers: 32
   envs_per_collector:
+  preemptive_threshold: 1.0
   device: "cuda"
 
 rb:
