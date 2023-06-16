@@ -45,6 +45,7 @@ def main(cfg):
 
     # ========= Save config ========= #
     # save the config
+    os.makedirs(f"{HERE}/saved_{logger.exp_name}", exist_ok=True)
     torch.save(cfg, f"{HERE}/saved_{logger.exp_name}/cfg.pt")
 
     # ========= Extract config params (for efficiency) ========= #
