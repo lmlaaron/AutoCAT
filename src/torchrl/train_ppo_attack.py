@@ -88,11 +88,10 @@ def main(cfg):
 
     # ========= Replay buffer ========= #
     rb = TensorDictReplayBuffer(
-        storage=LazyTensorStorage(replay_buffer_size, device="cpu"),
+        storage=LazyTensorStorage(replay_buffer_size, device=device),
         sampler=SamplerWithoutReplacement(),
         batch_size=batch_size,
         prefetch=prefetch,
-        collate_fn=lambda data: data.clone().to(device, non_blocking=True),
     )
 
     # ========= Isolate model components ========= #
