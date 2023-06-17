@@ -1,0 +1,37 @@
+device: "cuda"
+
+logger:
+  exp_name: ppo_attack
+  exp_suffix: exp0
+  save_frequency: 10
+
+collector:
+  total_frames: 1_000_000
+  frames_per_batch: 8192
+  num_workers: 8
+  envs_per_collector:
+  preemptive_threshold: 1.0
+  device: "cuda"
+
+rb:
+  prefetch:
+  batch_size: 512
+
+optimizer:
+  lr: 1e-4
+  weight_decay: 0.0
+
+loss:
+  entropy_coeff: 0.02
+  clip_grad_norm: 1000.0
+  loss_critic_type: smooth_l1
+
+num_epochs: 10
+
+seed: null
+
+eval_freq: 2
+
+defaults:
+  - env_config: hpca_ae_exp_4_1
+  - model_config: transformer

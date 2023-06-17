@@ -70,10 +70,7 @@ $ conda activate py38
 Undet the py38 environment
 
 ```
-(py38) $ pip install sklearn seaborn pyyaml hydra-core terminaltables torch pep517
-```
-```
-(py38) $ pip install moolib
+(py38) $ pip install sklearn seaborn pyyaml hydra-core terminaltables torch pep517 tqdm
 ```
 
 The environment is based on openai [gym](https://github.com/openai/gym). To install it, use the following.
@@ -82,18 +79,12 @@ The environment is based on openai [gym](https://github.com/openai/gym). To inst
 (py38) $ pip install gym==0.25
 ```
 
-The RL trainer is based on [RLMeta](https://github.com/facebookresearch/rlmeta). 
-
-Please follow setup process on [rlmeta](https://github.com/facebookresearch/rlmeta) for install RLMeta.
+To install the latest version of TorchRL and tensordict, execute these commands:
 
 ```
-(py38) $ git clone https://github.com/facebookresearch/rlmeta
-(py38) $ cd rlmeta
-(py38) $ git submodule sync && git submodule update --init --recursive
-(py38) $ pip install -e .
+(py38) $ pip install git+https://github.com/pytorch-labs/tensordict
+(py38) $ pip install git+https://github.com/pytorch/torchrl
 ```
-
-
 
 
 ## General flow for Training and evaluating RL agent
@@ -114,7 +105,7 @@ $ export GIT_ROOT=<path_to_the_autocat_repo>
 You can launch the experiment to train the RL agent
 
 ```
-$ cd ${GIT_ROOT}/src/rlmeta
+$ cd ${GIT_ROOT}/src/torchrl
 $ python train_ppo_attack.py table_view=True
 ```
 
