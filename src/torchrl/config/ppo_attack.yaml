@@ -7,8 +7,8 @@ logger:
 
 collector:
   total_frames: 1_000_000
-  frames_per_batch: 16384
-  num_workers: 32
+  frames_per_batch: 8192
+  num_workers: 8
   envs_per_collector:
   preemptive_threshold: 1.0
   device: "cuda"
