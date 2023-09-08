@@ -1,7 +1,7 @@
 RL environment and training script for CacheSimulator
 ==============
 
-Note for this ma_covert version, which uses multiagent for covert channel discovery, there are several requirements
+***Note for this ma_covert version, which uses multiagent for covert channel discovery, there are several requirements***
 
 wandb version (use an older version)
 ```
@@ -10,32 +10,7 @@ pip install wandb==0.13.0
 
 rlmeta version, please follow RLmeta by jx_cui, see ```https://github.com/cuijiaxun/rlmeta``` (use ```marl``` branch).
 
-
-This repo contains wrapper for the CacheSimulator environment based on 
-https://github.com/auxiliary/CacheSimulator
-
-For detailed description of CacheSimulator, see the original repo.
-
-The environment is based on openai gym
-
-```
-$ pip install gym
-```
-
-The trainer is based on RLlib
-
-```
-$ pip install rllib
-```
-
-To run the training
-
-```
-$ cd src
-$ python run_gym_rllib.py
-```
-
-## Set up Enviroment on a GPU machine
+## Normal steu
 
 We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```.
 
