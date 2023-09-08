@@ -1,5 +1,4 @@
 RL environment and training script for CacheSimulator
-
 ==============
 
 Note for this ma_covert version, which uses multiagent for covert channel discovery, there are several requirements
@@ -11,7 +10,7 @@ pip install wandb==0.13.0
 
 rlmeta version, please follow RLmeta by jx_cui, see ```https://github.com/cuijiaxun/rlmeta``` (use ```marl``` branch).
 
-==============
+
 This repo contains wrapper for the CacheSimulator environment based on 
 https://github.com/auxiliary/CacheSimulator
 
