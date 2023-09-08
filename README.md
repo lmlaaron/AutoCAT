@@ -35,48 +35,45 @@ $ cd src
 $ python run_gym_rllib.py
 ```
 
+## Set up Enviroment on a GPU machine
 
+We use conda to manage all the python dependencies, we assume the ```conda``` is already installed, and we provide a script to install all the depedencies using ```conda```.
 
-CacheSimulator
-==============
+Creating a conda environment:
 
+```
+$ conda create --name py38 python=3.8
+```
+Then press enter when prompt.
 
+Activate the conda environment
 
-A cache simulator in Python for CS 530
+```
+$ conda activate py38
+```
+Undet the py38 environment
 
-Documentation on cache configuration and trace files are located in their respective folders
+```
+(py38) $ pip install scikit-learn seaborn pyyaml hydra-core terminaltables pep517
+```
 
-### Requirements
+The environment is based on openai [gym](https://github.com/openai/gym). To install it, use the following.
 
-CacheSimulator needs two extra Python modules: pyyaml and terminaltables
+```
+(py38) $ pip install gym
+```
 
-These can both be installed using pip:
+Please follow the [PyTorch Get Started](https://pytorch.org/get-started/locally/) website to install PyTorch with proper CUDA version. One example is listed below.
+```
+(py38) $ conda install pytorch==1.12.1 torchvision==0.13.1 torchaudio==0.12.1 cudatoolkit=10.2 -c pytorch
+```
 
-    sudo pip install pyyaml/terminaltables
+The enviroment needs [moolib](https://github.com/facebookresearch/moolib) as the RPC backend for distributed RL training. Please follow the moolib installation instructions.
+We recommend building moolib from source with the following steps.
 
-### Running
-
-To run a quick test simulation, enter the src folder and run this command:
-
-    ./cache_simulator.py -pdc ../configs/config_simple_multilevel -t ../traces/trace2.txt
-
-For more details, run:
-
-    ./cache_simulator.py --help
-
-### Goals
-
-This simulator will create a memory heirarchy from a YAML configuration file
-and calculate the AMAT for a given tracefile.
-
-The memory heirarchy is configurable with the following features:
-- Word size, block size
-  - Address size does not need to be defined
-- L1 cache with user-defined parameters
-  - Associativity
-  - Hit time
-  - Write time
-- Optional L2 and L3 caches
-- Simulate write back and write through
-- Pretty print the cache layouts
-
+```
+(py38) $ git clone https://github.com/facebookresearch/moolib
+(py38) $ cd moolib
+(py38) $ git submodule sync && git submodule update --init --recursive
+(py38) $ pip install .
+```
