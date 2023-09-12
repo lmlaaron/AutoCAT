@@ -77,10 +77,13 @@ def main(cfg):
     rb = ReplayBuffer(cfg.replay_buffer_size)
     
     #### sender
-    cfg.sender_model_config["output_dim"] = env._env.sender_action_space.n
-    cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
-    cfg.sender_model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
+    cfg.model_config["output_dim"] = env._env.sender_action_space.n
+    #cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    #cfg.model_config["secret_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    cfg.model_config["step_dim"] += 2
+    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device_d)
+    #train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
+    
     #cfg.model_config["output_dim"] = env._env.sender_action_space.n
     #cfg.model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
     #cfg.model_config["step_dim"] += 2

@@ -45,8 +45,6 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self.attacker_address_min = self._env.attacker_address_min
         self.victim_address = self._env.victim_address
 
-
-
         # add noise
         self.noise_prob = env_config.get("noise_prob", 0) 
         self.noise_address_min = env_config.get("noise_address_min", self._env.victim_address_min)
@@ -63,7 +61,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self.action_mask = { 'sender': True, 'receiver': True} #self.receiver_agent}
         self.step_count = 0
         self.max_step = 32
-        self.detector_obs = np.array([1.0, 0.0]) #deque([[-1, -1, -1, -1]] * self.max_step)
+        self.detector_obs = np.array([1.0, 0.0,0.0,0.0]) #deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         self.detector_reward_scale = 0.1 #1.0
         
@@ -79,7 +77,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         opponent_obs = self._env.reset(victim_address=victim_address,
                                        reset_cache_state=False)
         self.victim_address = self._env.victim_address
-        self.detector_obs = np.array([1.0,0.0])#deque([[-1, -1, -1, -1]] * self.max_step)
+        self.detector_obs = np.array([1.0,0.0,0.0,0.0])#deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         obs = {}
         obs['sender'] = self.detector_obs #opponent_obs  #np.array(list(reversed(self.detector_obs)))
@@ -90,6 +88,10 @@ class CacheCovertSenderReceiverEnv(gym.Env):
     def get_sender_obs(self, receiver_obs, receiver_info):
         #self._env = opponent_info['victim_secret']
         return np.array([receiver_info['victim_secret'], self.step_count])
+        #return np.array(list(reversed(self._env.state)))
+        #print(np.array(list(reversed(self._env.sender_state))))
+        #return np.array(list(reversed(self._env.sender_state)))
+    
     ###def get_detector_obs(self, opponent_obs, opponent_info):
     ###    cur_opponent_obs = copy.deepcopy(opponent_obs[0])
     ###    if not np.any(cur_opponent_obs==-1):

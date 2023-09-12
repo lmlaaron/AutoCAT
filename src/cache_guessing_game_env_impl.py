@@ -269,6 +269,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
     self.state = deque([[-1, -1, -1, -1]] * self.window_size)
+    self.sender_state = deque([[-1, -1, -1, -1]] * self.window_size) # currently assume sender and receiver have the same length of queue
 
     '''
     initilizate the environment configurations
@@ -353,11 +354,22 @@ class CacheGuessingGameEnv(gym.Env):
       sender_addr = self.victim_secret  # hard coding for now 
       #sender_addr = sender_action - 1 + self.victim_address_min 
       t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(sender_addr))[2:], self.current_step, domain_id='v')
+      if t.time > 500:
+        r = 1
+      else:
+        r = 0
       self.current_step += 1
       self.vprint("sender access address " + str(sender_addr))
     else:
+      r = 2
       self.vprint("sender nop")
+    
     # sender has no observation now except for the secret
+
+    self.sender_state.append([r, 0, sender_action, self.step_count])
+    self.sender_state.popleft()
+
+
     #return np.array(list(reversed(self.state))), reward, done, info
 
   '''
