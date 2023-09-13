@@ -19,11 +19,15 @@ from rlmeta.agents.ppo.ppo_model import PPOModel
 from rlmeta.core.model import DownstreamModel, RemotableModel
 from rlmeta.core.server import Server
 
+
+
 class CachePPOTransformerModel(PPOModel):
     def __init__(self,
                  latency_dim: int,
                  victim_acc_dim: int,
+                 secret_dim: int,
                  action_dim: int,
+                 sender_action_dim: int,
                  step_dim: int,
                  window_size: int,
                  action_embed_dim: int,
@@ -85,6 +89,8 @@ class CachePPOTransformerModel(PPOModel):
         ######assert obs.dim() == 3
 
         # batch_size = obs.size(0)
+        #print('obs')
+        #print(obs)
         l, v, act, stp = torch.unbind(obs, dim=-1)
         l = self.make_one_hot(l, self.latency_dim)
         v = self.make_one_hot(v, self.victim_acc_dim)
@@ -92,9 +98,14 @@ class CachePPOTransformerModel(PPOModel):
         stp = self.make_embedding(stp, self.step_embed)
 
         x = torch.cat((l, v, act, stp), dim=-1)
-        print(x)
+        #print('x')
+        #print(x)
         x = self.linear_i(x)
+        #print('linear_x')
+        #print(x)
         x = x.transpose(0, 1).contiguous()
+        #print('transpose_x')
+        #print(x)
         h = self.encoder(x)
         # h = self.linear_o(h.view(batch_size, -1))
         h = h.mean(dim=0)
@@ -113,6 +124,7 @@ class CachePPOTransformerModel(PPOModel):
             self._device = next(self.parameters()).device
 
         with torch.no_grad():
+            #print('act obs')
             #print(obs)
             x = obs.to(self._device)
             d = deterministic_policy.to(self._device)
@@ -124,8 +136,6 @@ class CachePPOTransformerModel(PPOModel):
             logpi = logpi.gather(dim=-1, index=action)
 
             return action.cpu(), logpi.cpu(), v.cpu()
-
-
 
 class myMLP(nn.Module):
     def __init__(self,
@@ -156,46 +166,141 @@ class myMLP(nn.Module):
 
 class CachePPOTransformerSenderModel(PPOModel):
     def __init__(self,
-                #input_dim: int,
-                latency_dim: int,
-                secret_dim: int,
+                input_dim: int,
                 hidden_dim: int,
                 step_dim: int,
-                secret_embed_dim: int,
-                step_embed_dim: int,
-                output_dim: int,
-                action_dim:int,
-                action_embed_dim: int,
-                num_layers: int = 1
+                output_dim: int
                 ):
         super().__init__()
-        self.secret_dim = secret_dim
+        self.input_dim = input_dim
+        self.step_dim = step_dim
+        self.hidden_dim = hidden_dim
+        self.output_dim = output_dim
+        hidden_dims = [hidden_dim]
+        #self.mlp = nn.Linear(input_dim + step_dim, self.hidden_dim)
+        self.mlp = myMLP(input_dim + step_dim, [*hidden_dims])
+        
+        self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
+        self.linear_v = nn.Linear(self.hidden_dim, 1)
+        self._device = None
+
+    def make_one_hot(self, src: torch.Tensor,
+                     num_classes: int) -> torch.Tensor:
+        mask = (src == -1)
+        src = src.masked_fill(mask, 0)
+        ret = F.one_hot(src, num_classes)
+        return ret.masked_fill(mask.unsqueeze(-1), 0.0)
+
+    #def forward(self, )
+    def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        
+        #print('obs')
+        #print(obs)
+        obs = obs.to(torch.int64)
+        ##print(obs)
+        x, s = torch.unbind(obs, dim=-1)
+        ##print(x)
+        ##print(s)
+        #print('input_Dim')
+        #print(self.input_dim)
+        #print('step_dim')
+        #print(self.step_dim)
+        x = self.make_one_hot(x, self.input_dim)
+        s = self.make_one_hot(s, self.step_dim)
+        #####x = F.one_hot(x, self.input_dim).float()
+        #####s = F.one_hot(s, self.step_dim).float()
+        x= torch.cat((x, s), dim=-1)
+        x=x.to(torch.float) * 1.0
+        #print(x.dtype)
+        print('torch.cat')
+        #print(x)
+        #x = x.to(torch.float) 
+        h = self.mlp(x)
+        #print(h)
+        p = self.linear_a(h)
+        logpi = F.log_softmax(p, dim=-1)
+        v = self.linear_v(h)
+        return logpi, v
+
+    @remote.remote_method(batch_size=128)
+    def act(
+        self, obs: torch.Tensor, deterministic_policy: torch.Tensor, reload_model=False
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        if self._device is None:
+            self._device = next(self.parameters()).device
+
+        with torch.no_grad():
+            #print(obs)
+            x = obs.to(self._device)
+            #print("x")
+            #print(x)
+            d = deterministic_policy.to(self._device)
+            
+            logpi, v = self.forward(x)
+
+            #print(logpi)
+            #print(v)
+
+            greedy_action = logpi.argmax(-1, keepdim=True)
+            sample_action = logpi.exp().multinomial(1, replacement=True)
+            action = torch.where(d, greedy_action, sample_action)
+            #print("reedy_action")
+            #print(greedy_action)
+            #print(sample_action)
+            logpi = logpi.gather(dim=-1, index=action)
+            #print(logpi)
+            #print(action)
+            #print(v)
+            return action.cpu(), logpi.cpu(), v.cpu()
+
+class CachePPOTransformerSenderModel2(PPOModel):
+    def __init__(self,
+                 latency_dim: int,
+                 victim_acc_dim: int,
+                 secret_dim: int,
+                 action_dim: int,
+                 sender_action_dim: int,
+                 step_dim: int,
+                 window_size: int,
+                 action_embed_dim: int,
+                 step_embed_dim: int,
+                 hidden_dim: int,
+                 output_dim: int,
+                 num_layers: int = 1) -> None:
+        super().__init__()
+
         self.latency_dim = latency_dim
-        self.step_dim = step_embed_dim
+        self.victim_acc_dim = victim_acc_dim
+        self.secret_dim = secret_dim
         self.action_dim = action_dim
+        self.sender_action_dim = sender_action_dim
+        self.step_dim = step_dim
+        self.window_size = window_size
+
         self.action_embed_dim = action_embed_dim
-        self.secret_embed_dim = secret_embed_dim
         self.step_embed_dim = step_embed_dim
-        self.input_dim = (latency_dim + secret_embed_dim + action_embed_dim + step_embed_dim)
-        self.sec_embed = nn.Embedding(self.secret_dim, self.secret_embed_dim)
-        self.action_embed = nn.Embedding(self.action_dim,
-                                         self.action_embed_dim)
-        self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
+        self.input_dim = (self.latency_dim + self.secret_dim +
+                          self.action_embed_dim + self.step_embed_dim)
         self.hidden_dim = hidden_dim
         self.output_dim = output_dim
         self.num_layers = num_layers
-        hidden_dims = [hidden_dim]
-        #self.mlp = nn.Linear(input_dim + step_dim, self.hidden_dim)
-        #self.mlp = myMLP(input_dim , [*hidden_dims])
+
+        self.action_embed = nn.Embedding(self.sender_action_dim,
+                                         self.action_embed_dim)
+        self.step_embed = nn.Embedding(self.step_dim, self.step_embed_dim)
+
         self.linear_i = nn.Linear(self.input_dim, self.hidden_dim)
+        # self.linear_o = nn.Linear(self.hidden_dim * self.window_size,
+        #                           self.hidden_dim)
+
         encoder_layer = nn.TransformerEncoderLayer(d_model=self.hidden_dim,
                                                    nhead=8,
                                                    dropout=0.0)
         self.encoder = nn.TransformerEncoder(encoder_layer, self.num_layers)
 
-
         self.linear_a = nn.Linear(self.hidden_dim, self.output_dim)
         self.linear_v = nn.Linear(self.hidden_dim, 1)
+
         self._device = None
 
     def make_one_hot(self, src: torch.Tensor,
@@ -212,29 +317,38 @@ class CachePPOTransformerSenderModel(PPOModel):
         ret = embed(src)
         return ret.masked_fill(mask.unsqueeze(-1), 0.0)
 
-    #def forward(self, )
     def forward(self, obs: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         obs = obs.to(torch.int64)
-        print(obs)
-        l, sec, a, stp = torch.unbind(obs, dim= -1)
+        #print(obs.dim())
+        ######assert obs.dim() == 3
+
+        # batch_size = obs.size(0)
+        #print('obs')
+        #print(obs)
+        l, sec, act, stp = torch.unbind(obs, dim=-1)
         l = self.make_one_hot(l, self.latency_dim)
-        sec = self.make_embedding(sec, self.sec_embed)
-        a = self.make_embedding(a, self.action_embed)
+        #v = self.make_one_hot(v, self.victim_acc_dim)
+        sec = self.make_one_hot(sec, self.secret_dim)
+        act = self.make_embedding(act, self.action_embed)
         stp = self.make_embedding(stp, self.step_embed)
-        
-        x = torch.cat((l,sec, a, stp), dim =-1)
-        print(x)
+
+        x = torch.cat((l, sec, act, stp), dim=-1)
+        #print('x')
+        #print(x)
         x = self.linear_i(x)
-        print(x)
-        #x = x.transpose(0, 1).contiguous()
+        #print('linear_x')
+        #print(x)
+        x = x.transpose(0, 1).contiguous()
+        #print('transpose_x')
+        #print(x)
         h = self.encoder(x)
-        print(h)
+        # h = self.linear_o(h.view(batch_size, -1))
         h = h.mean(dim=0)
-        print(h) 
+
         p = self.linear_a(h)
-        print(p)
         logpi = F.log_softmax(p, dim=-1)
         v = self.linear_v(h)
+
         return logpi, v
 
     @remote.remote_method(batch_size=128)
@@ -245,26 +359,17 @@ class CachePPOTransformerSenderModel(PPOModel):
             self._device = next(self.parameters()).device
 
         with torch.no_grad():
-            print(obs)
+            #print('act obs')
+            #print(obs)
             x = obs.to(self._device)
-            print("x")
-            print(x)
             d = deterministic_policy.to(self._device)
             logpi, v = self.forward(x)
-            print(logpi)
-            print(v)
+
             greedy_action = logpi.argmax(-1, keepdim=True)
             sample_action = logpi.exp().multinomial(1, replacement=True)
             action = torch.where(d, greedy_action, sample_action)
-            action=action[0]
-            #print("reedy_action")
-            print(greedy_action)
-            print(sample_action)
-            print(action)
             logpi = logpi.gather(dim=-1, index=action)
-            #print(logpi)
-            #print(action)
-            #print(v)
+
             return action.cpu(), logpi.cpu(), v.cpu()
 
 class CachePPOTransformerModelPool(CachePPOTransformerModel):

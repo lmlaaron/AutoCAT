@@ -22,7 +22,7 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 
 from cache_env_wrapper import CacheCovertSenderReceiverEnvFactory #CacheAttackerDetectorEnvFactory
-from cache_ppo_transformer_model import CachePPOTransformerModel, CachePPOTransformerSenderModel
+from cache_ppo_transformer_model import CachePPOTransformerModel, CachePPOTransformerSenderModel, CachePPOTransformerSenderModel2
 # from cache_ppo_transformer_model_pe import CachePPOTransformerModel
 #from metric_callbacks import MACallbacks
 from metric_callbacks import MACovertCallbacks
@@ -77,17 +77,22 @@ def main(cfg):
     rb = ReplayBuffer(cfg.replay_buffer_size)
     
     #### sender
+    ######cfg.model_config["output_dim"] = env._env.sender_action_space.n
+    #######cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    #######cfg.model_config["secret_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    ######cfg.model_config["step_dim"] += 2
+    ######train_model_d = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device_d)
+    #######train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
+
+    ######cfg.sender_model_config["output_dim"] = env._env.sender_action_space.n
+    ######cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    ######cfg.sender_model_config["step_dim"] += 2
+    ######train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
     cfg.model_config["output_dim"] = env._env.sender_action_space.n
-    #cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
-    #cfg.model_config["secret_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    cfg.model_config["sender_action_dim"] = env._env.sender_action_space.n
+    cfg.model_config["secret_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
     cfg.model_config["step_dim"] += 2
-    train_model_d = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device_d)
-    #train_model_d = CachePPOTransformerSenderModel(**cfg.sender_model_config).to(cfg.train_device_d)
-    
-    #cfg.model_config["output_dim"] = env._env.sender_action_space.n
-    #cfg.model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
-    #cfg.model_config["step_dim"] += 2
-    #train_model_d = CachePPOTransformerModel(**cfg.model_config).to(cfg.train_device_d)
+    train_model_d = CachePPOTransformerSenderModel2(**cfg.model_config).to(cfg.train_device_d)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)

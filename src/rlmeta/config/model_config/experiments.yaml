@@ -1,6 +1,8 @@
 latency_dim: 3
 victim_acc_dim: 2
+secret_dim: 5
 action_dim: 64
+sender_action_dim: 64
 step_dim: 64
 window_size: 64
 action_embed_dim: 32 #16

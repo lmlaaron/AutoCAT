@@ -16,10 +16,10 @@ rd_server_addr: "127.0.0.1:4755"
 cd_server_name: "cd_server"
 cd_server_addr: "127.0.0.1:4766"
 
-train_device: "cuda:4"
-infer_device: "cuda:5"
-train_device_d: "cuda:6" #"cuda:2"
-infer_device_d: "cuda:7" #"cuda:3"
+train_device: "cuda:0"
+infer_device: "cuda:1"
+train_device_d: "cuda:0" #"cuda:2"
+infer_device_d: "cuda:1" #"cuda:3"
 num_train_rollouts: 8 #72 #48 #24
 num_train_workers: 8  #24
 

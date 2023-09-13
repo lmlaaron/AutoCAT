@@ -61,7 +61,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         self.action_mask = { 'sender': True, 'receiver': True} #self.receiver_agent}
         self.step_count = 0
         self.max_step = 32
-        self.detector_obs = np.array([1.0, 0.0,0.0,0.0]) #deque([[-1, -1, -1, -1]] * self.max_step)
+        self.detector_obs = deque([[-1, -1,-1,-1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         self.detector_reward_scale = 0.1 #1.0
         
@@ -77,17 +77,36 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         opponent_obs = self._env.reset(victim_address=victim_address,
                                        reset_cache_state=False)
         self.victim_address = self._env.victim_address
-        self.detector_obs = np.array([1.0,0.0,0.0,0.0])#deque([[-1, -1, -1, -1]] * self.max_step)
+        self.detector_obs = deque([[-1, -1, -1, -1]] * self.max_step)
         self.random_domain = random.choice([0,1])
         obs = {}
-        obs['sender'] = self.detector_obs #opponent_obs  #np.array(list(reversed(self.detector_obs)))
+        obs['sender'] = np.array(list(reversed(self.detector_obs)))
         obs['receiver'] = opponent_obs
+        #print(obs)
         return obs
 
 
     def get_sender_obs(self, receiver_obs, receiver_info):
+        #cur_opponent_obs = copy.deepcopy(receiver_obs[0])
+        cur_opponent_obs = self._env.sender_state[0]
+        ######if not np.any(cur_opponent_obs==-1):
+        # Make sure the observation does not leak information for detector
+        # TODO should we include step number? - yes we should - the guess step should not be observed by the detector
+        # attacker obs: r, victim_accessed, original action, current step
+        # detector obs: r, domain_id, memory address, 0
+        cur_opponent_obs[1] = 1-self.random_domain#0
+        cur_opponent_obs[2] = receiver_info['victim_secret']
+        cur_opponent_obs[3] = self.step_count #0#self.step_count
+        self.detector_obs.append(cur_opponent_obs)
+        self.detector_obs.popleft()
+        rtn = np.array(list(reversed(self.detector_obs)))
+        #rtn = np.array(list(reversed(self._env.sender_state)))
+        #print('rtn')
+        #print(rtn)
+        return rtn
+
         #self._env = opponent_info['victim_secret']
-        return np.array([receiver_info['victim_secret'], self.step_count])
+        #return np.array([receiver_info['victim_secret'], self.step_count])
         #return np.array(list(reversed(self._env.state)))
         #print(np.array(list(reversed(self._env.sender_state))))
         #return np.array(list(reversed(self._env.sender_state)))
@@ -256,6 +275,7 @@ class CacheCovertSenderReceiverEnv(gym.Env):
         for k,v in info.items():
             info[k].update({'action_mask':self.action_mask})
         #print(obs["detector"])
+        #print(obs)
         return obs, reward, done, info
 
 
