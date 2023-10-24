@@ -24,7 +24,7 @@ from rlmeta.utils.stats_dict import StatsDict
 
 from cache_env_wrapper import CacheCovertSenderReceiverEnvFactory #CacheAttackerDetectorEnvFactory
 from cache_ppo_model import CachePPOModel
-from cache_ppo_transformer_model import CachePPOTransformerSenderModel, CachePPOTransformerModel
+from cache_ppo_transformer_model import CachePPOTransformerSenderModel2, CachePPOTransformerModel
 
 
 def unbatch_action(action: Action) -> Action:
@@ -215,12 +215,13 @@ def main(cfg):
     attacker_model.eval()
     
     # Detector / Sender
-    cfg.sender_model_config["output_dim"] = env._env.sender_action_space.n
-    cfg.sender_model_config["input_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
-    cfg.sender_model_config["step_dim"] += 2
+    cfg.model_config["output_dim"] = env._env.sender_action_space.n
+    cfg.model_config["sender_action_dim"] = env._env.sender_action_space.n
+    cfg.model_config["secret_dim"] = env._env.victim_secret_max - env._env.victim_secret_min + 1 
+    cfg.model_config["step_dim"] += 2
     detector_params = torch.load(cfg.detector_checkpoint, map_location='cuda:1')
-    #detector_model = CachePPOTransformerModel(**cfg.model_config)
-    detector_model = CachePPOTransformerSenderModel(**cfg.sender_model_config)
+    detector_model = CachePPOTransformerSenderModel2(**cfg.model_config)
+    #detector_model = CachePPOTransformerSenderModel(**cfg.sender_model_config)
     detector_model.load_state_dict(detector_params)
     detector_model.eval()
 

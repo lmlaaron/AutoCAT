@@ -11,10 +11,10 @@ flush_inst: false
 allow_victim_access: false
 allow_victim_multi_access: true
 allow_empty_victim_access: false
-attacker_addr_s: 4
-attacker_addr_e: 11
+attacker_addr_s: 2
+attacker_addr_e: 3
 victim_addr_s: 0
-victim_addr_e: 3
+victim_addr_e: 1
 reset_limit: 1
 noise_prob: 0
 opponent_weights: [0.5, 0.5]
@@ -25,21 +25,9 @@ cache_configs:
     block_size: 1
     write_back: true
   cache_1:
-    blocks: 4
+    blocks: 2
     associativity: 1
     hit_time: 1
-    rep_policy: "lru"
-    prefetcher: "none"
-  cache_1_core_2:  
-    blocks: 4
-    associativity: 1
-    hit_time: 1
-    rep_policy: "lru"
-    prefetcher: "none"
-  cache_2:
-    blocks: 8
-    associativity: 2 
-    hit_time: 16
     rep_policy: "lru"
     prefetcher: "none"
   mem:

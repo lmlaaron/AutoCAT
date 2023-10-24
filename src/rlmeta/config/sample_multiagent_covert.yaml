@@ -37,8 +37,11 @@ seed: 123 #123 1234 12345
 #detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-08/12-58-27/sender-19.pth"
 #attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/receiver-13.pth"
 #detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-10/15-36-51/sender-9.pth"
-attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-26/17-23-19/receiver-21.pth"
-detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-26/17-23-19/sender-19.pth"
+#attacker_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-26/17-23-19/receiver-21.pth"
+#detector_checkpoint: "/home/mulong/AutoCAT/src/rlmeta/outputs/2023-03-26/17-23-19/sender-19.pth"
+attacker_checkpoint: "/home/ml55339/ma_covert/AutoCAT/src/rlmeta/outputs/2023-10-23/17-26-54/receiver-4.pth"
+detector_checkpoint: "/home/ml55339/ma_covert/AutoCAT/src/rlmeta/outputs/2023-10-23/17-26-54/sender-7.pth"
+
 
 #IBRPPO-fp10
 #attacker_checkpoint: "/data/home/jxcui/Documents/CacheSimulator/src/rlmeta/outputs/2022-11-01/05-25-18/attacker-2049.pth"
@@ -105,4 +108,4 @@ defaults:
   # - env_config: config_exp62
   # - env_config: config_exp_14_nextline
   - model_config: experiments
-  - sender_model_config: sender_exp
+  # - sender_model_config: sender_exp
