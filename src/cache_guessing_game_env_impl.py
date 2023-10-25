@@ -93,7 +93,11 @@ class CacheGuessingGameEnv(gym.Env):
     self.prefetcher = env_config["prefetcher"] if "prefetcher" in env_config else "none"
 
     self.allow_victim_access = env_config["allow_victim_access"] if "allow_victim_access" in env_config else True
-
+    
+    # victim secret 
+    self.victim_secret_min = env_config["victim_secret_min"] if "victim_secret_min" in env_config else 0 
+    self.victim_secret_max = env_config["victim_secret_max"] if "victim_secret_max" in env_config else 1 
+ 
     # remapping function for randomized cache
     self.rerandomize_victim = env_config["rerandomize_victim"] if "rerandomize_victim" in env_config else False
     self.ceaser_remap_period = env_config["ceaser_remap_period"] if "ceaser_remap_period" in env_config else 200000
@@ -180,8 +184,6 @@ class CacheGuessingGameEnv(gym.Env):
     self.victim_address_space = range(self.victim_address_min,
                                 self.victim_address_max + 1)  #
 
-    self.victim_secret_min = self.victim_address_min
-    self.victim_secret_max = self.victim_address_max
     self.victim_secret_space = range(self.victim_secret_min, self.victim_secret_max + 1)
     self.victim_secret = random.randint(self.victim_secret_min, self.victim_secret_max)
 
@@ -351,8 +353,8 @@ class CacheGuessingGameEnv(gym.Env):
 
   def sender_step(self, sender_action):
     if sender_action != 0:  # sender_action == 0 means no sender action
-      sender_addr = self.victim_secret  # hard coding for now 
-      #sender_addr = sender_action - 1 + self.victim_address_min 
+      #sender_addr = self.victim_secret  # hard coding for now 
+      sender_addr = sender_action - 1 + self.victim_address_min 
       t, cyclic_set_index, cyclic_way_index, _ = self.lv.read(hex(self.ceaser_mapping(sender_addr))[2:], self.current_step, domain_id='v')
       if t.time > 500:
         r = 1
