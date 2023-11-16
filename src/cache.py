@@ -117,13 +117,18 @@ class Cache:
         if tag in in_cache:
             for i in range(0, len(self.data[index])):
                 if self.data[index][i][0] == tag: 
-                    self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
+                    #check if the selected cache line is locked or not. Do the flush only when it is not locked. 
+                    # print("1 means locked. 2 means unlocked &^%$$ : ", self.set_rep_policy[index].is_locked(tag))
+                    if(self.set_rep_policy[index].is_locked(tag) != 1):
+                        self.data[index][i] = (INVALID_TAG, block.Block(self.block_size, current_step, False, ''))
                     break
-            self.set_rep_policy[index].invalidate(tag)
+            if(self.set_rep_policy[index].is_locked(tag) != 1):
+                self.set_rep_policy[index].invalidate(tag)
 
         # clflush from the next level of memory
         if self.next_level is not None and self.next_level.name != "mem":
-            self.next_level.cflush(address, current_step)
+            if(self.set_rep_policy[index].is_locked(tag) != 1):
+                self.next_level.cflush(address, current_step)
 
         return r, way_index, cyclic_set_index, cyclic_way_index
 
@@ -213,10 +218,10 @@ class Cache:
                         break
                 
                 self.set_rep_policy[index].touch(tag, current_step)
-                '''
+                
                 # pl cache
                 if pl_opt != -1: 
-                    self.set_rep_policy[index].setlock(tag, pl_opt)'''
+                    self.set_rep_policy[index].setlock(tag, pl_opt)
                     
                 r = response.Response({self.name: True}, self.hit_time)
                 evict_addr = -1  # no eviction needed
@@ -269,10 +274,10 @@ class Cache:
                     
                     # if inst_victim_tag != INVALID_TAG: #instantiated entry sometimes does not replace an empty tag
                     # we have to evict it from the cache in this scenario
-                    '''
+                    
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
-                        '''
+                        
                 
                 else:
                     # Find the victim block and replace it
@@ -416,11 +421,11 @@ class Cache:
                     self.set_rep_policy[index].invalidate(victim_tag)
                     
                     self.set_rep_policy[index].instantiate_entry(tag, current_step)
-                    '''
+                    
                     # pl cache
                     if pl_opt != -1:
                         self.set_rep_policy[index].setlock(tag, pl_opt)
-                        '''
+                        
 
                 if not r:
                     r = response.Response({self.name: False}, self.write_time)
@@ -428,7 +433,6 @@ class Cache:
         return r, way_index
     
     def lock(self, set_no, lock_bit):
-
         set_index = str(bin(set_no))[2:].zfill(self.index_size)
         r = response.Response({self.name: True}, self.lock_time)
         if lock_bit == 1 or lock_bit == 0:
@@ -438,6 +442,25 @@ class Cache:
         self.set_rep_policy[set_index].set_lock_vector(lock_vector_array)
         self.lock_vector_array = lock_vector_array
         return r, lock_vector_array
+    
+    def detector_func(self, lock_arr): # TODO  rename to defender_function or lock
+        # if pl_opt != -1: 
+        # print("have no idea what these are:  ", self.set_rep_policy[], "  and this : ", self.associativity)
+        for index in self.set_rep_policy:
+            # print("this is the fucking indec &&^%$%^^ :  ", int(index, 2))
+            idx = int(index, 2)
+            for i in range(0, len(self.data[index])):
+                # self.set_rep_policy[idx].setlock(tag, pl_opt)
+                self.set_rep_policy[index].setlock_d(str(i), lock_arr[i + idx*self.associativity])
+
+    def check_func(self):
+        for index in self.set_rep_policy:
+            print("index in self.rep_policy:  ", index, "   type : ", type(index))
+            # idx = int(index, 2)
+            for i in range(0, len(self.data[index])):
+                # self.set_rep_policy[idx].setlock(tag, pl_opt)
+                print("   this is i : ", i)
+                self.set_rep_policy[index].see_value(i)
 
     def parse_address(self, address):
         # Calculate our address length and convert the address to binary string

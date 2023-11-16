@@ -136,7 +136,21 @@ def print_cache(cache):
                         else:
                             timestamp.append(0)
                     sets.append(timestamp)
+                elif cache.rep_policy == plru_pl_policy: # add a new row to the table to show the lock bit in the plru_pl_policy cache
+                    lock_info = ["Lock bit"]
 
+                    lockarray = cache.set_rep_policy[set_indexes[s]].lockarray
+
+                    for w in range(0, len(lockarray)):
+                        if lockarray[w] == 2:
+                            lock_info.append("unlocked")
+                        elif lockarray[w] == 1:
+                            lock_info.append("locked")
+                        elif lockarray[w] == 0:
+                            lock_info.append("unknown")
+                        else:
+                            lock_info.append(lockarray[w])
+                    sets.append(lock_info)
                 elif cache.rep_policy == lru_policy:  # or cache.rep_policy == lru_lock_policy:
                     timestamp = ["Timestamp"]
                     for w in range(0, cache.associativity):
@@ -213,14 +227,14 @@ def simulate(hierarchy, trace, logger, result_file=''):
         elif op == 'W' or op == 'W2':
             assert (op == 'W')
             logger.info(str(current_step) + ':\tWriting ' + address + ' ' + op)
-            r, _, _ = l1.write(address, True, current_step)
+            r, _ = l1.write(address, True, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
 
         # Call cflush
         elif op == 'F' or op == 'F2':
             logger.info(str(current_step) + ':\tFlushing ' + address + ' ' + op)
-            r, _, _ = l1.cflush(address, current_step)
+            r, _, _, _ = l1.cflush(address, current_step)
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
 
         # Call lock
@@ -234,12 +248,35 @@ def simulate(hierarchy, trace, logger, result_file=''):
             logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
             responses.append(r)
 
+        #insert detector into the pl cache code
+        elif op == 'DD':
+            assert (l1.rep_policy == plru_pl_policy)
+            
+            for set_index in range(0, int(n_sets)):
+                # logger.info('current step: ' + str(current_step) + ' set ' + str(set_index) + ':\tLock_bit ' + str(
+                #     lock_bits[set_index]) + ' ' + 'op:' + op)
+                # r, _ = l1.lock(set_index, lock_bits[set_index])
+                print("number of sets: ", int(n_sets), "  set index : ", set_index, "  lock bit : ", lock_bits[0][3])
+            l1.detector_func(lock_bits[0])
+            # logger.warning('\thit_list: ' + pprint.pformat(r.hit_list) + '\ttime: ' + str(r.time) + '\n')
+            # responses.append(r)
+
+        elif op == 'CH':
+            assert (l1.rep_policy == plru_pl_policy)
+            l1.check_func()
+
         else:
             raise InvalidOpError
 
         if op == 'D':
             print(str(r.time), file=f)
-
+        
+        elif op == 'DD':
+            for cache in hierarchy:
+                if hierarchy[cache].next_level:
+                    print_cache(hierarchy[cache])
+            continue
+        
         else:
             print(address + ' ' + str(r.time), file=f)
 

@@ -7,7 +7,7 @@ architecture:
 
 cache_1: #required
   blocks: 8
-  associativity: 4
+  associativity: 2
   hit_time: 1 #cycles
   rep_policy: plru_pl
 

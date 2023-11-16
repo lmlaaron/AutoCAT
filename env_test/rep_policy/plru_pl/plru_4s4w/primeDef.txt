@@ -1,0 +1,59 @@
+#prime + probe defence     blocks = 16, associativity = 4
+00000000 W
+00000001 W
+00000002 W
+00000003 W
+00000004 W
+00000005 W
+00000006 W
+00000007 W
+00000008 W
+00000009 W
+0000000a W
+0000000b W
+0000000c W
+0000000d W
+0000000e W
+0000000f W
+# to defend against prime probe, the sensitive data that the victim uses should be locked in the cache before the prime phase of attack
+00000012 R  
+00000016 R
+00000013 R 
+2 DD 1000010011101100
+#here the prime phase starts
+00000000 R
+00000001 R
+00000002 R
+00000003 R
+00000004 R
+00000005 R
+00000006 R
+00000007 R
+00000008 R
+00000009 R
+0000000a R
+0000000b R
+0000000c R
+0000000d R
+0000000e R
+0000000f R
+#the cache is primed by the attacker. now the attacker will wait for some time to let the victim program run 
+00000012 R  
+#next, the attacker will probe. it goes through all cache lines and measures the access time, 
+#thus he can see if which lines were accessed by the victim
+00000000 R
+00000001 R
+00000002 R
+00000003 R
+00000004 R
+00000005 R
+00000006 R
+00000007 R
+00000008 R
+00000009 R
+0000000a R
+0000000b R
+0000000c R
+0000000d R
+0000000e R
+0000000f R

@@ -1,5 +1,5 @@
-#flush + reload attack    blocks = 8, associativity = 4
-2 DD 00000000
+#flush + reload attack    blocks = 16, associativity = 4
+2 DD 0000000000000000
 00000000 W
 00000001 W
 00000002 W
@@ -8,18 +8,26 @@
 00000005 W
 00000006 W
 00000007 W
+00000008 W
+00000009 W
+0000000a W
+0000000b W
+0000000c W
+0000000d W
+0000000e W
+0000000f W
 #the cache is fully populated. now the attacker will flush a cache line
-00000000 F 
-00000002 F 
-00000004 F 
-00000006 F 
+00000001 F 
+00000005 F 
+00000009 F 
+0000000d F 
 #the next three instructions are done by the victim. he is just accessing his sensitive data.
-00000007 R
-00000003 R
-00000006 R
+#00000007 R
+00000005 R
+#00000004 R
 #now the attacker read data from cache line 6 to see if it was accessed by the victim or not. 
 #cache hit/miss can show if the victim was using this line or not.
-00000000 R 
-00000002 R 
-00000004 R 
-00000006 R
+00000001 R 
+00000005 R 
+00000009 R 
+0000000d R 

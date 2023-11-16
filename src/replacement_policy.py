@@ -344,9 +344,21 @@ class plru_pl_policy(rep_policy):
         index = tree_index - (self.num_leaves - 1) 
         
         # pl cache 
-        if self.lockarray[index] == PL_UNLOCK:
-            victim_tag = self.candidate_tags[index]
-            return victim_tag 
+        #changed the way that cache behaves when it wants to evict a cache line that is locked. Before, when the line was locked, 
+        # the INVALID_TAG was returned. In other words, the requested data was not cached. But now, we will update the state of the
+        # cache line and make it a most recently used line, and then search again for the next cache line to evic. If there were other
+        # unlocked cache lines, they will be selected based on the plru and everything will work out. But if all the cache lines are
+        # locked, we need to send the data directly from memory to processor. that's why we first check if there is unlocked lines in
+        # the cache or not. if not, we will just send the INVALID_TAG
+        if PL_UNLOCK in self.lockarray:
+            if self.lockarray[index] == PL_UNLOCK:
+                victim_tag = self.candidate_tags[index]
+                return victim_tag 
+            else:
+                victim_tag = self.candidate_tags[index]
+                self.touch(victim_tag, timestamp)
+                return self.find_victim(timestamp)
+                # return INVALID_TAG
         else:
             return INVALID_TAG
 
@@ -379,7 +391,30 @@ class plru_pl_policy(rep_policy):
                 index += 1
         # set / unset lock
         self.lockarray[index] = lock 
+    
+    def see_value(self, idx):
+        print("printing index and self.candidate_tags[index] :  ", idx, ",      ", self.candidate_tags[idx], "   lock  ", self.lockarray[idx])
 
+    def setlock_d(self, idx, lock):
+        self.vprint("setlock " + idx + ' ' + lock)
+        # set / unset lock
+        if(int(lock) == 0):
+            self.lockarray[int(idx)] = PL_UNLOCK
+        elif(int(lock) == 1):
+            self.lockarray[int(idx)] = PL_LOCK
+        else:
+            self.lockarray[int(idx)] = PL_NOTSET
+    
+    def is_locked(self, tag):
+        # find the index
+        index = 0
+        self.vprint(index)
+        while index < len(self.candidate_tags):
+            if self.candidate_tags[index] == tag:
+                break
+            else:
+                index += 1
+        return self.lockarray[index]
 # impl. based on
 # github.com/gem5/gem5/blob/87c121fd954ea5a6e6b0760d693a2e744c2200de/src/mem/cache/replacement_policies/brrip_rp.cc
 # testcase based on https://dl.acm.org/doi/pdf/10.1145/1816038.1815971
