@@ -330,11 +330,15 @@ class CacheGuessingGameEnv(gym.Env):
     original_action = action
     action = self.parse_action(original_action) 
     address = hex(action[0]+self.attacker_address_min)[2:]            # attacker address in attacker_address_space
-    is_guess = action[1]                                              # check whether to guess or not
-    is_victim = action[2]                                             # check whether to invoke victim
-    is_flush = action[3]                                              # check whether to flush
-    victim_addr = hex(action[4] + self.victim_address_min)[2:]        # victim address
-    no_measure = action[5]                                            # whether the current attacker acces takes measurement or not 
+    is_access = action[1]
+    is_add = action[2]
+    is_remove = action[3]
+    is_finish = action[4]
+    #####is_guess = action[1]                                              # check whether to guess or not
+    #####is_victim = action[2]                                             # check whether to invoke victim
+    #####is_flush = action[3]                                              # check whether to flush
+    #####victim_addr = hex(action[4] + self.victim_address_min)[2:]        # victim address
+    #####no_measure = action[5]                                            # whether the current attacker acces takes measurement or not 
     '''
     The actual stepping logic
 
@@ -353,8 +357,8 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("length violation!")
       reward = self.length_violation_reward #-10000 
       done = True
-    else:
-      if is_victim == True:
+  elif is_access == 1:
+      if False:is_victim == True:
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
@@ -389,7 +393,7 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.double_victim_access_reward # -10000
           done = True
       else:
-        if is_guess == True:
+        if False:# is_guess == True:
           r = 2  #
           '''
           this includes two scenarios
@@ -417,7 +421,7 @@ class CacheGuessingGameEnv(gym.Env):
               self.guess_buffer.pop(0)
               reward = self.wrong_reward #-9999
               done = True
-        elif is_flush == False or self.flush_inst == False:
+        elif True:#is_flush == False or self.flush_inst == False:
           lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
@@ -449,6 +453,13 @@ class CacheGuessingGameEnv(gym.Env):
           self.current_step += 1
           reward = self.step_reward
           done = False
+    elif is_add == 1:
+    elif is_remove == 1:
+    elif is_finish == 1:
+        done == True    
+
+
+    
     #return observation, reward, done, info
     if done == True and is_guess != 0:
       info["is_guess"] = True
@@ -702,15 +713,21 @@ class CacheGuessingGameEnv(gym.Env):
   address, is_guess, is_victim, is_flush, victim_addr
   '''
   def parse_action(self, action):
-    address = 0
     is_access = 0
     is_add = 0
     is_remove = 0
     is_finish = 0
+    address = action % len(self.attacker_address_space)
     if action < len(self.attacker_address_space):
-        address = action % len(self.attacker_address_space)
+        is_access = 1
+    elif action < 2 * len(self.attacker_address_space):
+        is_add = 1
+    elif:
+        is_remove = 1
+    else:
+        is_finish = 1
 
-
+    return [address, is_access, is_add, is_remove, is_finish]
     #####is_victim = 0
     #####is_flush = 0
     #####victim_addr = 0
@@ -765,4 +782,3 @@ class CacheGuessingGameEnv(gym.Env):
     #####      no_measure = 0
 
     #return [ address, is_guess, is_victim, is_flush, victim_addr, no_measure ] 
-    return [address, is_access, is_add, is_remove, is_finish]
