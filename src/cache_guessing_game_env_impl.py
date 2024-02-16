@@ -189,20 +189,34 @@ class CacheGuessingGameEnv(gym.Env):
     '''
     define the action space
     '''
+
+    '''
+    three type of action
+    1. attacker_access
+    2. adding addr to evset
+    3. removing add from evset
+    4. terminate
+    '''
     if self.use_one_hot == True:
       # using tightened action space
-      if self.flush_inst == False:
+      if True: #self.flush_inst == False:
         # one-hot encoding
-        if self.allow_empty_victim_access == True:
+        if False: #self.allow_empty_victim_access == True:
           # | attacker_addr | v | victim_guess_addr | guess victim not access |
           self.action_space = spaces.Discrete(
             ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1
           )
         else:
-          # | attacker_addr | v | victim_guess_addr | 
+          '''
+          only implement this
+          '''
           self.action_space = spaces.Discrete(
-            ( self.no_measure_factor + 1 )* len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+           len(self.attacker_address_space)+  len(self.attacker_address_space) +  len(self.attacker_address_space) + 1
           )
+          #### | attacker_addr | v | victim_guess_addr | 
+          ###self.action_space = spaces.Discrete(
+          ###  ( self.no_measure_factor + 1 )* len(self.attacker_address_space) + 1 + len(self.victim_address_space)
+          ###)
       else:
         # one-hot encoding
         if self.allow_empty_victim_access == True:
@@ -689,59 +703,66 @@ class CacheGuessingGameEnv(gym.Env):
   '''
   def parse_action(self, action):
     address = 0
-    is_guess = 0
-    is_victim = 0
-    is_flush = 0
-    victim_addr = 0
-    no_measure = 0 
-    if self.use_one_hot == True:
-      if self.flush_inst == False:
-        if action < ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
-          address = action % len(self.attacker_address_space) 
-          no_measure  = int(action / len(self.attacker_address_space) )
-        elif action ==  ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
-          is_victim = 1
-        else:
-          is_guess = 1
-          victim_addr = action - ( ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 ) 
-      else:
-        if action < ( self.no_measure_factor + 1 )  * len(self.attacker_address_space):
-          address = action % len(self.attacker_address_space) 
-          no_measure  = int( action / len(self.attacker_address_space) )
-        elif action < (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space):
-          is_flush = 1
-          address = action -( self.no_measure_factor + 1 ) * len(self.attacker_address_space) 
-          is_flush = 1
-        elif action == ( self.no_measure_factor + 1 + 1 ) * len(self.attacker_address_space):
-          is_victim = 1
-        else:
-          is_guess = 1
-          victim_addr = action - ( (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 ) 
-    else: # use unified coding
-      
-      address = action[0]
-      
-      if address != -1: # attacker acccess
-        is_guess = 0
-        is_victim = 0
-        is_flush = 0
-        victim_addr = 0
-        no_measure = 0 
-      else:
-        is_victim = action[1]
-        if is_victim != -1: # victim access
-          is_guess = 0
-          is_victim = 1
-          is_flush = 0
-          victim_addr = 0
-          no_measure = 0
-        else: # guess victim address
-          address = 0
-          victim_addr = action[2]
-          is_guess = 0
-          is_victim = 0
-          is_flush = 0
-          no_measure = 0
+    is_access = 0
+    is_add = 0
+    is_remove = 0
+    is_finish = 0
+    if action < len(self.attacker_address_space):
+        address = action % len(self.attacker_address_space)
 
-    return [ address, is_guess, is_victim, is_flush, victim_addr, no_measure ] 
- 
+
+    #####is_victim = 0
+    #####is_flush = 0
+    #####victim_addr = 0
+    #####no_measure = 0 
+    #####if self.use_one_hot == True:
+    #####  if self.flush_inst == False:
+    #####    if action < ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
+    #####      address = action % len(self.attacker_address_space) 
+    #####      no_measure  = int(action / len(self.attacker_address_space) )
+    #####    elif action ==  ( self.no_measure_factor + 1 ) * len(self.attacker_address_space):
+    #####      is_victim = 1
+    #####    else:
+    #####      is_guess = 1
+    #####      victim_addr = action - ( ( self.no_measure_factor + 1 ) * len(self.attacker_address_space) + 1 ) 
+    #####  else:
+    #####    if action < ( self.no_measure_factor + 1 )  * len(self.attacker_address_space):
+    #####      address = action % len(self.attacker_address_space) 
+    #####      no_measure  = int( action / len(self.attacker_address_space) )
+    #####    elif action < (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space):
+    #####      is_flush = 1
+    #####      address = action -( self.no_measure_factor + 1 ) * len(self.attacker_address_space) 
+    #####      is_flush = 1
+    #####    elif action == ( self.no_measure_factor + 1 + 1 ) * len(self.attacker_address_space):
+    #####      is_victim = 1
+    #####    else:
+    #####      is_guess = 1
+    #####      victim_addr = action - ( (( self.no_measure_factor + 1 ) + 1) * len(self.attacker_address_space) + 1 ) 
+    #####else: # use unified coding
+    #####  
+    #####  address = action[0]
+    #####  
+    #####  if address != -1: # attacker acccess
+    #####    is_guess = 0
+    #####    is_victim = 0
+    #####    is_flush = 0
+    #####    victim_addr = 0
+    #####    no_measure = 0 
+    #####  else:
+    #####    is_victim = action[1]
+    #####    if is_victim != -1: # victim access
+    #####      is_guess = 0
+    #####      is_victim = 1
+    #####      is_flush = 0
+    #####      victim_addr = 0
+    #####      no_measure = 0
+    #####    else: # guess victim address
+    #####      address = 0
+    #####      victim_addr = action[2]
+    #####      is_guess = 0
+    #####      is_victim = 0
+    #####      is_flush = 0
+    #####      no_measure = 0
+
+    #return [ address, is_guess, is_victim, is_flush, victim_addr, no_measure ] 
+    return [address, is_access, is_add, is_remove, is_finish]
