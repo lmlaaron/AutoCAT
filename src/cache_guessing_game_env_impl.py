@@ -1,6 +1,10 @@
 # Author: Mulong Luo
 # date 2021.12.3
 # description: environment for study RL for side channel attack
+
+'''
+find evset of address 0
+'''
 from collections import deque
 
 import numpy as np
@@ -148,6 +152,10 @@ class CacheGuessingGameEnv(gym.Env):
     #with open_dict(self.configs):
     self.configs['cache_1']['prefetcher'] = self.prefetcher
 
+    self.evset = [0] * ( attacker_address_max -attacker_address_min + 1 )  # empty eviction set 
+    self.correct_evset = [0] * ( attacker_address_max -attacker_address_min + 1 )
+   
+
     '''
     check window size
     '''
@@ -179,6 +187,7 @@ class CacheGuessingGameEnv(gym.Env):
     if self.rerandomize_victim == True:
       addr_space = max(self.victim_address_max, self.attacker_address_max) + 1
       self.perm = [i for i in range(addr_space)]
+      self.correct_evset[self.perm[i * ( self.addr_space / self.num_ways ) ]] = 1
     
     # keeping track of the victim remap length
     self.ceaser_access_count = 0
@@ -209,9 +218,10 @@ class CacheGuessingGameEnv(gym.Env):
         else:
           '''
           only implement this
+          |access addr| add addr| remove addr| access victim | finish |
           '''
           self.action_space = spaces.Discrete(
-           len(self.attacker_address_space)+  len(self.attacker_address_space) +  len(self.attacker_address_space) + 1
+           len(self.attacker_address_space) +  len(self.attacker_address_space) +  len(self.attacker_address_space) + 1
           )
           #### | attacker_addr | v | victim_guess_addr | 
           ###self.action_space = spaces.Discrete(
@@ -292,6 +302,9 @@ class CacheGuessingGameEnv(gym.Env):
     else:
       self.vprint("doing remapping!")
       random.shuffle(self.perm)
+      #derive correct_evset from perm
+      for i in self.num_ways:
+        self.correct_evset[self.perm[i * ( self.cache_size / self.num_ways ) ]] = 1
 
   '''
   ceasar remapping
@@ -328,12 +341,14 @@ class CacheGuessingGameEnv(gym.Env):
     parse the action
     '''
     original_action = action
-    action = self.parse_action(original_action) 
+    action = self.parse_action(original_action)
+    address_num = action[0] 
     address = hex(action[0]+self.attacker_address_min)[2:]            # attacker address in attacker_address_space
     is_access = action[1]
     is_add = action[2]
     is_remove = action[3]
     is_finish = action[4]
+
     #####is_guess = action[1]                                              # check whether to guess or not
     #####is_victim = action[2]                                             # check whether to invoke victim
     #####is_flush = action[3]                                              # check whether to flush
@@ -357,8 +372,8 @@ class CacheGuessingGameEnv(gym.Env):
       self.vprint("length violation!")
       reward = self.length_violation_reward #-10000 
       done = True
-  elif is_access == 1:
-      if False:is_victim == True:
+    elif is_access == 1:
+      if False:#is_victim == True:
         if self.allow_victim_multi_access == True or self.victim_accessed == False:
           r = 2 #
           self.victim_accessed = True
@@ -454,30 +469,39 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward
           done = False
     elif is_add == 1:
+      self.current_step += 1
+      reward = self.add_reward
+      done = False
+      self.evset[address_num] = 1  # add address to evset
     elif is_remove == 1:
+      self.current_step += 1
+      reward = self.remove_reward
+      done = False
+      self.evset[address_num] = 0  # remove address from evset
     elif is_finish == 1:
-        done == True    
-
+        done == True
+        reward = self.check_evset_reward()    
+        
 
     
-    #return observation, reward, done, info
-    if done == True and is_guess != 0:
-      info["is_guess"] = True
-      if reward > 0:
-        info["guess_correct"] = True
-      else:
-        info["guess_correct"] = False
-    else:
-      info["is_guess"] = False
+    ######return observation, reward, done, info
+    #####if done == True and is_guess != 0:
+    #####  info["is_guess"] = True
+    #####  if reward > 0:
+    #####    info["guess_correct"] = True
+    #####  else:
+    #####    info["guess_correct"] = False
+    #####else:
+    #####  info["is_guess"] = False
     # the observation (r.time) in this case 
     # must be consistent with the observation space
     # return observation, reward, done?, info
     #return r, reward, done, info
     current_step = self.current_step
-    if self.victim_accessed == True:
-      victim_accessed = 1
-    else:
-      victim_accessed = 0
+    #####if self.victim_accessed == True:
+    #####  victim_accessed = 1
+    #####else:
+    #####  victim_accessed = 0
     
     '''
     append the current observation to the sliding window
@@ -487,41 +511,41 @@ class CacheGuessingGameEnv(gym.Env):
 
     self.step_count += 1
     
-    '''
-    support for multiple guess per episode
-    '''
-    if done == True:
-      self.reset_time += 1
-      if self.reset_time == self.reset_limit:  # really need to end the simulation
-        self.reset_time = 0
-        done = True                            # reset will be called by the agent/framework
-        self.vprint('correct rate:' + str(self.calc_correct_rate()))
-      else:
-        done = False                           # fake reset
-        self._reset()                          # manually reset
+    #####'''
+    #####support for multiple guess per episode
+    #####'''
+    #####if done == True:
+    #####  self.reset_time += 1
+    #####  if self.reset_time == self.reset_limit:  # really need to end the simulation
+    #####    self.reset_time = 0
+    #####    done = True                            # reset will be called by the agent/framework
+    #####    self.vprint('correct rate:' + str(self.calc_correct_rate()))
+    #####  else:
+    #####    done = False                           # fake reset
+    #####    self._reset()                          # manually reset
 
-    '''
-    the observation should not obverve the victim latency
-    thus, we put victim latency in the info
-    the detector (ccHunter, Cyclone) can take advantage of the victim latency
-    ''' 
-    if victim_latency is not None:
-        info["victim_latency"] = victim_latency
+    ######'''
+    ######the observation should not obverve the victim latency
+    ######thus, we put victim latency in the info
+    ######the detector (ccHunter, Cyclone) can take advantage of the victim latency
+    ######''' 
+    ######if victim_latency is not None:
+    ######    info["victim_latency"] = victim_latency
 
-        if self.last_state is None:
-            cache_state_change = None
-        else:
-            cache_state_change = victim_latency ^ self.last_state
-        self.last_state = victim_latency
-    else:
-        if r == 2:
-            cache_state_change = 0
-        else:
-            if self.last_state is None:
-                cache_state_change = None
-            else:
-                cache_state_change = r ^ self.last_state
-            self.last_state = r
+    ######    if self.last_state is None:
+    ######        cache_state_change = None
+    ######    else:
+    ######        cache_state_change = victim_latency ^ self.last_state
+    ######    self.last_state = victim_latency
+    ######else:
+    ######    if r == 2:
+    ######        cache_state_change = 0
+    ######    else:
+    ######        if self.last_state is None:
+    ######            cache_state_change = None
+    ######        else:
+    ######            cache_state_change = r ^ self.last_state
+    ######        self.last_state = r
 
     '''
     this info is for use of various wrappers like cchunter_wrapper and cyclone_wrapper
@@ -532,6 +556,26 @@ class CacheGuessingGameEnv(gym.Env):
 
     return np.array(list(reversed(self.state))), reward, done, info
 
+
+  '''
+  calculate reward for different guesses
+  '''
+  def check_evset_reward(self):
+    # self.evset
+    # self.correct_evset       
+    '''
+    if evset == correct_evset, highest reward
+    '''
+    '''
+    if evset superset of correct_evset, low positive reward
+    '''
+    '''
+    if evset , low negative reward
+    '''
+    '''
+    otherwise, hightnegative reward
+    '''
+
   '''
   Gym API: reset the cache state
   '''
@@ -540,6 +584,9 @@ class CacheGuessingGameEnv(gym.Env):
             reset_cache_state=False,
             reset_observation=True,
             seed = -1):
+
+    self.evset = [0] * ( attacker_address_max -attacker_address_min + 1 )  # empty eviction set 
+    self.correct_evset = [0] * ( attacker_address_max -attacker_address_min + 1 )   
     if self.ceaser_access_count > self.ceaser_remap_period:
       self.remap() # do the remap, generating a new mapping function if remap is set true
       self.ceaser_access_count = 0
@@ -722,8 +769,11 @@ class CacheGuessingGameEnv(gym.Env):
         is_access = 1
     elif action < 2 * len(self.attacker_address_space):
         is_add = 1
-    elif:
+    elif action < 3 * len(self.attacker_address_space):
         is_remove = 1
+    elif action == 3 * len(self.attacker_address_space):
+        is_access = 1
+        address = self.victim_address
     else:
         is_finish = 1
 
