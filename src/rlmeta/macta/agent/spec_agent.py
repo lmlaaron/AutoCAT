@@ -72,12 +72,15 @@ class SpecAgent(Agent):
 
             self.allow_empty_victim_access = env_config.get(
                 "allow_empty_victim_access", False)
+            
+            # print("************************************************************************")
+            # print("inside the spec agent")
 
-            assert (self.num_ways == 1
-                    )  # currently only support direct-map cache
+            # assert (self.num_ways == 1
+            #         )  # currently only support direct-map cache
             assert (flush_inst == False)  # do not allow flush instruction
-            assert (attacker_addr_e - attacker_addr_s == victim_addr_e -
-                    victim_addr_s)  # address space must be shared
+            # assert (attacker_addr_e - attacker_addr_s == victim_addr_e -
+            #         victim_addr_s)  # address space must be shared
             #must be no shared address space
             assert ((attacker_addr_e + 1 == victim_addr_s)
                     or (victim_addr_e + 1 == attacker_addr_s))
@@ -142,11 +145,11 @@ class SpecAgent(Agent):
 
         action = addr % self.cache_size
         if domain_id == self.domain_id_0:  # attacker access
-            action = addr % self.cache_size
+            action = addr % self.cache_size # action encoding ---> does not have encodeing(victim_min). it seems to be fine
             info = {}
         else:  # domain_id = self.domain_id_1: # victim access
             action = self.cache_size
-            addr = addr % self.cache_size
+            addr = addr % self.cache_size # add victim_min
             info = {"reset_victim_addr": True, "victim_addr": addr}
         return Action(action, info)
 

@@ -11,7 +11,8 @@ import sys
 from itertools import permutations
 
 import gym
-from gym import spaces
+from gym import spaces #this works for Rlmeta
+# from gymnasium.spaces import Discrete, Box #this works for torchRL
 
 from omegaconf.omegaconf import open_dict
 sys.path.append(
@@ -35,6 +36,13 @@ class CacheGuessingGameEnv(gym.Env):
       20,                 #current steps
       2,                  #whether the victim has accessed yet
       ]
+
+  Observation:
+    # observation conatains four values
+    # 1. cache miss or hit
+    # 2. victim accessed or not
+    # 3. original action
+    # 4. step count
 
   Actions:
     # action step contains four values
@@ -81,8 +89,8 @@ class CacheGuessingGameEnv(gym.Env):
         "write_back": True
       },
       "cache_1": {#required
-        "blocks": 4, 
-        "associativity": 1,  
+        "blocks": 8, 
+        "associativity": 2,  
         "hit_time": 1 #cycles
       },
       "mem": {#required
@@ -91,6 +99,11 @@ class CacheGuessingGameEnv(gym.Env):
     }
   }
 ):
+
+    #some data for pettig zoo
+    temp_list = []
+    self.Data1 = np.array(temp_list)
+    self.Data2 = {}
     # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
@@ -141,7 +154,7 @@ class CacheGuessingGameEnv(gym.Env):
     self.cache_size = self.configs['cache_1']['blocks']
     
     if "rep_policy" not in self.configs['cache_1']:
-      self.configs['cache_1']['rep_policy'] = 'lru'
+      self.configs['cache_1']['rep_policy'] = 'new_plru_pl'
     '''
     with open_dict(self.configs):
         self.configs['cache_1']['prefetcher'] = self.prefetcher
@@ -241,6 +254,8 @@ class CacheGuessingGameEnv(gym.Env):
     #)
     self.max_box_value = max(self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
     self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size))
+    # self.max_box_value = max(256, self.window_size + 2,  2 * len(self.attacker_address_space) + 1 + len(self.victim_address_space) + 1)#max(self.window_size + 2, len(self.attacker_address_space) + 1) 
+    # self.observation_space = spaces.Box(low=-1, high=self.max_box_value, shape=(self.window_size, self.feature_size+2))
 
     
     #print('Initializing...')
@@ -257,7 +272,7 @@ class CacheGuessingGameEnv(gym.Env):
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
       self.vprint("[init] victim access %d locked cache line" % self.victim_address_max)
-      self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
+      self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK)#, domain_id='v')
 
     # internal guessing buffer
     # does not change after reset
@@ -269,6 +284,10 @@ class CacheGuessingGameEnv(gym.Env):
 
   def clear_guess_buffer_history(self):
     self.guess_buffer = [False] * self.guess_buffer_size
+
+  def print_sample_multiagent(self, obs, reward, done, info, opponent_agent):
+    self.vprint('attacker reward:  ', reward['attacker'], 'detector reward:  ', reward['detector'], "    done:  ", done['detector'])
+    self.vprint('opponent :  ', opponent_agent)
 
   # remap the victim address range
   def remap(self):
@@ -289,9 +308,8 @@ class CacheGuessingGameEnv(gym.Env):
       return self.perm[addr]
 
   def step(self, action):
-
-    cyclic_set_index = -1
-    cyclic_way_index = -1
+    set_index = '-1'
+    way_index = -1
 
     self.vprint('Step ', self.step_count)
     info = {}
@@ -307,8 +325,8 @@ class CacheGuessingGameEnv(gym.Env):
     is_flush = action[3]                                              # check whether to flush
     victim_addr = hex(action[4] + self.victim_address_min)[2:]            # victim address
     is_victim_random = action[5]
-    info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min
-
+    info['attacker_address'] = action[0] #TODO check wether to +self.attacker_address_min --> this returns the cache_set number
+    #TODO 6/12/2023 new info needed. attacker set,way and victim
     victim_latency = None
     # if self.current_step > self.window_size : # if current_step is too long, terminate
     if self.step_count >= self.window_size - 1:
@@ -328,12 +346,12 @@ class CacheGuessingGameEnv(gym.Env):
             if is_victim_random == True:
                 victim_random = random.randint(self.victim_address_min, self.victim_address_max)
                 self.vprint("victim random access %d " % victim_random)
-                t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step, domain_id='v')
+                t, evict_addr, [set_index, way_index] = self.l1.read(hex(self.ceaser_mapping(victim_random))[2:], self.current_step)#, domain_id='v')
                 t = t.time 
                 info['victim_address'] = victim_random
             elif self.victim_address <= self.victim_address_max:
                 self.vprint("victim access %d " % self.victim_address)
-                t, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step, domain_id='v')
+                t, evict_addr, [set_index, way_index] = self.l1.read(hex(self.ceaser_mapping(self.victim_address))[2:], self.current_step)#, domain_id='v')
                 t = t.time # do not need to lock again
             else:
                 self.vprint("victim make a empty access!") # do not need to actually do something
@@ -389,7 +407,7 @@ class CacheGuessingGameEnv(gym.Env):
               reward = self.wrong_reward #-9999
               done = True
         elif is_flush == False or self.flush_inst == False:
-          lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step, domain_id='a')
+          lat, evict_addr, [set_index, way_index] = self.l1.read(hex(self.ceaser_mapping(int('0x' + address, 16)))[2:], self.current_step)#, domain_id='a')
           lat = lat.time # measure the access latency
           if lat > 500:
             self.vprint("access " + address + " miss")
@@ -401,13 +419,15 @@ class CacheGuessingGameEnv(gym.Env):
           reward = self.step_reward #-1 
           done = False
         else:    # is_flush == True
-          self.l1.cflush(address, self.current_step, domain_id='X')
+          self.l1.cflush(address, self.current_step)#, domain_id='X')
           #cflush = 1
           self.vprint("cflush " + address )
           r = 2
           self.current_step += 1
           reward = self.step_reward
           done = False
+
+    # lbits = self.l1.get_locked_bits()
     #return observation, reward, done, info
     if done == True and is_guess != 0:
       info["is_guess"] = True
@@ -435,7 +455,7 @@ class CacheGuessingGameEnv(gym.Env):
         victim_accessed = 0
     
 
-
+    #r = cache miss or hit, 
     ####self.state = [r, action[0], current_step, victim_accessed] + self.state 
     #Xiaomeng
     # self.state = [r, victim_accessed, original_action, current_step ] + self.state  
@@ -475,14 +495,31 @@ class CacheGuessingGameEnv(gym.Env):
             else:
                 cache_state_change = r ^ self.last_state
             self.last_state = r
+    #things to be printed in the sample_multiagent
+    self.vprint('locked bits at the end of attacker step: ' + str(self.l1.get_locked_bits()))
+    self.vprint('opponent reward printing from the cache guessing game side:  ', reward, "    done:  ", done)
+    table = print_cache(self.l1)
+    self.vprint(table)
+
 
     info["cache_state_change"] = cache_state_change
 
-    info["cyclic_way_index"] = cyclic_way_index
-    info["cyclic_set_index"] = cyclic_set_index
-
+    info["way_index"] = way_index
+    info["set_index"] = int(set_index,2)
+    # print("$$$$$$$$$$$ address : ", address)
+    # print("print to check the info and action of the attacker :  ", info)
+    # print("print to check the info and action of the attacker222:  ", type(info["set_index"]), type(info["way_index"]))
+    self.Data1 = np.array(list(reversed(self.state)))
+    self.Data2 = reward
+    self.Data3 = done
+    self.Data4 = info
     return np.array(list(reversed(self.state))), reward, done, info
+  
+  def get_infos(self):
+    return self.Data1, self.Data2, self.Data3, self.Data4
 
+  def get_data(self):
+    return self.Data1, self.Data2
   def reset(self,
             victim_address=-1,
             reset_cache_state=False,
@@ -500,6 +537,9 @@ class CacheGuessingGameEnv(gym.Env):
         self._randomize_cache()
       else:
         self.seed_randomization(seed)
+      self.vprint("********cache after being reset********")
+      table = print_cache(self.l1)
+      self.vprint(table)
     else:
       self.vprint('Reset...(cache state the same)')
 
@@ -517,8 +557,8 @@ class CacheGuessingGameEnv(gym.Env):
     if self.configs['cache_1']["rep_policy"] == "plru_pl": # pl cache victim access always uses locked access
       assert(self.victim_address_min == self.victim_address_max) # for plru_pl cache, only one address is allowed
       self.vprint("[reset] victim access %d locked cache line" % self.victim_address_max)
-      lat, cyclic_set_index, cyclic_way_index = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK, domain_id='v')
-
+      lat, evict_addr, _ = self.l1.read(hex(self.ceaser_mapping(self.victim_address_max))[2:], self.current_step, replacement_policy.PL_LOCK)#, domain_id='v')
+  
     self.last_state = None
 
     return np.array(list(reversed(self.state)))
@@ -601,8 +641,8 @@ class CacheGuessingGameEnv(gym.Env):
       random.seed(seed)
   # def _randomize_cache(self, mode = "attacker"):
     if mode == "attacker":
-      self.l1.read(hex(self.ceaser_mapping(0))[2:], -2, domain_id='X')
-      self.l1.read(hex(self.ceaser_mapping(1))[2:], -1, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(0))[2:], -2)#, domain_id='X')
+      self.l1.read(hex(self.ceaser_mapping(1))[2:], -1)#, domain_id='X')
       return
     
     if mode == "none":
@@ -627,7 +667,9 @@ class CacheGuessingGameEnv(gym.Env):
         addr = random.randint(0, sys.maxsize)
       else:
         raise RuntimeError from None
-      self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step, domain_id='X')
+      # print("checking the mode:   ", mode, "  ", addr, "  ", self.current_step)
+      # print("checking the created cache:  ", self.l1.n_blocks)
+      self.l1.read(hex(self.ceaser_mapping(addr))[2:], self.current_step)#, domain_id='X')
       self.current_step += 1
 
   def get_obs_space_dim(self):
@@ -678,12 +720,128 @@ class CacheGuessingGameEnv(gym.Env):
     return [ address, is_guess, is_victim, is_flush, victim_addr, is_victim_random ] 
 
 
+def print_cache(cache):
+    # Print the contents of a cache as a table
+    # If the table is too long, it will print the first few sets,
+    # break, and then print the last set
+    table_size = 5
+    ways = [""]
+    sets = []
+    set_indexes = sorted(cache.data.keys())
+    
+    if len(cache.data.keys()) > 0:
+        way_no = 0
+
+        # Label the columns
+        for way in range(cache.associativity):
+            ways.append("Way " + str(way_no))
+            way_no += 1
+
+        # Print either all the sets if the cache is small, or just a few
+        # sets and then the last set
+        sets.append(ways)
+        if len(set_indexes) > table_size + 4 - 1:
+            for s in range(min(table_size, len(set_indexes) - 4)):
+                set_ways = cache.data[set_indexes[s]].keys()
+                temp_way = ["Set " + str(s)]
+                for w in set_ways:
+                    temp_way.append(cache.data[set_indexes[s]][w].address)
+                for w in range(0, cache.associativity):
+                    temp_way.append(cache.data[set_indexes[s]][w][1].address)
+                sets.append(temp_way)
+
+            for i in range(3):
+                temp_way = ['.']
+                for w in range(cache.associativity):
+                    temp_way.append('')
+                sets.append(temp_way)
+
+            set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
+            temp_way = ['Set ' + str(len(set_indexes) - 1)]
+            for w in range(0, cache.associativity):
+                temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w][1].address)
+                for w in set_ways:
+                    temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w].address)
+            sets.append(temp_way)
+            
+        else:
+            for s in range(len(set_indexes)):
+                temp_way = ["Set " + str(s)]
+                for w in range(0, cache.associativity):
+                    temp_way.append(cache.data[set_indexes[s]][w][1].address)
+                sets.append(temp_way)
+
+                # add additional rows only if the replacement policy = lru_lock_policy
+                if cache.rep_policy == lru_lock_policy:
+                    lock_info = ["Lock bit"]
+
+                    lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
+
+                    for w in range(0, len(lock_vector_array)):
+                        lock_info.append(lock_vector_array[w])
+                    sets.append(lock_info)
+
+                    timestamp = ["Timestamp"]
+                    for w in range(0, cache.associativity):
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                            timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                            print(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                        else:
+                            timestamp.append(0)
+                    sets.append(timestamp)
+                elif cache.rep_policy == new_plru_pl_policy: # add a new row to the table to show the lock bit in the plru_pl_policy cache
+                    lock_info = ["Lock bit"]
+
+                    lockarray = cache.set_rep_policy[set_indexes[s]].lockarray
+
+                    for w in range(0, len(lockarray)):
+                        if lockarray[w] == 2:
+                            lock_info.append("unlocked")
+                        elif lockarray[w] == 1:
+                            lock_info.append("locked")
+                        elif lockarray[w] == 0:
+                            lock_info.append("unknown")
+                        else:
+                            lock_info.append(lockarray[w])
+                    sets.append(lock_info)
+                elif cache.rep_policy == lru_policy:  # or cache.rep_policy == lru_lock_policy:
+                    timestamp = ["Timestamp"]
+                    for w in range(0, cache.associativity):
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                            timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                            print(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                        else:
+                            timestamp.append(0)
+                            
+                    sets.append(timestamp)
+                    # print(timestamp)
+
+        # table = UnixTable(sets)
+        # table.title = cache.name
+        # table.inner_row_border = True
+        # table_lines = table.table
+        max_col_widths = [max(len(item) for item in col) for col in zip(*sets)]
+        # Construct the formatted table string
+        table_string = ""
+        for row in sets:
+          formatted_row = [item.rjust(width) for item, width in zip(row, max_col_widths)]
+          table_string += "|" + "|".join(formatted_row) + "|\n"
+
+        # Add a separator line after the header
+        table_string = table_string + "-" * (sum(max_col_widths) + len(max_col_widths) + 1) + "\n"
+        return table_string
+
+
+
+
+
 if __name__ == '__main__':
     env = CacheGuessingGameEnv()
     obs = env.reset()
     done = False
     i=0
+    print(env.l1.rep_policy)
     while not done:
         i+=1
         obs, reward, done, info = env.step(np.random.randint(9))
-        print("step ", i, ":", obs, reward, done, info) 
+        # print("step ", i, ":", obs, reward, done, info) 

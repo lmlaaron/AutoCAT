@@ -24,7 +24,7 @@ from rlmeta.core.callbacks import EpisodeCallbacks
 from rlmeta.core.types import Action, TimeStep
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from env import CacheEnvWrapperFactory
+from env.cache_env_factory import CacheEnvWrapperFactory
 from model import CachePPOTransformerModel
 from metric_callbacks import MetricCallbacks
 

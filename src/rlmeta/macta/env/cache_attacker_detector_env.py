@@ -13,6 +13,13 @@ import hydra
 import gym
 
 from .cache_guessing_game_env import CacheGuessingGameEnv
+from omegaconf.omegaconf import open_dict
+sys.path.append(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+from cache_simulator import *
+import replacement_policy
 
 
 class CacheAttackerDetectorEnv(gym.Env):
@@ -213,10 +220,12 @@ class CacheAttackerDetectorEnv(gym.Env):
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
         #print(obs["detector"])
+        # print("opponent agent is : ", self.opponent_agent)
+        print_cache(self._env.l1)
         return obs, reward, done, info
 
 
-@hydra.main(config_path="../config", config_name="macta_ppo")
+@hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
     env = CacheAttackerDetectorEnv(cfg.env_config)
     env.opponent_weights = [0, 1]
@@ -236,6 +245,7 @@ def main(cfg):
                 'detector': np.random.randint(low=0, high=1)
             }
             prev_a = action['attacker']
+            print("actions:  ", action)
             obs, reward, done, info = env.step(action)
             #print("obs: ", obs['detector'])
             print("action: ", action)
@@ -250,6 +260,110 @@ def main(cfg):
                 print(info['attacker'])
         obs = env.reset()
         done = {'__all__': False}
+
+
+
+def print_cache(cache):
+    # Print the contents of a cache as a table
+    # If the table is too long, it will print the first few sets,
+    # break, and then print the last set
+    table_size = 5
+    ways = [""]
+    sets = []
+    set_indexes = sorted(cache.data.keys())
+    
+    if len(cache.data.keys()) > 0:
+        way_no = 0
+
+        # Label the columns
+        for way in range(cache.associativity):
+            ways.append("Way " + str(way_no))
+            way_no += 1
+
+        # Print either all the sets if the cache is small, or just a few
+        # sets and then the last set
+        sets.append(ways)
+        if len(set_indexes) > table_size + 4 - 1:
+            for s in range(min(table_size, len(set_indexes) - 4)):
+                set_ways = cache.data[set_indexes[s]].keys()
+                temp_way = ["Set " + str(s)]
+                for w in set_ways:
+                    temp_way.append(cache.data[set_indexes[s]][w].address)
+                for w in range(0, cache.associativity):
+                    temp_way.append(cache.data[set_indexes[s]][w][1].address)
+                sets.append(temp_way)
+
+            for i in range(3):
+                temp_way = ['.']
+                for w in range(cache.associativity):
+                    temp_way.append('')
+                sets.append(temp_way)
+
+            set_ways = cache.data[set_indexes[len(set_indexes) - 1]].keys()
+            temp_way = ['Set ' + str(len(set_indexes) - 1)]
+            for w in range(0, cache.associativity):
+                temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w][1].address)
+                for w in set_ways:
+                    temp_way.append(cache.data[set_indexes[len(set_indexes) - 1]][w].address)
+            sets.append(temp_way)
+            
+        else:
+            for s in range(len(set_indexes)):
+                temp_way = ["Set " + str(s)]
+                for w in range(0, cache.associativity):
+                    temp_way.append(cache.data[set_indexes[s]][w][1].address)
+                sets.append(temp_way)
+
+                # add additional rows only if the replacement policy = lru_lock_policy
+                if cache.rep_policy == lru_lock_policy:
+                    lock_info = ["Lock bit"]
+
+                    lock_vector_array = cache.set_rep_policy[set_indexes[s]].lock_vector_array
+
+                    for w in range(0, len(lock_vector_array)):
+                        lock_info.append(lock_vector_array[w])
+                    sets.append(lock_info)
+
+                    timestamp = ["Timestamp"]
+                    for w in range(0, cache.associativity):
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                            timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                            print(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                        else:
+                            timestamp.append(0)
+                    sets.append(timestamp)
+                elif cache.rep_policy == new_plru_pl_policy: # add a new row to the table to show the lock bit in the plru_pl_policy cache
+                    lock_info = ["Lock bit"]
+
+                    lockarray = cache.set_rep_policy[set_indexes[s]].lockarray
+
+                    for w in range(0, len(lockarray)):
+                        if lockarray[w] == 2:
+                            lock_info.append("unlocked")
+                        elif lockarray[w] == 1:
+                            lock_info.append("locked")
+                        elif lockarray[w] == 0:
+                            lock_info.append("unknown")
+                        else:
+                            lock_info.append(lockarray[w])
+                    sets.append(lock_info)
+                elif cache.rep_policy == lru_policy:  # or cache.rep_policy == lru_lock_policy:
+                    timestamp = ["Timestamp"]
+                    for w in range(0, cache.associativity):
+                        if cache.data[set_indexes[s]][w][0] != INVALID_TAG:
+                            timestamp.append(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                            print(cache.set_rep_policy[set_indexes[s]].blocks[cache.data[set_indexes[s]][w][0]].last_accessed)
+                        else:
+                            timestamp.append(0)
+                            
+                    sets.append(timestamp)
+                    # print(timestamp)
+
+        table = UnixTable(sets)
+        table.title = cache.name
+        table.inner_row_border = True
+        print(table.table)
+        return set_indexes
 
 
 if __name__ == "__main__":

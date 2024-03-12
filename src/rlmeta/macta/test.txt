@@ -1,0 +1,8 @@
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 2, 'hit_time': 1, 'rep_policy': 'new_plru_pl'}, 'mem': {'hit_time': 1000}} 
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 2, 'hit_time': 1, 'rep_policy': 'new_plru_pl'}, 'mem': {'hit_time': 1000}} 
+['randomLocker', '']
+['MACTA-attacker-4', '/localdata/erfan/research/AutoCAT/src/rlmeta/macta/outputs/2024-03-06/18-04-39/attacker-749.pth']
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 2, 'hit_time': 1, 'rep_policy': 'new_plru_pl'}, 'mem': {'hit_time': 1000}} 
+ {'architecture': {'word_size': 1, 'block_size': 1, 'write_back': True}, 'cache_1': {'blocks': 4, 'associativity': 2, 'hit_time': 1, 'rep_policy': 'new_plru_pl'}, 'mem': {'hit_time': 1000}} 
+['randomLocker', '']
+['MACTA-attacker-4', '/localdata/erfan/research/AutoCAT/src/rlmeta/macta/outputs/2024-03-06/18-04-39/attacker-749.pth']

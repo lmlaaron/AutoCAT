@@ -6,3 +6,5 @@ from .prime_probe_agent import PrimeProbeAgent
 from .evict_reload_agent import EvictReloadAgent
 from .cchunter_agent import CCHunterAgent
 from .cyclone_agent import CycloneAgent
+from .locker_agent import LockerAgent
+from .rand_locker_agent import RandLockerAgent

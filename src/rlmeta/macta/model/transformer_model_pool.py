@@ -74,7 +74,7 @@ class CachePPOTransformerModelPool(CachePPOTransformerModel):
             try:
                 x = obs.to(self._device)
             except:
-                print(obs)
+                print("look at obs --------------------------------------------------> ", obs)
             d = deterministic_policy.to(self._device)
             logpi, v = self.forward(x)
 
