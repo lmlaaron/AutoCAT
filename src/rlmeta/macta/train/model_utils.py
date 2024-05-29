@@ -17,7 +17,6 @@ def get_model(cfg: Dict[str, Any],
     if "window_size" in cfg.args:
         cfg.args.window_size = window_size
     cfg.args.output_dim = int(output_dim)
-
     # model = None
     # if cfg.type == "mlp":
     #     model = CachePPOMlpModel(**cfg.args)
@@ -42,8 +41,10 @@ class Policy(ProbSeq):
         backbone = module.get_backbone()
         prob = ProbMod(in_keys=["logits"], out_keys=["action"], distribution_class=torch.distributions.OneHotCategorical, return_log_prob=True)
         super().__init__(backbone, actor, value, prob)
-        for m in self.modules():
-            assert not m._is_stateless, m
+        # print(self.modules().shape)
+        # for m in self.modules():
+            # print("in for loop: ", m)
+            # assert not m._is_stateless, m
 
     def get_actor(self):
         return ProbSeq(self[0], self[1], self[3])

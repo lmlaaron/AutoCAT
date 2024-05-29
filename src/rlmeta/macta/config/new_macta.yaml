@@ -17,33 +17,33 @@ cd_server_name: "cd_server"
 cd_server_addr: "127.0.0.1:4733"
 
 train_device: "cuda:1"
-infer_device: "cuda:2"
+infer_device: "cuda:0"
 train_device_d: "cuda:1" #"cuda:2"
 infer_device_d: "cuda:0" #"cuda:3"
 
-num_train_rollouts: 72 #72 #48 #24
+num_train_rollouts: 24 #72 #48 #24
 num_train_workers: 24  #24
 
 num_eval_rollouts: 12 #2
 num_eval_workers: 4 #2
 
 #attacker_checkpoint: "/localdata/vishnu/facebookresearch/macta/src/rlmeta/macta/outputs/2023-07-21/00-03-30/attacker-2949.pth"
-attacker_checkpoint: "/localdata/erfan/research/AutoCAT/src/rlmeta/macta/outputs/2024-01-17/12-24-40/ppo_agent-99.pth"
+attacker_checkpoint: "/home/erfani/AutoCAT/src/rlmeta/macta/outputs/2024-01-17/12-24-40/ppo_agent-99.pth"
 #detector_checkpoint: "/localdata/vishnu/facebookresearch/macta/checkpoints/macta_attacker_pretrain/attacker-99.pth"
 
 trace_files: [
-  "/localdata/vishnu/SPEC_traces/spectrace_500-2M_500-4M.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_502-2M_502-4M.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_505-2M_505-4M.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_500_502_2000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_500_505_2000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_502_505_2000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_500_502_6000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_500_505_6000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_502_505_6000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_500_502_10000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_500_505_10000000.txt",
-  "/localdata/vishnu/SPEC_traces/spectrace_502_505_10000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_500-2M_500-4M.txt",
+  "/home/erfani/SPEC_traces/spectrace_502-2M_502-4M.txt",
+  "/home/erfani/SPEC_traces/spectrace_505-2M_505-4M.txt",
+  "/home/erfani/SPEC_traces/spectrace_500_502_2000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_500_505_2000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_502_505_2000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_500_502_6000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_500_505_6000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_502_505_6000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_500_502_10000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_500_505_10000000.txt",
+  "/home/erfani/SPEC_traces/spectrace_502_505_10000000.txt",
   # "/localdata/vishnu/SPEC_traces/spectrace_548-2M_548-4M.txt",
   #"/localdata/vishnu/SPEC_traces/spectrace_548-2M_631-2M.txt",
   #"/localdata/vishnu/SPEC_traces/spectrace_548-2M_638-2M.txt",

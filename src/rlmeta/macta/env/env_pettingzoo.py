@@ -18,7 +18,7 @@ from gymnasium import spaces
 # from gym import spaces
 from gymnasium.spaces import Discrete, Box 
 
-from .cache_guessing_game_env import CacheGuessingGameEnv
+from cache_guessing_game_env import CacheGuessingGameEnv
 
 from omegaconf.omegaconf import open_dict
 sys.path.append(
@@ -60,7 +60,7 @@ class CacheAttackerDefenderEnv(AECEnv):
                     "action_mask": spaces.Box(low=0, high=1, shape=(9,), dtype=np.int8),
                 }
             )
-            for i in self.agents
+            for i in self.possible_agents
         }
         self._action_spaces = {'opponent': self._env.action_space,
                                 'detector' : Discrete(16)}
@@ -121,7 +121,7 @@ class CacheAttackerDefenderEnv(AECEnv):
     
     def get_detector_obs(self, opponent_obs, opponent_info):
         cur_opponent_obs = copy.deepcopy(opponent_obs[0])
-        cur_obs = [-1,-1,-1,-1,-1,-1]
+        cur_obs = [cur_opponent_obs[0],-1,-1,-1,-1,-1]
         # TODO add the set,way instead of obs[2] 
         if not np.any(cur_opponent_obs==-1):
             if opponent_info.get('invoke_victim'):
@@ -188,7 +188,13 @@ class CacheAttackerDefenderEnv(AECEnv):
         opponent_attack_success = False
         # info = {}
         # detector_done = False
-        data1, data2 = self._env.get_data()
+        states, opponent_done, info = self._env.get_data()
+        # print("data1  ", states)
+        # print("data2  ", info)
+        if opponent_done:
+            self.agent_selection = self._agent_selector.next()
+            agent = self.agent_selection
+            print("the agent is changed:  ", agent)
         if agent == 'detector':
             if action > 15 :
                 pass
@@ -196,7 +202,7 @@ class CacheAttackerDefenderEnv(AECEnv):
                 bin_rep = bin_rep = format(action, '04b')  
                 detector_action = str(bin_rep)
             self._env.l1.detector_func(detector_action)
-            self.observations['detector'] = self.get_detector_obs(data1, data2) 
+            self.observations['detector'] = self.get_detector_obs(states, info) 
             self.step_count += 1
             print("check if detector's actions are working------->  ", detector_action)
         
@@ -209,7 +215,7 @@ class CacheAttackerDefenderEnv(AECEnv):
             if opponent_done:
                 opponent_obs = self._env.reset(reset_cache_state=True)
                 self.victim_address = self._env.victim_address
-                self.step_count -= 1 # The reset/guess step should not be counted
+                # self.step_count -= 1 # The reset/guess step should not be counted
             if self.step_count >= self.max_step:
                 detector_done = True
             else:
@@ -230,6 +236,7 @@ class CacheAttackerDefenderEnv(AECEnv):
         self.rewards['detector'] = updated_reward['detector']
         self.infos['detector'] = {"guess_correct":updated_info["guess_correct"], "is_guess":bool(action)}
         self.agent_selection = self._agent_selector.next()
+        print("opponent done:  ", opponent_done)
         print(self.rewards)
         print(self.observations)
         return self.observations, self.rewards, self.terminations, self.truncations, self.infos

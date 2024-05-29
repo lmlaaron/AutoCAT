@@ -84,7 +84,6 @@ def main(cfg):
 
     rb_d = ReplayBuffer(cfg.replay_buffer_size)
     # =========================================================================
-
     #### start server
     # =========================================================================
     m_server = Server(cfg.m_server_name, cfg.m_server_addr)
@@ -180,7 +179,6 @@ def main(cfg):
                                legacy_trace_format=cfg.legacy_trace_format)
 
 
-
     #### detector agent
     a_model_d = wrap_downstream_model(train_model_d, md_server)
     t_model_d = remote_utils.make_remote(infer_model_d, md_server)
@@ -249,11 +247,12 @@ def main(cfg):
     loops = LoopList([ta_loop, td_loop, ea_loop, ed_loop])
 
     servers.start()
+    time.sleep(60)
     loops.start()
+    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
     agent.connect()
     agent_d.connect()
     a_ctrl.connect()
-
     start_time = time.perf_counter()
     for epoch in range(cfg.num_epochs):
         a_stats, d_stats = None, None

@@ -104,6 +104,8 @@ class CacheGuessingGameEnv(gym.Env):
     temp_list = []
     self.Data1 = np.array(temp_list)
     self.Data2 = {}
+    self.Data3 = {}
+    self.Data4 = {}
     # prefetcher
     # pretetcher: "none" "nextline" "stream"
     # cf https://my.eng.utah.edu/~cs7810/pres/14-7810-13-pref.pdf
@@ -286,7 +288,8 @@ class CacheGuessingGameEnv(gym.Env):
     self.guess_buffer = [False] * self.guess_buffer_size
 
   def print_sample_multiagent(self, obs, reward, done, info, opponent_agent):
-    self.vprint('attacker reward:  ', reward['attacker'], 'detector reward:  ', reward['detector'], "    done:  ", done['detector'])
+    self.vprint('attacker reward:  ', reward['attacker'], 'detector reward:  ', reward['defender'], "    done:  ", done['defender'])
+    self.vprint("observations: ", obs)
     self.vprint('opponent :  ', opponent_agent)
 
   # remap the victim address range
@@ -506,6 +509,12 @@ class CacheGuessingGameEnv(gym.Env):
 
     info["way_index"] = way_index
     info["set_index"] = int(set_index,2)
+    locked_bits = self.l1.get_locked_bits()
+    count = 0
+    for i in locked_bits:
+       if i == 1:
+          count += 1
+    info["locked_count"] = count
     # print("$$$$$$$$$$$ address : ", address)
     # print("print to check the info and action of the attacker :  ", info)
     # print("print to check the info and action of the attacker222:  ", type(info["set_index"]), type(info["way_index"]))
@@ -519,7 +528,7 @@ class CacheGuessingGameEnv(gym.Env):
     return self.Data1, self.Data2, self.Data3, self.Data4
 
   def get_data(self):
-    return self.Data1, self.Data2
+    return self.Data1, self.Data3, self.Data4
   def reset(self,
             victim_address=-1,
             reset_cache_state=False,
@@ -600,7 +609,9 @@ class CacheGuessingGameEnv(gym.Env):
 
   def set_victim(self, victim_address=-1):
     self.victim_address = victim_address
-
+  def get_victim(self):
+    return self.victim_address
+    
   # fake reset, just set a new victim addr 
   def _reset(self, victim_address=-1):
     self.current_step = 0

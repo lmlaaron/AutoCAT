@@ -70,13 +70,27 @@ def main(cfg):
     #### attacker
     cfg.model_config["output_dim"] = env.action_space.n
     print("*******************,  ", env.action_space.n)
+
+
     train_model = CachePPOTransformerModelPool(**cfg.model_config).to(
         cfg.train_device)
     attacker_checkpoint = cfg.attacker_checkpoint
+
+    attacker_pool_params1 = torch.load(cfg.attacker_pool1, map_location=cfg.train_device)
+    train_model.push_to_history(attacker_pool_params1)
+    attacker_pool_params2 = torch.load(cfg.attacker_pool2, map_location=cfg.train_device)
+    train_model.push_to_history(attacker_pool_params2)
+    attacker_pool_params3 = torch.load(cfg.attacker_pool3, map_location=cfg.train_device)
+    train_model.push_to_history(attacker_pool_params3)
+    attacker_pool_params4 = torch.load(cfg.attacker_pool4, map_location=cfg.train_device)
+    train_model.push_to_history(attacker_pool_params4)
+    attacker_pool_params5 = torch.load(cfg.attacker_pool5, map_location=cfg.train_device)
+    train_model.push_to_history(attacker_pool_params5)
+
     if len(attacker_checkpoint) > 0:
         attacker_params = torch.load(cfg.attacker_checkpoint, map_location=cfg.train_device)
         train_model.load_state_dict(attacker_params)
-
+    # train_model.eval()
     optimizer = torch.optim.Adam(train_model.parameters(), lr=cfg.lr)
 
     infer_model = copy.deepcopy(train_model).to(cfg.infer_device)
@@ -89,6 +103,10 @@ def main(cfg):
     cfg.model_config["step_dim"] += 2
     train_model_d = CachePPOTransformerModelPoolDefender(**cfg.model_config).to(
         cfg.train_device_d)
+    train_model_d.train()
+    # if len(cfg.detector_checkpoint) > 0:
+    #     d_params = torch.load(cfg.detector_checkpoint, map_location=cfg.train_device)
+    #     train_model_d.load_state_dict(d_params)
     optimizer_d = torch.optim.Adam(train_model_d.parameters(), lr=cfg.lr)
 
     infer_model_d = copy.deepcopy(train_model_d).to(cfg.infer_device_d)
@@ -143,6 +161,7 @@ def main(cfg):
     ea_agent_fac = AgentFactory(PPOAgent, ea_model, deterministic_policy=True)
     ed_agent_fac = AgentFactory(PPOAgent, ed_model, deterministic_policy=True)
     #### random detector
+    
     '''
     detector = RandomAgent(2)
     t_d_fac = AgentFactory(RandomAgent, 2)
@@ -209,6 +228,8 @@ def main(cfg):
                      batch_size=cfg.batch_size,
                      learning_starts=cfg.get("learning_starts", None),
                      entropy_coeff=cfg.get("entropy_coeff", 0.01),
+                     entropy_decay = False,
+                     defender = True,
                      push_every_n_steps=cfg.push_every_n_steps)
     td_d_fac = AgentFactory(PPOAgent, t_model_d, replay_buffer=t_rb_d)
     ta_d_fac = AgentFactory(PPOAgent, ta_model_d, deterministic_policy=True)
@@ -216,10 +237,10 @@ def main(cfg):
     ed_d_fac = AgentFactory(PPOAgent, ed_model_d, deterministic_policy=True)
 
     #### create agent list
-    ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "detector":ta_d_fac}
-    td_ma_fac = {"benign":t_b_fac, "attacker":td_agent_fac, "detector":td_d_fac}
-    ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "detector":ea_d_fac}
-    ed_ma_fac = {"benign":e_b_fac, "attacker":ed_agent_fac, "detector":ed_d_fac}
+    ta_ma_fac = {"benign":t_b_fac, "attacker":ta_agent_fac, "defender":ta_d_fac}
+    td_ma_fac = {"benign":t_b_fac, "attacker":td_agent_fac, "defender":td_d_fac}
+    ea_ma_fac = {"benign":e_b_fac, "attacker":ea_agent_fac, "defender":ea_d_fac}
+    ed_ma_fac = {"benign":e_b_fac, "attacker":ed_agent_fac, "defender":ed_d_fac}
 
     ta_loop = MAParallelLoop(env_fac_unbalanced,
                           ta_ma_fac,
@@ -261,43 +282,97 @@ def main(cfg):
     loops = LoopList([ta_loop, td_loop, ea_loop, ed_loop])
 
     servers.start()
+    # time.sleep(120)
     loops.start()
     agent.connect()
     agent_d.connect()
     a_ctrl.connect()
 
     start_time = time.perf_counter()
+    turn = 1
+    attacker_count = 0
+    defender_count = 0
+    is_attacker = 0
+
     for epoch in range(cfg.num_epochs):
-    # for epoch in range(1):
+    # for epoch in range(10):
         a_stats, d_stats = None, None
         a_ctrl.set_phase(Phase.TRAIN, reset=True)
-        if epoch % 200 >= 50:
-            # Train Detector
-            agent_d.set_use_history(False)
-            agent.set_use_history(True)
-            agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
-            d_stats = agent_d.train(cfg.steps_per_epoch)
-            #wandb_logger.save(epoch, train_model_d, prefix="detector-")
-            torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
-            train_stats = {"detector":d_stats}
-            if epoch % 10 == 9:
-                    agent_d.model.push_to_history()
-
-        else:
-            # Train Attacker
-            agent_d.set_use_history(True)
-            agent.set_use_history(False)
-            agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
-            if epoch >=50:
-                a_stats = agent.train(cfg.steps_per_epoch)
-            else:
-                a_stats = agent.train(0)
+        # if turn == 0:
+        if epoch < 200:
+            if epoch % 200 >= 50:
+                # Train Detector
+                print("agent being trained: defender, Epoch: ", epoch)
+                is_attacker = 0
+                defender_count += 1
+                agent_d.set_use_history(False)
+                agent.set_use_history(True)
+                agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
+                d_stats = agent_d.train(cfg.steps_per_epoch, 0)
+                #wandb_logger.save(epoch, train_model_d, prefix="detector-")
                 torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
-            #wandb_logger.save(epoch, train_model, prefix="attacker-")
-            torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
-            train_stats = {"attacker":a_stats}
-            if epoch % 10 == 9:
-                agent.model.push_to_history()
+                train_stats = {"defender":d_stats}
+                # print("this is the train stats: ", (train_stats["detector"].dict()["attacker_correct_rate"]["mean"]))
+                # if defender_count == 150:
+                #     turn = 1
+                #     defender_count = 0
+                if epoch % 10 == 9:
+                        agent_d.model.push_to_history()
+
+            else:
+                # Train Attacker
+                print("agent being trained: Attacker, Epoch: ", epoch)
+                is_attacker = 1
+                agent_d.set_use_history(False)
+                agent.set_use_history(False)
+                agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
+                if epoch >=50:
+                    a_stats = agent.train(cfg.steps_per_epoch, 1)
+                else:
+                    a_stats = agent.train(0, 1)
+                    torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+                #wandb_logger.save(epoch, train_model, prefix="attacker-")
+                torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
+                train_stats = {"attacker":a_stats}
+                if epoch % 10 == 9:
+                    agent.model.push_to_history()
+        else:
+            if turn:
+                # Train Detector
+                print("agent being trained: defender, Epoch: ", epoch)
+                is_attacker = 0
+                agent_d.set_use_history(False)
+                agent.set_use_history(True)
+                agent_d.controller.set_phase(Phase.TRAIN_DETECTOR, reset=True)
+                d_stats = agent_d.train(cfg.steps_per_epoch, 0)
+                #wandb_logger.save(epoch, train_model_d, prefix="detector-")
+                torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+                train_stats = {"defender":d_stats}
+                # print("this is the train stats: ", (train_stats["detector"].dict()["attacker_correct_rate"]["mean"]))
+                # if defender_count == 150:
+                #     turn = 1
+                #     defender_count = 0
+                if epoch % 10 == 9:
+                        agent_d.model.push_to_history()
+            else:
+                # Train Attacker
+                attacker_count += 1
+                print("agent being trained: Attacker, Epoch: ", epoch)
+                is_attacker = 1
+                agent_d.set_use_history(False)
+                agent.set_use_history(False)
+                agent.controller.set_phase(Phase.TRAIN_ATTACKER, reset=True)
+                if epoch >=50:
+                    a_stats = agent.train(cfg.steps_per_epoch, 1)
+                else:
+                    a_stats = agent.train(0, epoch)
+                    torch.save(train_model_d.state_dict(), f"detector-{epoch}.pth")
+                #wandb_logger.save(epoch, train_model, prefix="attacker-")
+                torch.save(train_model.state_dict(), f"attacker-{epoch}.pth")
+                train_stats = {"attacker":a_stats}
+                if epoch % 10 == 9:
+                    agent.model.push_to_history()
+
 
         stats = a_stats or d_stats
 
@@ -319,21 +394,36 @@ def main(cfg):
         d_stats = agent_d.eval(cfg.num_eval_episodes)
         #stats = d_stats
         stats = a_stats
+        agent_trained_stats = {
+            "is_attacker": is_attacker
+        }
+        stats.extend(agent_trained_stats)
 
         cur_time = time.perf_counter() - start_time
         info = f"E Epoch {epoch}"
+        # print("zzzzzzzzzzzzzzzzzzzzz")
         if cfg.table_view:
             logging.info("\n\n" + stats.table(info, time=cur_time) + "\n")
         else:
             logging.info(
                 stats.json(info, phase="Eval", epoch=epoch, time=cur_time))
-        eval_stats = {"attacker":a_stats, "detector":d_stats}
+        eval_stats = {"attacker":a_stats, "defender":d_stats}
         time.sleep(1)
-
+        # print("mmmmmmmmmmmmmmmmmmm")
+        print(train_stats)
+        print(eval_stats)
+        if (turn == 1) and (eval_stats["attacker"].dict()["attacker_correct_rate"]["mean"] < 0.52):
+            turn = 0
+        #     attacker_count += 1
+        if attacker_count > 50:
+            turn = 1
+            attacker_count = 0
+        # print("chech stats; ", eval_stats["attacker"].dict()["attacker_correct_rate"]["mean"])
         wandb_logger.log(train_stats, eval_stats)
 
     loops.terminate()
     servers.terminate()
+    
 
 
 def add_prefix(input_dict, prefix=''):

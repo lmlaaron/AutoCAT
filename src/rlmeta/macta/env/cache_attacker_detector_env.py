@@ -219,9 +219,10 @@ class CacheAttackerDetectorEnv(gym.Env):
 
         for k, v in info.items():
             info[k].update({'action_mask': self.action_mask})
-        #print(obs["detector"])
+        # print("opponent done: ", opponent_done)
+        # print(obs)
         # print("opponent agent is : ", self.opponent_agent)
-        print_cache(self._env.l1)
+        # print_cache(self._env.l1)
         return obs, reward, done, info
 
 
@@ -239,10 +240,11 @@ def main(cfg):
             i += 1
             print("step: ", i)
             action = {
-                'attacker': 9 if (prev_a == 10 or i < 64) else
-                10,  #np.random.randint(low=9, high=11),
-                'benign': np.random.randint(low=2, high=5),
-                'detector': np.random.randint(low=0, high=1)
+                'attacker': #9 if (prev_a == 10 or i < 64) else 10,
+                    # np.random.randint(low=9, high=11),
+                    action_space.sample(),
+                'benign': action_space.sample(), #np.random.randint(low=2, high=5),
+                'detector': np.random.randint(low=0, high=2)
             }
             prev_a = action['attacker']
             print("actions:  ", action)

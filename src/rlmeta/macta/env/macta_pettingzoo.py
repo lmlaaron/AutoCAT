@@ -33,7 +33,7 @@ import replacement_policy
 
 class CacheAttackerDetectorEnv(AECEnv):
 
-    metadata = {"name": "macta_defender"}
+    metadata = {"name": "macta_detector"}
     def __init__(self,
                  env_config: Dict[str, Any],
                  keep_latency: bool = True,
@@ -199,20 +199,15 @@ class CacheAttackerDetectorEnv(AECEnv):
 
     def step(self, action):
         agent = self.agent_selection
+        # print("agent is:  ", agent, "   step count is :    ", self.step_count)
         #if self.step_count <=8: action['detector']=0
         # print("action:  ", action, "   agent: ", agent, "   step:", self.step_count)
-        # Attacker update
-        # action_info = action.get('info')
-        # #if self.opponent_agent == 'benign':
-        # if action_info:
-        #     benign_reset_victim = action_info.get('reset_victim_addr', False)
-        #     benign_victim_addr = action_info.get('victim_addr', None)
-        #     if self.opponent_agent == 'benign' and benign_reset_victim:
-        #         self._env.set_victim(benign_victim_addr)
-        #         self.victim_address = self._env.victim_address
+        
         if agent == "opponent":
+            # print("check if opponent's actions are working-------> ", action, self.opponent_agent)
             opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.step(action)
         if agent == "detector":
+            # print("check if detector's actions are working-------> ", action)
             opponent_obs, opponent_reward, opponent_done, opponent_info = self._env.get_infos()
 
 
@@ -239,6 +234,9 @@ class CacheAttackerDetectorEnv(AECEnv):
         self.rewards['opponent'] = updated_reward['opponent']
         self.rewards['detector'] = updated_reward['detector']
         self.terminations['detector'] = detector_done
+        if opponent_done:
+            self.agent_selection = self._agent_selector.next()
+            agent = self.agent_selection
         if agent == "detector":
             self.observations['detector'] = self.get_detector_obs(opponent_obs, opponent_info)
             self.infos['detector'] = {
@@ -257,36 +255,39 @@ class CacheAttackerDetectorEnv(AECEnv):
         # for k, v in info.items():
         #     info[k].update({'action_mask': self.action_mask})
         self.agent_selection = self._agent_selector.next()
+        # print("opponent done:  ", opponent_done)
         # print(self.rewards)
         # print(self.observations)
         return self.observations, self.rewards, self.terminations, self.truncations, self.infos
         
 @hydra.main(config_path="../config", config_name="macta")
 def main(cfg):
-    env = CacheAttackerDefenderEnv(cfg.env_config)
-    env.opponent_weights = [0,1]
-    # env = wrappers.AssertOutOfBoundsWrapper(env)
-    # env = wrappers.OrderEnforcingWrapper(env)
+    for _ in range(2):
+        env = CacheAttackerDetectorEnv(cfg.env_config)
+        env.opponent_weights = [0.5,0.5]
+        # env = wrappers.AssertOutOfBoundsWrapper(env)
+        # env = wrappers.OrderEnforcingWrapper(env)
+        
+        action_space = env.action_space
+        env.reset()
+        done = {'__all__':False}
+        prev_a = 10
     
-    action_space = env.action_space
-    env.reset()
-    done = {'__all__':False}
-    prev_a = 10
-    for agent in env.agent_iter():
-        observation, reward, termination, truncation, info = env.last()
+        for agent in env.agent_iter():
+            observation, reward, termination, truncation, info = env.last()
 
-        if termination or truncation:
-            print("probably the simulation is over : ", termination)
-            action = None
-            break
-        else:
-            action = env.action_space(agent).sample()
-            # this is where you would insert your policy
-            # action = {'attacker':np.random.randint(low=4, high=11), #np.random.randint(low=9, high=11),
-            #           'benign':np.random.randint(low=0, high=3),
-            #           'detector': np.random.randint(low=0, high=255)}
-        env.step(action)
-    env.close()
+            if termination or truncation:
+                print("probably the simulation is over : ", termination)
+                action = None
+                break
+            else:
+                action = env.action_space(agent).sample()
+                # this is where you would insert your policy
+                # action = {'attacker':np.random.randint(low=4, high=11), #np.random.randint(low=9, high=11),
+                #           'benign':np.random.randint(low=0, high=3),
+                #           'detector': np.random.randint(low=0, high=255)}
+            env.step(action)
+        env.close()
     # env.opponent_weights = [1,0]
     # env.reset()
     # for agent in env.agent_iter():

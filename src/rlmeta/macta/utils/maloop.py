@@ -194,8 +194,10 @@ class MAAsyncLoop(MALoop, Launchable):
         
         episode_length = 0.0
         episode_return = {}
+        locked_lines = {}
         for k,v in agent.items():
             episode_return[k] = 0.0
+            locked_lines[k] = 0
         start_time = time.perf_counter()
         if episode_callbacks is not None:
             episode_callbacks.reset()
@@ -230,10 +232,12 @@ class MAAsyncLoop(MALoop, Launchable):
             episode_length += 1
             for k, v in agent.items():
                 episode_return[k] += timestep[k].reward
+                locked_lines[k] += timestep[k].info["locked_count"]
+                # print("here is the reward in maloop", timestep[k].info["locked_count"])
             if episode_callbacks is not None:
                 episode_callbacks.on_episode_step(index, episode_length - 1,
                                                   action, timestep)
-
+        # print("here is the reward in maloop", episode_length, locked_lines)
         episode_time = time.perf_counter() - start_time
         steps_per_second = episode_length / episode_time
         if episode_callbacks is not None:
@@ -246,6 +250,7 @@ class MAAsyncLoop(MALoop, Launchable):
         }
         for k,v in agent.items():
             metrics.update({k+"_episode_return": episode_return[k]})
+            metrics.update({k+"_locked_lines": float(locked_lines[k]/episode_length)})
         if episode_callbacks is not None:
             metrics.update(episode_callbacks.custom_metrics)
 

@@ -1,4 +1,4 @@
-num_episodes: 10
+num_episodes: 100
 seed: 123 #123 1234 12345
 
 ###### Important: Use absolute path here as hydra will operate in a new directory.
@@ -21,7 +21,8 @@ attackers: [
 #            ["MACTA-attacker-2", "/localdata/vishnu/facebookresearch/macta/checkpoints/macta/exp2/attacker-1849.pth"],
             # ["MACTA-attacker-3", "/localdata/erfan/macta/checkpoints/macta/exp3/attacker-1849.pth"],
             # ["Benign", ""],
-            ["MACTA-attacker-4", "/localdata/erfan/research/AutoCAT/src/rlmeta/macta/outputs/2024-03-06/18-04-39/attacker-749.pth"]
+            # ["MACTA-attacker-4", "/home/erfani/AutoCAT/src/rlmeta/macta/outputs/2024-04-26/14-45-19/attacker-849.pth"]
+            ["MACTA-attacker-4", "/localdata/erfan/AutoCAT/src/rlmeta/macta/outputs/2024-05-15/08-15-31/attacker-649.pth"]
             ]
 detectors: [ 
 #            ["IBRPPO-detector-1","/localdata/vishnu/facebookresearch/macta/checkpoints/ibrppo/exp1/detector-1799.pth"],
@@ -43,10 +44,10 @@ detectors: [
             # ["MACTA-detector-13", "/localdata/erfan/macta/src/rlmeta/macta/outputs/2023-12-22/11-10-17/detector-1750.pth"],
             # ["MACTA-detector-14", "/localdata/erfan/macta/src/rlmeta/macta/outputs/2023-12-22/11-10-17/detector-1499.pth"],
             # ["MACTA-detector-15", "/localdata/erfan/macta/src/rlmeta/macta/outputs/2023-12-22/11-10-17/detector-1250.pth"],
-            # ["MACTA-detector-16", "/localdata/erfan/research/AutoCAT/src/rlmeta/macta/outputs/2024-02-26/09-23-11/detector-799.pth"],
+            ["MACTA-detector-16", "/localdata/erfan/AutoCAT/src/rlmeta/macta/outputs/2024-05-15/08-15-31/detector-863.pth"],
             # ["MACTA-detector-17", "/localdata/erfan/macta/src/rlmeta/macta/outputs/2023-12-22/11-10-17/detector-499.pth"],
             # ["Locker", ""],
-            ["randomLocker", ""],
+            # ["randomLocker", ""],
 #            ["Cyclone-1", "/localdata/vishnu/facebookresearch/macta/checkpoints/2023-02-25/16-47-09/cyclone.pkl"],
 #            ["Cyclone-2", "/localdata/vishnu/facebookresearch/macta/checkpoints/2023-02-25/16-47-28/cyclone.pkl"],
 #            ["Cyclone-3", "/localdata/vishnu/facebookresearch/macta/checkpoints/2023-02-25/16-47-42/cyclone.pkl"],
@@ -84,7 +85,7 @@ trace_files: [
     
     #TEST
     # "/localdata/vishnu/SPEC_traces/spectrace_548-2M_548-4M.txt",
-    "/localdata/vishnu/SPEC_traces/spectrace_631-2M_631-4M.txt",
+    "/localdata/erfan/SPEC_traces/spectrace_631-2M_631-4M.txt",
     #"/localdata/vishnu/SPEC_traces/spectrace_638-2M_638-4M.txt",
     #"/localdata/vishnu/SPEC_traces/spectrace_641-2M_641-4M.txt",
     #"/localdata/vishnu/SPEC_traces/spectrace_548-2M_631-2M.txt",

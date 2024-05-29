@@ -187,7 +187,7 @@ def tournament(env,
                     cfg.model_config["output_dim"] = env.action_space.n
                     cfg.model_config["step_dim"] = 64
                     # attacker_params = torch.load(attacker[1], map_location='cuda:2')
-                    attacker_params = torch.load(attacker[1], map_location='cuda:1')
+                    attacker_params = torch.load(attacker[1], map_location='cuda:0')
                     attacker_model = CachePPOTransformerModel(**cfg.model_config)
                     attacker_model.load_state_dict(attacker_params)
                     attacker_model.eval()           

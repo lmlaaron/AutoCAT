@@ -39,6 +39,8 @@ class PPOAgent(PPOAgent):
                  eps_clip: float = 0.2,
                  vf_loss_coeff: float = 0.5,
                  entropy_coeff: float = 0.01,
+                 entropy_decay: bool = False,
+                 defender: bool = False,
                  reward_rescaling: bool = True,
                  advantage_normalization: bool = True,
                  value_clip: bool = True,
@@ -50,6 +52,8 @@ class PPOAgent(PPOAgent):
                          entropy_coeff, reward_rescaling,
                          advantage_normalization, value_clip,
                          learning_starts, push_every_n_steps)
+        self.entropy_decay = entropy_decay
+        self.defender = defender
 
     def set_use_history(self, use_history):
         self.model.set_use_history(use_history)
@@ -72,18 +76,21 @@ class PPOAgent(PPOAgent):
             obs, torch.tensor([self.deterministic_policy]))
         return Action(action, info={"logpi": logpi, "v": v})
 
-    def train(self, num_steps: int) -> Optional[StatsDict]:
+    def train(self, num_steps: int, attacker: int) -> Optional[StatsDict]:
         #self.controller.set_phase(Phase.TRAIN, reset=True)
 
         self.replay_buffer.warm_up(self.learning_starts)
         stats = StatsDict()
 
         console.log(f"Training for num_steps = {num_steps}")
+        #adding this line to make a change to entropy
+        if self.entropy_decay:
+            self.entropy_coeff = self.entropy_coeff * 0.995
         for step in track(range(num_steps), description="Training..."):
             t0 = time.perf_counter()
             batch = self.replay_buffer.sample(self.batch_size)
             t1 = time.perf_counter()
-            step_stats = self._train_step(batch)
+            step_stats = self._train_step(batch, defender = self.defender)
             t2 = time.perf_counter()
             time_stats = {
                 "sample_data_time/ms": (t1 - t0) * 1000.0,
@@ -110,4 +117,5 @@ class PPOAgent(PPOAgent):
         while self.controller.get_count() < num_episodes:
             time.sleep(1)
         stats = self.controller.get_stats()
+        print("trying to find where the stats are comming from 11111")
         return stats
